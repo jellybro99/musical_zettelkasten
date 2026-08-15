@@ -22,7 +22,7 @@ function App() {
       {screen.screen === 'dashboard' ? (
         <SlipDashboard onOpenSlip={openSlip} />
       ) : (
-        <SlipEditor slipId={screen.slipId} />
+        <SlipEditor slipId={screen.slipId} onBack={goToDashboard} />
       )}
     </main>
   )

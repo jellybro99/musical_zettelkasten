@@ -10,9 +10,10 @@ const AUTOSAVE_DELAY_MS = 400
 
 export interface SlipEditorProps {
   slipId: string
+  onBack: () => void
 }
 
-export function SlipEditor({ slipId }: SlipEditorProps) {
+export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
@@ -81,6 +82,9 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
   return (
     <div className="slip-editor-page">
       <div className="slip-editor-transport">
+        <button type="button" className="slip-editor-transport-button" onClick={onBack}>
+          ← Slip-box
+        </button>
         <button type="button" className="slip-editor-transport-button" onClick={handlePlay}>
           Play
         </button>
