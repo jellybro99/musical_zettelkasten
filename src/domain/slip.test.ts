@@ -156,7 +156,7 @@ describe('moveNote', () => {
     expect(result).toEqual(notes)
   })
 
-  it('does not move a note onto another note, leaving state unchanged', () => {
+  it('allows moving a note onto another note without crashing or corrupting state', () => {
     const notes = [
       { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
       { id: 'b', pitch: 64, start: 4, length: 1, velocity: 0.8 },
@@ -164,7 +164,8 @@ describe('moveNote', () => {
 
     const result = moveNote(notes, DEFAULT_GRID, { id: 'a', pitch: 64, start: 4 })
 
-    expect(result).toEqual(notes)
+    expect(result[0]).toMatchObject({ id: 'a', pitch: 64, start: 4 })
+    expect(result[1]).toMatchObject({ id: 'b', pitch: 64, start: 4 })
   })
 })
 
@@ -233,7 +234,7 @@ describe('resizeNote', () => {
     expect(result).toEqual(notes)
   })
 
-  it('does not resize a note into an overlap with another note, leaving state unchanged', () => {
+  it('allows resizing a note through another note without crashing or corrupting state', () => {
     const notes = [
       { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
       { id: 'b', pitch: 60, start: 2, length: 1, velocity: 0.8 },
@@ -241,7 +242,8 @@ describe('resizeNote', () => {
 
     const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 4 })
 
-    expect(result).toEqual(notes)
+    expect(result[0]).toMatchObject({ id: 'a', length: 4 })
+    expect(result[1]).toMatchObject({ id: 'b', pitch: 60, start: 2, length: 1 })
   })
 })
 

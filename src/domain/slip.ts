@@ -61,17 +61,6 @@ export function placeNote(notes: Note[], grid: GridConfig, input: PlaceNoteInput
   return [...notes, { id: crypto.randomUUID(), pitch, start, length, velocity }]
 }
 
-function updateNote(notes: Note[], id: string, update: (note: Note) => Note): Note[] {
-  const target = notes.find((note) => note.id === id)
-  if (!target) return notes
-
-  const updated = update(target)
-  const collides = notes.some((note) => note.id !== target.id && overlaps(updated, note))
-  if (collides) return notes
-
-  return notes.map((note) => (note.id === target.id ? updated : note))
-}
-
 export interface MoveNoteInput {
   id: string
   pitch: number
@@ -79,11 +68,15 @@ export interface MoveNoteInput {
 }
 
 export function moveNote(notes: Note[], grid: GridConfig, input: MoveNoteInput): Note[] {
-  return updateNote(notes, input.id, (note) => ({
-    ...note,
-    pitch: clamp(snapToGrid(input.pitch), grid.lowPitch, grid.highPitch),
-    start: clamp(snapToGrid(input.start), 0, totalSteps(grid) - note.length),
-  }))
+  return notes.map((note) =>
+    note.id === input.id
+      ? {
+          ...note,
+          pitch: clamp(snapToGrid(input.pitch), grid.lowPitch, grid.highPitch),
+          start: clamp(snapToGrid(input.start), 0, totalSteps(grid) - note.length),
+        }
+      : note,
+  )
 }
 
 export interface ResizeNoteInput {
@@ -92,10 +85,11 @@ export interface ResizeNoteInput {
 }
 
 export function resizeNote(notes: Note[], grid: GridConfig, input: ResizeNoteInput): Note[] {
-  return updateNote(notes, input.id, (note) => ({
-    ...note,
-    length: clamp(snapToGrid(input.length), MIN_NOTE_LENGTH, totalSteps(grid) - note.start),
-  }))
+  return notes.map((note) =>
+    note.id === input.id
+      ? { ...note, length: clamp(snapToGrid(input.length), MIN_NOTE_LENGTH, totalSteps(grid) - note.start) }
+      : note,
+  )
 }
 
 export function deleteNote(notes: Note[], id: string): Note[] {
