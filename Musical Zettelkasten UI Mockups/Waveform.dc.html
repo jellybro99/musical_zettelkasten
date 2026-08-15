@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/classical-e9e1c57f-1aaa-41d1-b072-2b3572c326c9/styles.css">
+</helmet>
+<svg width="100%" height="{{ vh }}" viewBox="0 0 {{ vbw }} {{ vbh }}" preserveAspectRatio="none" style="display:block">
+  <sc-for list="{{ bars }}" as="b" hint-placeholder-count="48">
+    <rect x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="0.5" fill="{{ b.fill }}"></rect>
+  </sc-for>
+  <sc-if value="{{ hasPlayhead }}" hint-placeholder-val="{{ false }}">
+    <rect x="{{ playheadX }}" y="0" width="0.9" height="{{ vbh }}" fill="var(--color-text)"></rect>
+  </sc-if>
+</svg>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:260,&quot;height&quot;:42},&quot;seed&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;},&quot;height&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;},&quot;bars&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:56,&quot;tsType&quot;:&quot;number&quot;},&quot;playhead&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:-1,&quot;tsType&quot;:&quot;number&quot;},&quot;color&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;dim&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const n = Math.max(4, (p.bars ?? 56) | 0);
+    const height = (p.height ?? 40) | 0;
+    const seed = ((p.seed ?? 1) | 0) || 1;
+    const playhead = p.playhead != null ? Number(p.playhead) : -1;
+    const base = p.color || 'var(--color-accent)';
+    const dim = p.dim || 'color-mix(in srgb, var(--color-text) 20%, transparent)';
+    let s = (seed * 2654435761) % 4294967296 || 1;
+    const rnd = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+    const vbh = 100, step = 2, bw = 1.15;
+    const bars = [];
+    for (let i = 0; i < n; i++) {
+      const r = rnd();
+      // gentle musical envelope + occasional transient
+      const env = 0.55 + 0.45 * Math.sin((i / n) * Math.PI * (1.5 + (seed % 3)));
+      let amp = (0.14 + 0.86 * Math.pow(r, 1.5)) * (0.6 + 0.4 * env);
+      if (rnd() > 0.93) amp = Math.min(1, amp + 0.35); // transient
+      const h = Math.max(2, amp * vbh);
+      const played = playhead >= 0 && (i / n) <= playhead;
+      bars.push({ x: (i * step).toFixed(2), y: ((vbh - h) / 2).toFixed(2), w: bw, h: h.toFixed(2), fill: played ? base : dim });
+    }
+    return {
+      vh: height, vbw: n * step, vbh, bars,
+      hasPlayhead: playhead >= 0,
+      playheadX: playhead >= 0 ? (playhead * n * step).toFixed(2) : 0,
+    };
+  }
+}
+</script>
+</body>
+</html>
