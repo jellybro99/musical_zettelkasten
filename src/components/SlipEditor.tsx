@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type UpdateSlipMetadataInput } from '../domain/slip'
-import { loadSlip, saveSlip } from '../persistence/slipStorage'
+import { getSlip, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
 
 const AUTOSAVE_DELAY_MS = 400
 
-export function SlipEditor() {
-  const [slip, setSlip] = useState(() => createSlip())
+export interface SlipEditorProps {
+  slipId: string
+}
+
+export function SlipEditor({ slipId }: SlipEditorProps) {
+  const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
 
@@ -19,7 +23,7 @@ export function SlipEditor() {
 
   useEffect(() => {
     let cancelled = false
-    loadSlip()
+    getSlip(slipId)
       .then((saved) => {
         if (cancelled) return
         if (saved) setSlip(saved)
@@ -33,7 +37,7 @@ export function SlipEditor() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [slipId])
 
   useEffect(() => {
     if (!isLoaded) return

@@ -101,6 +101,8 @@ export const SLIP_KINDS = ['Loop', 'One-shot', 'Phrase', 'Texture'] as const
 export type SlipKind = (typeof SLIP_KINDS)[number]
 
 export interface Slip {
+  id: string
+  createdAt: number
   notes: Note[]
   grid: GridConfig
   title: string
@@ -114,6 +116,8 @@ const MIN_TEMPO = 1
 
 export function createSlip(overrides?: Partial<Slip>): Slip {
   return {
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
     notes: [],
     grid: DEFAULT_GRID,
     title: 'Untitled slip',

@@ -319,6 +319,25 @@ describe('createSlip', () => {
     expect(slip.kind).toBe('Loop')
     expect(slip.tempo).toBe(120)
   })
+
+  it('assigns an id', () => {
+    const slip = createSlip()
+
+    expect(slip.id).toEqual(expect.any(String))
+  })
+
+  it('assigns each slip a unique id', () => {
+    const first = createSlip()
+    const second = createSlip()
+
+    expect(first.id).not.toBe(second.id)
+  })
+
+  it('sets createdAt', () => {
+    const slip = createSlip()
+
+    expect(slip.createdAt).toEqual(expect.any(Number))
+  })
 })
 
 describe('updateSlipMetadata', () => {
