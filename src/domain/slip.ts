@@ -155,3 +155,7 @@ export function addTag(slip: Slip, tag: string): Slip {
 export function removeTag(slip: Slip, tag: string): Slip {
   return { ...slip, tags: slip.tags.filter((existing) => existing !== tag) }
 }
+
+export function formatSlipMeta(slip: Slip): string {
+  return `${slip.tempo} BPM · ${slip.key} · ${slip.grid.bars} bars`
+}

@@ -1,0 +1,55 @@
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.top-nav-wordmark {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+}
+
+.top-nav-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.top-nav-tab {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.top-nav-tab:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.top-nav-tab:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.top-nav-tab:disabled {
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
+  cursor: default;
+}
+
+.top-nav-tab-active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}

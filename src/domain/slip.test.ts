@@ -4,6 +4,7 @@ import {
   createSlip,
   DEFAULT_GRID,
   deleteNote,
+  formatSlipMeta,
   moveNote,
   placeNote,
   removeTag,
@@ -482,5 +483,13 @@ describe('removeTag', () => {
     removeTag(slip, 'keys')
 
     expect(slip.tags).toEqual(['keys', 'rhodes'])
+  })
+})
+
+describe('formatSlipMeta', () => {
+  it('joins tempo, key, and bar count into one metadata line', () => {
+    const slip = createSlip({ tempo: 96, key: 'E min', grid: { ...DEFAULT_GRID, bars: 4 } })
+
+    expect(formatSlipMeta(slip)).toBe('96 BPM · E min · 4 bars')
   })
 })

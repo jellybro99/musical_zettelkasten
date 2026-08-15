@@ -1,36 +1,29 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
-import { createSlip } from './domain/slip'
-import { listSlips, saveSlip } from './persistence/slipStorage'
+import { TopNav } from './components/TopNav'
+
+type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 
 function App() {
-  const [slipId, setSlipId] = useState<string | null>(null)
+  const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
 
-  useEffect(() => {
-    let cancelled = false
-    listSlips()
-      .then(async (slips) => {
-        if (cancelled) return
-        if (slips.length > 0) {
-          setSlipId(slips[0].id)
-          return
-        }
-        const slip = createSlip()
-        await saveSlip(slip)
-        if (!cancelled) setSlipId(slip.id)
-      })
-      .catch((error) => {
-        console.error('Failed to load slips', error)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  function openSlip(slipId: string) {
+    setScreen({ screen: 'editor', slipId })
+  }
+
+  function goToDashboard() {
+    setScreen({ screen: 'dashboard' })
+  }
 
   return (
     <main>
-      <h1>MIDI Editor</h1>
-      {slipId && <SlipEditor slipId={slipId} />}
+      <TopNav onSlipBoxClick={goToDashboard} />
+      {screen.screen === 'dashboard' ? (
+        <SlipDashboard onOpenSlip={openSlip} />
+      ) : (
+        <SlipEditor slipId={screen.slipId} />
+      )}
     </main>
   )
 }
