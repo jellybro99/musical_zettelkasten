@@ -1,17 +1,49 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type UpdateSlipMetadataInput } from '../domain/slip'
+import { loadSlip, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
 
+const AUTOSAVE_DELAY_MS = 400
+
 export function SlipEditor() {
   const [slip, setSlip] = useState(() => createSlip())
+  const [isLoaded, setIsLoaded] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
 
   useEffect(() => {
     return () => engineRef.current?.stop()
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    loadSlip()
+      .then((saved) => {
+        if (cancelled) return
+        if (saved) setSlip(saved)
+      })
+      .catch((error) => {
+        console.error('Failed to load saved slip', error)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoaded(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return
+    const timeout = setTimeout(() => {
+      saveSlip(slip).catch((error) => {
+        console.error('Failed to autosave slip', error)
+      })
+    }, AUTOSAVE_DELAY_MS)
+    return () => clearTimeout(timeout)
+  }, [slip, isLoaded])
 
   function getEngine(): PlaybackEngine {
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
