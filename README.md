@@ -28,6 +28,10 @@ Full spec: [`.scratch/midi-editor/spec.md`](.scratch/midi-editor/spec.md). Imple
 - **Playback via a simple oscillator.** A basic sine/triangle synth confirms notes are audible, timed, and pitched correctly. A nicer instrument sound (e.g. the mock's "Rhodes") is a later swap of the Web Audio adapter, not a structural change.
 - **Full metadata now.** Title, tempo, key, kind, and tags are all editable in the editor from the start, even without a slip-box UI to browse by them yet — cheaper to add now than to reshape the data model later.
 
+### Future ideas
+
+- **Click a row's note name to preview its pitch.** Pressing the piano roll's row label (e.g. `C4`) should play that note through the playback synth, like pressing a key on a real keyboard, so a musician can find a pitch by ear while placing notes.
+
 ## Stack
 
 Vite + React + TypeScript, no backend.

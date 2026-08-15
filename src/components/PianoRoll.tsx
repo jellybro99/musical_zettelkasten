@@ -68,8 +68,8 @@ export function PianoRoll() {
           className="piano-roll-note"
           style={{
             top: (grid.highPitch - note.pitch) * ROW_HEIGHT + 2,
-            left: LABEL_WIDTH + note.start * COL_WIDTH,
-            width: note.length * COL_WIDTH - 2,
+            left: LABEL_WIDTH + note.start * COL_WIDTH + 2,
+            width: note.length * COL_WIDTH - 4,
             height: ROW_HEIGHT - 4,
           }}
         />
