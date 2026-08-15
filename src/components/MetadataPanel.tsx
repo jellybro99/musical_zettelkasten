@@ -1,3 +1,4 @@
+import { Shuffle } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
@@ -41,7 +42,7 @@ export function MetadataPanel({ slip, onMetadataChange, onAddTag, onRemoveTag }:
             onClick={handleRandomizeTitle}
             aria-label="Randomize title"
           >
-            🎲
+            <Shuffle size={14} />
           </button>
         </div>
       </label>
