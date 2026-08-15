@@ -77,10 +77,10 @@ export function SlipEditor() {
   return (
     <div className="slip-editor-page">
       <div className="slip-editor-transport">
-        <button type="button" onClick={handlePlay}>
+        <button type="button" className="slip-editor-transport-button" onClick={handlePlay}>
           Play
         </button>
-        <button type="button" onClick={handleStop}>
+        <button type="button" className="slip-editor-transport-button" onClick={handleStop}>
           Stop
         </button>
       </div>
