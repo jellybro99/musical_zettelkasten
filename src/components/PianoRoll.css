@@ -1,0 +1,71 @@
+.piano-roll {
+  position: relative;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.piano-roll-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-divider) 45%, transparent);
+}
+
+.piano-roll-row.is-black {
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
+}
+
+.piano-roll-row-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-divider);
+  pointer-events: none;
+}
+
+.piano-roll-cell {
+  position: absolute;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--color-divider) 45%, transparent);
+  cursor: pointer;
+}
+
+.piano-roll-cell.is-beat-start {
+  border-right-color: color-mix(in srgb, var(--color-divider) 90%, transparent);
+}
+
+.piano-roll-cell.is-bar-start {
+  border-right: 1.5px solid var(--color-neutral-400);
+}
+
+.piano-roll-cell:hover {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.piano-roll-cell:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.piano-roll-note {
+  position: absolute;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--color-accent) 70%, var(--color-bg));
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
