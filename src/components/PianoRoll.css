@@ -41,15 +41,22 @@
   padding: 0;
   background: transparent;
   border: 0;
-  border-right: 1px solid color-mix(in srgb, var(--color-divider) 45%, transparent);
   cursor: pointer;
 }
 
-.piano-roll-cell.is-beat-start {
-  border-right-color: color-mix(in srgb, var(--color-divider) 90%, transparent);
+.piano-roll-cell.line-minor {
+  border-left: 1px solid color-mix(in srgb, var(--color-divider) 45%, transparent);
 }
 
-.piano-roll-cell.is-bar-start {
+.piano-roll-cell.line-beat {
+  border-left: 1px solid color-mix(in srgb, var(--color-divider) 90%, transparent);
+}
+
+.piano-roll-cell.line-bar {
+  border-left: 1.5px solid var(--color-neutral-400);
+}
+
+.piano-roll-cell.line-end {
   border-right: 1.5px solid var(--color-neutral-400);
 }
 

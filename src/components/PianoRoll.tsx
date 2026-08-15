@@ -16,6 +16,12 @@ function isBlackKey(pitch: number): boolean {
   return PITCH_CLASSES[pitch % 12].includes('#')
 }
 
+function stepLineClass(step: number, grid: typeof DEFAULT_GRID): string {
+  if (step % grid.stepsPerBar === 0) return 'line-bar'
+  if (step % 4 === 0) return 'line-beat'
+  return 'line-minor'
+}
+
 export function PianoRoll() {
   const [notes, setNotes] = useState<Note[]>([])
   const grid = DEFAULT_GRID
@@ -48,7 +54,7 @@ export function PianoRoll() {
             <button
               key={step}
               type="button"
-              className={`piano-roll-cell${step % grid.stepsPerBar === 0 ? ' is-bar-start' : ''}${step % 4 === 0 ? ' is-beat-start' : ''}`}
+              className={`piano-roll-cell ${stepLineClass(step, grid)}${step === steps - 1 ? ' line-end' : ''}`}
               style={{ left: LABEL_WIDTH + step * COL_WIDTH, width: COL_WIDTH, height: ROW_HEIGHT }}
               onClick={() => handleCellClick(pitch, step)}
               aria-label={`Place note at ${pitchName(pitch)}, step ${step + 1}`}
