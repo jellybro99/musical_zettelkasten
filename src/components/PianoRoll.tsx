@@ -1,5 +1,13 @@
-import { useState } from 'react'
-import { DEFAULT_GRID, placeNote, totalSteps, type Note } from '../domain/slip'
+import { useEffect, useRef, useState } from 'react'
+import {
+  DEFAULT_GRID,
+  deleteNote,
+  moveNote,
+  placeNote,
+  resizeNote,
+  totalSteps,
+  type Note,
+} from '../domain/slip'
 import './PianoRoll.css'
 
 const ROW_HEIGHT = 26
@@ -22,8 +30,14 @@ function stepLineClass(step: number, grid: typeof DEFAULT_GRID): string {
   return 'line-minor'
 }
 
+type DragState =
+  | { type: 'move'; id: string; startX: number; startY: number; origPitch: number; origStart: number }
+  | { type: 'resize'; id: string; startX: number; origLength: number }
+
 export function PianoRoll() {
   const [notes, setNotes] = useState<Note[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const dragState = useRef<DragState | null>(null)
   const grid = DEFAULT_GRID
   const steps = totalSteps(grid)
 
@@ -35,6 +49,74 @@ export function PianoRoll() {
   function handleCellClick(pitch: number, start: number) {
     setNotes((current) => placeNote(current, grid, { pitch, start }))
   }
+
+  function handleNoteMouseDown(event: React.MouseEvent, note: Note) {
+    event.stopPropagation()
+    setSelectedId(note.id)
+    dragState.current = {
+      type: 'move',
+      id: note.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      origPitch: note.pitch,
+      origStart: note.start,
+    }
+  }
+
+  function handleResizeHandleMouseDown(event: React.MouseEvent, note: Note) {
+    event.stopPropagation()
+    setSelectedId(note.id)
+    dragState.current = { type: 'resize', id: note.id, startX: event.clientX, origLength: note.length }
+  }
+
+  useEffect(() => {
+    function handleMouseMove(event: MouseEvent) {
+      const drag = dragState.current
+      if (!drag) return
+
+      if (drag.type === 'move') {
+        const deltaStart = Math.round((event.clientX - drag.startX) / COL_WIDTH)
+        const deltaPitch = -Math.round((event.clientY - drag.startY) / ROW_HEIGHT)
+        setNotes((current) =>
+          moveNote(current, grid, {
+            id: drag.id,
+            pitch: drag.origPitch + deltaPitch,
+            start: drag.origStart + deltaStart,
+          }),
+        )
+      } else {
+        const deltaLength = Math.round((event.clientX - drag.startX) / COL_WIDTH)
+        setNotes((current) =>
+          resizeNote(current, grid, { id: drag.id, length: drag.origLength + deltaLength }),
+        )
+      }
+    }
+
+    function handleMouseUp() {
+      dragState.current = null
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [grid])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!selectedId) return
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return
+
+      event.preventDefault()
+      setNotes((current) => deleteNote(current, selectedId))
+      setSelectedId(null)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedId])
 
   return (
     <div
@@ -65,14 +147,20 @@ export function PianoRoll() {
       {notes.map((note) => (
         <div
           key={note.id}
-          className="piano-roll-note"
+          className={`piano-roll-note${note.id === selectedId ? ' is-selected' : ''}`}
           style={{
             top: (grid.highPitch - note.pitch) * ROW_HEIGHT + 2,
             left: LABEL_WIDTH + note.start * COL_WIDTH + 2,
             width: note.length * COL_WIDTH - 4,
             height: ROW_HEIGHT - 4,
           }}
-        />
+          onMouseDown={(event) => handleNoteMouseDown(event, note)}
+        >
+          <div
+            className="piano-roll-note-handle"
+            onMouseDown={(event) => handleResizeHandleMouseDown(event, note)}
+          />
+        </div>
       ))}
     </div>
   )

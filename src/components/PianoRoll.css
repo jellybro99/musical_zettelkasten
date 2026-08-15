@@ -74,5 +74,19 @@
   border-radius: 3px;
   background: color-mix(in srgb, var(--color-accent) 70%, var(--color-bg));
   box-shadow: var(--shadow-sm);
-  pointer-events: none;
+  cursor: grab;
+}
+
+.piano-roll-note.is-selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.piano-roll-note-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
 }

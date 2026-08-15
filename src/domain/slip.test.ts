@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_GRID, placeNote, snapToGrid, totalSteps } from './slip'
+import { DEFAULT_GRID, deleteNote, moveNote, placeNote, resizeNote, snapToGrid, totalSteps } from './slip'
 
 describe('snapToGrid', () => {
   it('rounds a value down to the nearest step', () => {
@@ -95,5 +95,190 @@ describe('placeNote', () => {
     const notes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0, length: 4 })
 
     expect(notes[0].length).toBe(4)
+  })
+})
+
+describe('moveNote', () => {
+  it('moves a note to the given pitch and start', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = moveNote(notes, DEFAULT_GRID, { id: 'a', pitch: 64, start: 4 })
+
+    expect(result).toMatchObject([{ id: 'a', pitch: 64, start: 4, length: 1, velocity: 0.8 }])
+  })
+
+  it('snaps a fractional pitch and start to the grid', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = moveNote(notes, DEFAULT_GRID, { id: 'a', pitch: 64.4, start: 3.6 })
+
+    expect(result[0]).toMatchObject({ pitch: 64, start: 4 })
+  })
+
+  it('clamps pitch and start within grid bounds', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = moveNote(notes, DEFAULT_GRID, {
+      id: 'a',
+      pitch: DEFAULT_GRID.highPitch + 10,
+      start: totalSteps(DEFAULT_GRID) + 10,
+    })
+
+    expect(result[0].pitch).toBe(DEFAULT_GRID.highPitch)
+    expect(result[0].start).toBe(totalSteps(DEFAULT_GRID) - 1)
+  })
+
+  it('does not mutate the input notes array', () => {
+    const original = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = moveNote(original, DEFAULT_GRID, { id: 'a', pitch: 64, start: 4 })
+
+    expect(original[0]).toMatchObject({ pitch: 60, start: 0 })
+    expect(result[0]).toMatchObject({ pitch: 64, start: 4 })
+  })
+
+  it('leaves other notes untouched', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: 62, start: 2, length: 1, velocity: 0.8 },
+    ]
+
+    const result = moveNote(notes, DEFAULT_GRID, { id: 'a', pitch: 64, start: 4 })
+
+    expect(result[1]).toMatchObject({ id: 'b', pitch: 62, start: 2 })
+  })
+
+  it('is a safe no-op when moving a note that does not exist', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = moveNote(notes, DEFAULT_GRID, { id: 'missing', pitch: 64, start: 4 })
+
+    expect(result).toEqual(notes)
+  })
+
+  it('does not move a note onto another note, leaving state unchanged', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: 64, start: 4, length: 1, velocity: 0.8 },
+    ]
+
+    const result = moveNote(notes, DEFAULT_GRID, { id: 'a', pitch: 64, start: 4 })
+
+    expect(result).toEqual(notes)
+  })
+})
+
+describe('resizeNote', () => {
+  it('changes a note length', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 4 })
+
+    expect(result[0].length).toBe(4)
+  })
+
+  it('snaps a fractional length to the grid', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 3.6 })
+
+    expect(result[0].length).toBe(4)
+  })
+
+  it('clamps a zero or negative length to the minimum length', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 4, velocity: 0.8 }]
+
+    const zero = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 0 })
+    const negative = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: -5 })
+
+    expect(zero[0].length).toBe(1)
+    expect(negative[0].length).toBe(1)
+  })
+
+  it('clamps a length that would run past the end of the grid', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: totalSteps(DEFAULT_GRID) - 2, length: 1, velocity: 0.8 },
+    ]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 10 })
+
+    expect(result[0].length).toBe(2)
+  })
+
+  it('does not mutate the input notes array', () => {
+    const original = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = resizeNote(original, DEFAULT_GRID, { id: 'a', length: 4 })
+
+    expect(original[0].length).toBe(1)
+    expect(result[0].length).toBe(4)
+  })
+
+  it('leaves other notes untouched', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: 62, start: 2, length: 1, velocity: 0.8 },
+    ]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 4 })
+
+    expect(result[1]).toMatchObject({ id: 'b', pitch: 62, start: 2, length: 1 })
+  })
+
+  it('is a safe no-op when resizing a note that does not exist', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'missing', length: 4 })
+
+    expect(result).toEqual(notes)
+  })
+
+  it('does not resize a note into an overlap with another note, leaving state unchanged', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: 60, start: 2, length: 1, velocity: 0.8 },
+    ]
+
+    const result = resizeNote(notes, DEFAULT_GRID, { id: 'a', length: 4 })
+
+    expect(result).toEqual(notes)
+  })
+})
+
+describe('deleteNote', () => {
+  it('removes the note with the given id', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = deleteNote(notes, 'a')
+
+    expect(result).toHaveLength(0)
+  })
+
+  it('leaves other notes untouched', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: 62, start: 2, length: 1, velocity: 0.8 },
+    ]
+
+    const result = deleteNote(notes, 'a')
+
+    expect(result).toEqual([notes[1]])
+  })
+
+  it('does not mutate the input notes array', () => {
+    const original = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = deleteNote(original, 'a')
+
+    expect(original).toHaveLength(1)
+    expect(result).toHaveLength(0)
+  })
+
+  it('is a safe no-op when deleting a note that does not exist', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = deleteNote(notes, 'missing')
+
+    expect(result).toEqual(notes)
   })
 })
