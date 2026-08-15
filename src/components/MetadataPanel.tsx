@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
+import { generateSlipTitle } from '../domain/titleGenerator'
 import './MetadataPanel.css'
 
 export interface MetadataPanelProps {
@@ -19,16 +20,30 @@ export function MetadataPanel({ slip, onMetadataChange, onAddTag, onRemoveTag }:
     setTagDraft('')
   }
 
+  function handleRandomizeTitle() {
+    onMetadataChange({ title: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
+  }
+
   return (
     <div className="metadata-panel">
       <label className="metadata-field">
         <span className="metadata-label">Title</span>
-        <input
-          type="text"
-          className="metadata-input"
-          value={slip.title}
-          onChange={(event) => onMetadataChange({ title: event.target.value })}
-        />
+        <div className="metadata-title-row">
+          <input
+            type="text"
+            className="metadata-input"
+            value={slip.title}
+            onChange={(event) => onMetadataChange({ title: event.target.value })}
+          />
+          <button
+            type="button"
+            className="metadata-title-randomize"
+            onClick={handleRandomizeTitle}
+            aria-label="Randomize title"
+          >
+            🎲
+          </button>
+        </div>
       </label>
 
       <label className="metadata-field">
