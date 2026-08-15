@@ -3,3 +3,9 @@
   align-items: flex-start;
   gap: 24px;
 }
+
+.slip-editor-transport {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
