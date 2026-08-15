@@ -37,10 +37,10 @@
   position: relative;
 }
 
+.slip-card-play,
 .slip-card-delete {
   position: absolute;
   top: 10px;
-  right: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,9 +56,29 @@
   transition: opacity 0.15s ease;
 }
 
+.slip-card-play {
+  right: 44px;
+}
+
+.slip-card-delete {
+  right: 10px;
+}
+
+.slip-card-wrapper:hover .slip-card-play,
+.slip-card-wrapper:focus-within .slip-card-play,
 .slip-card-wrapper:hover .slip-card-delete,
 .slip-card-wrapper:focus-within .slip-card-delete {
   opacity: 1;
+}
+
+.slip-card-play:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.slip-card-play:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
 }
 
 .slip-card-delete:hover {

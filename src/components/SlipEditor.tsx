@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { Play, Save, Square, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type UpdateSlipMetadataInput } from '../domain/slip'
@@ -17,8 +17,11 @@ export interface SlipEditorProps {
 export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isPersisted, setIsPersisted] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pristineJsonRef = useRef<string | null>(null)
+  if (pristineJsonRef.current === null) pristineJsonRef.current = JSON.stringify(slip)
 
   useEffect(() => {
     return () => engineRef.current?.stop()
@@ -29,7 +32,11 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
     getSlip(slipId)
       .then((saved) => {
         if (cancelled) return
-        if (saved) setSlip(saved)
+        if (saved) {
+          setSlip(saved)
+          pristineJsonRef.current = JSON.stringify(saved)
+          setIsPersisted(true)
+        }
       })
       .catch((error) => {
         console.error('Failed to load saved slip', error)
@@ -43,7 +50,8 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
   }, [slipId])
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded || !isPersisted) return
+    if (JSON.stringify(slip) === pristineJsonRef.current) return
     const timeout = setTimeout(() => {
       saveSlip(slip).catch((error) => {
         console.error('Failed to autosave slip', error)
@@ -51,7 +59,7 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
     }, AUTOSAVE_DELAY_MS)
     autosaveTimeoutRef.current = timeout
     return () => clearTimeout(timeout)
-  }, [slip, isLoaded])
+  }, [slip, isLoaded, isPersisted])
 
   function getEngine(): PlaybackEngine {
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
@@ -82,6 +90,17 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
     setSlip((current) => removeTag(current, tag))
   }
 
+  async function handleSave() {
+    try {
+      await saveSlip(slip)
+    } catch (error) {
+      console.error('Failed to save slip', error)
+      return
+    }
+    pristineJsonRef.current = JSON.stringify(slip)
+    setIsPersisted(true)
+  }
+
   async function handleDelete() {
     if (!window.confirm(`Delete "${slip.title}"? This cannot be undone.`)) return
     if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current)
@@ -101,11 +120,19 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
           ← Slip-box
         </button>
         <button type="button" className="slip-editor-transport-button" onClick={handlePlay}>
+          <Play size={14} />
           Play
         </button>
         <button type="button" className="slip-editor-transport-button" onClick={handleStop}>
+          <Square size={14} />
           Stop
         </button>
+        {!isPersisted && (
+          <button type="button" className="slip-editor-transport-button" onClick={handleSave}>
+            <Save size={14} />
+            Save
+          </button>
+        )}
       </div>
       <div className="slip-editor">
         <MetadataPanel

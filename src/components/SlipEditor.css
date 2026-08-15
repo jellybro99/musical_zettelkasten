@@ -11,6 +11,9 @@
 }
 
 .slip-editor-transport-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   padding: 7px 14px;
   border: 1px solid var(--color-divider);
