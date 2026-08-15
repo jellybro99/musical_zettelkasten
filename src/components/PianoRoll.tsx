@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  DEFAULT_GRID,
-  deleteNote,
-  moveNote,
-  placeNote,
-  resizeNote,
-  totalSteps,
-  type Note,
-} from '../domain/slip'
+import { deleteNote, moveNote, placeNote, resizeNote, totalSteps, type GridConfig, type Note } from '../domain/slip'
 import './PianoRoll.css'
 
 const ROW_HEIGHT = 26
@@ -24,7 +16,7 @@ function isBlackKey(pitch: number): boolean {
   return PITCH_CLASSES[pitch % 12].includes('#')
 }
 
-function stepLineClass(step: number, grid: typeof DEFAULT_GRID): string {
+function stepLineClass(step: number, grid: GridConfig): string {
   if (step % grid.stepsPerBar === 0) return 'line-bar'
   if (step % 4 === 0) return 'line-beat'
   return 'line-minor'
@@ -34,11 +26,15 @@ type DragState =
   | { type: 'move'; id: string; startX: number; startY: number; origPitch: number; origStart: number }
   | { type: 'resize'; id: string; startX: number; origLength: number }
 
-export function PianoRoll() {
-  const [notes, setNotes] = useState<Note[]>([])
+export interface PianoRollProps {
+  notes: Note[]
+  grid: GridConfig
+  onNotesChange: (updater: (notes: Note[]) => Note[]) => void
+}
+
+export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const dragState = useRef<DragState | null>(null)
-  const grid = DEFAULT_GRID
   const steps = totalSteps(grid)
 
   const pitches: number[] = []
@@ -47,7 +43,7 @@ export function PianoRoll() {
   }
 
   function handleCellClick(pitch: number, start: number) {
-    setNotes((current) => placeNote(current, grid, { pitch, start }))
+    onNotesChange((current) => placeNote(current, grid, { pitch, start }))
   }
 
   function handleNoteMouseDown(event: React.MouseEvent, note: Note) {
@@ -77,7 +73,7 @@ export function PianoRoll() {
       if (drag.type === 'move') {
         const deltaStart = Math.round((event.clientX - drag.startX) / COL_WIDTH)
         const deltaPitch = -Math.round((event.clientY - drag.startY) / ROW_HEIGHT)
-        setNotes((current) =>
+        onNotesChange((current) =>
           moveNote(current, grid, {
             id: drag.id,
             pitch: drag.origPitch + deltaPitch,
@@ -86,7 +82,7 @@ export function PianoRoll() {
         )
       } else {
         const deltaLength = Math.round((event.clientX - drag.startX) / COL_WIDTH)
-        setNotes((current) =>
+        onNotesChange((current) =>
           resizeNote(current, grid, { id: drag.id, length: drag.origLength + deltaLength }),
         )
       }
@@ -102,7 +98,7 @@ export function PianoRoll() {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [grid])
+  }, [grid, onNotesChange])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -110,13 +106,13 @@ export function PianoRoll() {
       if (event.key !== 'Delete' && event.key !== 'Backspace') return
 
       event.preventDefault()
-      setNotes((current) => deleteNote(current, selectedId))
+      onNotesChange((current) => deleteNote(current, selectedId))
       setSelectedId(null)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedId])
+  }, [selectedId, onNotesChange])
 
   return (
     <div

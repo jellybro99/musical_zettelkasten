@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_GRID, deleteNote, moveNote, placeNote, resizeNote, snapToGrid, totalSteps } from './slip'
+import {
+  addTag,
+  createSlip,
+  DEFAULT_GRID,
+  deleteNote,
+  moveNote,
+  placeNote,
+  removeTag,
+  resizeNote,
+  snapToGrid,
+  totalSteps,
+  updateSlipMetadata,
+} from './slip'
 
 describe('snapToGrid', () => {
   it('rounds a value down to the nearest step', () => {
@@ -282,5 +294,174 @@ describe('deleteNote', () => {
     const result = deleteNote(notes, 'missing')
 
     expect(result).toEqual(notes)
+  })
+})
+
+describe('createSlip', () => {
+  it('creates a slip with default metadata and an empty note list', () => {
+    const slip = createSlip()
+
+    expect(slip).toMatchObject({
+      notes: [],
+      grid: DEFAULT_GRID,
+      title: 'Untitled slip',
+      tempo: 120,
+      key: '',
+      kind: 'Phrase',
+      tags: [],
+    })
+  })
+
+  it('applies overrides on top of the defaults', () => {
+    const slip = createSlip({ title: 'Rhodes Chord Stab', kind: 'Loop' })
+
+    expect(slip.title).toBe('Rhodes Chord Stab')
+    expect(slip.kind).toBe('Loop')
+    expect(slip.tempo).toBe(120)
+  })
+})
+
+describe('updateSlipMetadata', () => {
+  it('updates the title', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { title: 'New name' })
+
+    expect(result.title).toBe('New name')
+  })
+
+  it('updates the tempo, snapped to a whole number', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { tempo: 128.4 })
+
+    expect(result.tempo).toBe(128)
+  })
+
+  it('clamps a non-positive tempo up to the minimum', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { tempo: 0 })
+
+    expect(result.tempo).toBe(1)
+  })
+
+  it('updates the key', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { key: 'E min' })
+
+    expect(result.key).toBe('E min')
+  })
+
+  it('updates the kind', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { kind: 'Texture' })
+
+    expect(result.kind).toBe('Texture')
+  })
+
+  it('leaves fields not present in the input untouched', () => {
+    const slip = createSlip({ title: 'Keep me', tempo: 90 })
+
+    const result = updateSlipMetadata(slip, { key: 'C' })
+
+    expect(result.title).toBe('Keep me')
+    expect(result.tempo).toBe(90)
+  })
+
+  it('does not mutate the input slip', () => {
+    const slip = createSlip({ title: 'Original' })
+
+    updateSlipMetadata(slip, { title: 'Changed' })
+
+    expect(slip.title).toBe('Original')
+  })
+
+  it('does not touch the notes or grid', () => {
+    const notes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const slip = createSlip({ notes })
+
+    const result = updateSlipMetadata(slip, { title: 'Renamed' })
+
+    expect(result.notes).toBe(notes)
+    expect(result.grid).toBe(DEFAULT_GRID)
+  })
+})
+
+describe('addTag', () => {
+  it('adds a tag to an untagged slip', () => {
+    const slip = createSlip()
+
+    const result = addTag(slip, 'keys')
+
+    expect(result.tags).toEqual(['keys'])
+  })
+
+  it('appends to existing tags rather than replacing them', () => {
+    const slip = createSlip({ tags: ['keys'] })
+
+    const result = addTag(slip, 'rhodes')
+
+    expect(result.tags).toEqual(['keys', 'rhodes'])
+  })
+
+  it('trims whitespace from the tag', () => {
+    const slip = createSlip()
+
+    const result = addTag(slip, '  chord  ')
+
+    expect(result.tags).toEqual(['chord'])
+  })
+
+  it('does not add a duplicate tag', () => {
+    const slip = createSlip({ tags: ['keys'] })
+
+    const result = addTag(slip, 'keys')
+
+    expect(result.tags).toEqual(['keys'])
+  })
+
+  it('is a safe no-op for a blank tag', () => {
+    const slip = createSlip({ tags: ['keys'] })
+
+    const result = addTag(slip, '   ')
+
+    expect(result.tags).toEqual(['keys'])
+  })
+
+  it('does not mutate the input slip', () => {
+    const slip = createSlip({ tags: ['keys'] })
+
+    addTag(slip, 'rhodes')
+
+    expect(slip.tags).toEqual(['keys'])
+  })
+})
+
+describe('removeTag', () => {
+  it('removes the given tag', () => {
+    const slip = createSlip({ tags: ['keys', 'rhodes'] })
+
+    const result = removeTag(slip, 'keys')
+
+    expect(result.tags).toEqual(['rhodes'])
+  })
+
+  it('is a safe no-op when the tag does not exist', () => {
+    const slip = createSlip({ tags: ['keys'] })
+
+    const result = removeTag(slip, 'missing')
+
+    expect(result.tags).toEqual(['keys'])
+  })
+
+  it('does not mutate the input slip', () => {
+    const slip = createSlip({ tags: ['keys', 'rhodes'] })
+
+    removeTag(slip, 'keys')
+
+    expect(slip.tags).toEqual(['keys', 'rhodes'])
   })
 })

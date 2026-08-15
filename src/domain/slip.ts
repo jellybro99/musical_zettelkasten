@@ -95,3 +95,59 @@ export function resizeNote(notes: Note[], grid: GridConfig, input: ResizeNoteInp
 export function deleteNote(notes: Note[], id: string): Note[] {
   return notes.filter((note) => note.id !== id)
 }
+
+export const SLIP_KINDS = ['Loop', 'One-shot', 'Phrase', 'Texture'] as const
+
+export type SlipKind = (typeof SLIP_KINDS)[number]
+
+export interface Slip {
+  notes: Note[]
+  grid: GridConfig
+  title: string
+  tempo: number
+  key: string
+  kind: SlipKind
+  tags: string[]
+}
+
+const MIN_TEMPO = 1
+
+export function createSlip(overrides?: Partial<Slip>): Slip {
+  return {
+    notes: [],
+    grid: DEFAULT_GRID,
+    title: 'Untitled slip',
+    tempo: 120,
+    key: '',
+    kind: 'Phrase',
+    tags: [],
+    ...overrides,
+  }
+}
+
+export interface UpdateSlipMetadataInput {
+  title?: string
+  tempo?: number
+  key?: string
+  kind?: SlipKind
+}
+
+export function updateSlipMetadata(slip: Slip, input: UpdateSlipMetadataInput): Slip {
+  return {
+    ...slip,
+    ...(input.title !== undefined ? { title: input.title } : {}),
+    ...(input.tempo !== undefined ? { tempo: Math.max(MIN_TEMPO, Math.round(input.tempo)) } : {}),
+    ...(input.key !== undefined ? { key: input.key } : {}),
+    ...(input.kind !== undefined ? { kind: input.kind } : {}),
+  }
+}
+
+export function addTag(slip: Slip, tag: string): Slip {
+  const trimmed = tag.trim()
+  if (!trimmed || slip.tags.includes(trimmed)) return slip
+  return { ...slip, tags: [...slip.tags, trimmed] }
+}
+
+export function removeTag(slip: Slip, tag: string): Slip {
+  return { ...slip, tags: slip.tags.filter((existing) => existing !== tag) }
+}
