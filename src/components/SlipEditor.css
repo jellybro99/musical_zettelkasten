@@ -29,3 +29,33 @@
   outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }
+
+.slip-editor-danger-zone {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.slip-editor-delete-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-surface);
+  color: var(--color-danger);
+  cursor: pointer;
+}
+
+.slip-editor-delete-button:hover {
+  border-color: var(--color-danger);
+}
+
+.slip-editor-delete-button:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: -1px;
+}

@@ -1,7 +1,8 @@
+import { Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type UpdateSlipMetadataInput } from '../domain/slip'
-import { getSlip, saveSlip } from '../persistence/slipStorage'
+import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
@@ -17,6 +18,7 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
+  const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => engineRef.current?.stop()
@@ -47,6 +49,7 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
         console.error('Failed to autosave slip', error)
       })
     }, AUTOSAVE_DELAY_MS)
+    autosaveTimeoutRef.current = timeout
     return () => clearTimeout(timeout)
   }, [slip, isLoaded])
 
@@ -79,6 +82,18 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
     setSlip((current) => removeTag(current, tag))
   }
 
+  async function handleDelete() {
+    if (!window.confirm(`Delete "${slip.title}"? This cannot be undone.`)) return
+    if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current)
+    try {
+      await deleteSlip(slipId)
+    } catch (error) {
+      console.error('Failed to delete slip', error)
+      return
+    }
+    onBack()
+  }
+
   return (
     <div className="slip-editor-page">
       <div className="slip-editor-transport">
@@ -100,6 +115,12 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
           onRemoveTag={handleRemoveTag}
         />
         <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />
+      </div>
+      <div className="slip-editor-danger-zone">
+        <button type="button" className="slip-editor-delete-button" onClick={handleDelete}>
+          <Trash2 size={14} />
+          Delete slip
+        </button>
       </div>
     </div>
   )

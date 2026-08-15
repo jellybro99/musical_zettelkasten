@@ -1,7 +1,74 @@
+.slip-dashboard-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.slip-dashboard-capture {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.slip-dashboard-capture:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.slip-dashboard-capture:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
 .slip-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
+}
+
+.slip-card-wrapper {
+  position: relative;
+}
+
+.slip-card-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.slip-card-wrapper:hover .slip-card-delete,
+.slip-card-wrapper:focus-within .slip-card-delete {
+  opacity: 1;
+}
+
+.slip-card-delete:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.slip-card-delete:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: -1px;
 }
 
 .slip-card {
@@ -9,6 +76,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
   text-align: left;
   padding: 18px;
   background: var(--color-surface);
