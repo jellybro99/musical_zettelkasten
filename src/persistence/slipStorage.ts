@@ -1,7 +1,7 @@
 import type { Slip } from '../domain/slip'
 
 const DB_NAME = 'musical-zettelkasten'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'slips'
 const CURRENT_SLIP_KEY = 'current'
 
@@ -9,7 +9,9 @@ function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
     request.onupgradeneeded = () => {
-      request.result.createObjectStore(STORE_NAME)
+      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
+        request.result.createObjectStore(STORE_NAME)
+      }
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
