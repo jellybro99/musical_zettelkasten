@@ -24,3 +24,8 @@
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
+
+.slip-editor-transport-button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}

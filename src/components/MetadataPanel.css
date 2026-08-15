@@ -65,6 +65,11 @@
   color: var(--color-accent);
 }
 
+.metadata-title-randomize:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
 .metadata-tags {
   display: flex;
   flex-wrap: wrap;
@@ -97,6 +102,11 @@
   color: var(--color-text);
 }
 
+.metadata-tag-remove:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
 .metadata-tag-form {
   display: flex;
   gap: 6px;
@@ -119,4 +129,9 @@
 .metadata-tag-add:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
+}
+
+.metadata-tag-add:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
 }
