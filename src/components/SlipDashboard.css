@@ -27,7 +27,14 @@
   outline-offset: -1px;
 }
 
+.slip-dashboard-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .slip-dashboard-grid {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;

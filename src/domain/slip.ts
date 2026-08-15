@@ -156,6 +156,28 @@ export function removeTag(slip: Slip, tag: string): Slip {
   return { ...slip, tags: slip.tags.filter((existing) => existing !== tag) }
 }
 
+export interface SlipFilters {
+  search: string
+  tags: string[]
+  kind: SlipKind | 'all'
+}
+
+export function filterSlips(slips: Slip[], filters: SlipFilters): Slip[] {
+  const search = filters.search.trim().toLowerCase()
+
+  return slips.filter((slip) => {
+    if (filters.kind !== 'all' && slip.kind !== filters.kind) return false
+    if (!filters.tags.every((tag) => slip.tags.includes(tag))) return false
+    if (search && !matchesSearch(slip, search)) return false
+    return true
+  })
+}
+
+function matchesSearch(slip: Slip, search: string): boolean {
+  if (slip.title.toLowerCase().includes(search)) return true
+  return slip.tags.some((tag) => tag.toLowerCase().includes(search))
+}
+
 export function formatSlipMeta(slip: Slip): string {
   return `${slip.tempo} BPM · ${slip.key} · ${slip.grid.bars} bars`
 }

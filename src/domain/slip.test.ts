@@ -4,6 +4,7 @@ import {
   createSlip,
   DEFAULT_GRID,
   deleteNote,
+  filterSlips,
   formatSlipMeta,
   moveNote,
   placeNote,
@@ -483,6 +484,56 @@ describe('removeTag', () => {
     removeTag(slip, 'keys')
 
     expect(slip.tags).toEqual(['keys', 'rhodes'])
+  })
+})
+
+describe('filterSlips', () => {
+  const slips = [
+    createSlip({ title: 'Rhodes Chord Stab', kind: 'Loop', tags: ['keys', 'warm'] }),
+    createSlip({ title: 'Kick Hit', kind: 'One-shot', tags: ['drums'] }),
+    createSlip({ title: 'Vocal Chop', kind: 'Phrase', tags: ['vocal', 'warm'] }),
+  ]
+
+  it('matches search against the title', () => {
+    const result = filterSlips(slips, { search: 'rhodes', tags: [], kind: 'all' })
+
+    expect(result).toEqual([slips[0]])
+  })
+
+  it('matches search against a tag, case-insensitively', () => {
+    const result = filterSlips(slips, { search: 'DRUMS', tags: [], kind: 'all' })
+
+    expect(result).toEqual([slips[1]])
+  })
+
+  it('returns every slip for an empty search', () => {
+    const result = filterSlips(slips, { search: '', tags: [], kind: 'all' })
+
+    expect(result).toEqual(slips)
+  })
+
+  it('excludes a slip that only matches some of the selected tags', () => {
+    const result = filterSlips(slips, { search: '', tags: ['warm', 'vocal'], kind: 'all' })
+
+    expect(result).toEqual([slips[2]])
+  })
+
+  it('narrows to a single kind', () => {
+    const result = filterSlips(slips, { search: '', tags: [], kind: 'One-shot' })
+
+    expect(result).toEqual([slips[1]])
+  })
+
+  it('returns every slip for kind "all"', () => {
+    const result = filterSlips(slips, { search: '', tags: [], kind: 'all' })
+
+    expect(result).toEqual(slips)
+  })
+
+  it('combines search, tags, and kind together', () => {
+    const result = filterSlips(slips, { search: 'chop', tags: ['warm'], kind: 'Phrase' })
+
+    expect(result).toEqual([slips[2]])
   })
 })
 

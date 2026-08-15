@@ -1,11 +1,13 @@
 import { Play, Plus, Square, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
-import { createSlip, formatSlipMeta, totalSteps, type Slip } from '../domain/slip'
+import { createSlip, filterSlips, formatSlipMeta, totalSteps, type Slip, type SlipFilters } from '../domain/slip'
 import { deleteSlip, listSlips } from '../persistence/slipStorage'
+import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
 
 const STEPS_PER_BEAT = 4
+const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
 
 export interface SlipDashboardProps {
   onOpenSlip: (slipId: string) => void
@@ -14,8 +16,14 @@ export interface SlipDashboardProps {
 export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
   const [slips, setSlips] = useState<Slip[] | null>(null)
   const [playingId, setPlayingId] = useState<string | null>(null)
+  const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
   const engineRef = useRef<PlaybackEngine | null>(null)
   const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const visibleSlips = useMemo(() => {
+    if (slips === null) return null
+    return filterSlips(slips, filters).sort((a, b) => b.createdAt - a.createdAt)
+  }, [slips, filters])
 
   useEffect(() => {
     let cancelled = false
@@ -88,45 +96,54 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
           Capture
         </button>
       </div>
-      {slips !== null && (
+      {slips !== null && visibleSlips !== null && (
         slips.length === 0 ? (
           <div className="slip-dashboard-empty">
             <p>Capture a slip</p>
           </div>
         ) : (
-          <div className="slip-dashboard-grid">
-            {slips.map((slip) => (
-              <div key={slip.id} className="slip-card-wrapper">
-                <button type="button" className="slip-card" onClick={() => onOpenSlip(slip.id)}>
-                  <h3 className="slip-card-title">{slip.title}</h3>
-                  <span className="slip-card-kind">{slip.kind}</span>
-                  <div className="slip-card-tags">
-                    {slip.tags.map((tag) => (
-                      <span key={tag} className="slip-card-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="slip-card-meta">{formatSlipMeta(slip)}</p>
-                </button>
-                <button
-                  type="button"
-                  className="slip-card-play"
-                  aria-label={playingId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`}
-                  onClick={(event) => handleTogglePlay(event, slip)}
-                >
-                  {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
-                </button>
-                <button
-                  type="button"
-                  className="slip-card-delete"
-                  aria-label={`Delete ${slip.title}`}
-                  onClick={(event) => handleDelete(event, slip.id)}
-                >
-                  <Trash2 size={14} />
-                </button>
+          <div className="slip-dashboard-body">
+            <SlipFilterSidebar slips={slips} filters={filters} onFiltersChange={setFilters} />
+            {visibleSlips.length === 0 ? (
+              <div className="slip-dashboard-empty">
+                <p>No slips match your filters</p>
               </div>
-            ))}
+            ) : (
+              <div className="slip-dashboard-grid">
+                {visibleSlips.map((slip) => (
+                  <div key={slip.id} className="slip-card-wrapper">
+                    <button type="button" className="slip-card" onClick={() => onOpenSlip(slip.id)}>
+                      <h3 className="slip-card-title">{slip.title}</h3>
+                      <span className="slip-card-kind">{slip.kind}</span>
+                      <div className="slip-card-tags">
+                        {slip.tags.map((tag) => (
+                          <span key={tag} className="slip-card-tag">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="slip-card-meta">{formatSlipMeta(slip)}</p>
+                    </button>
+                    <button
+                      type="button"
+                      className="slip-card-play"
+                      aria-label={playingId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`}
+                      onClick={(event) => handleTogglePlay(event, slip)}
+                    >
+                      {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                      type="button"
+                      className="slip-card-delete"
+                      aria-label={`Delete ${slip.title}`}
+                      onClick={(event) => handleDelete(event, slip.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )
       )}
