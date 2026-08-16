@@ -70,7 +70,7 @@ function App() {
   return (
     <div className="app-shell">
       <TopNav onSlipBoxClick={goToDashboard} onCapture={handleCapture} />
-      <main className={`app-shell-body${screen.screen === 'editor' ? ' app-shell-body-flush' : ''}`}>
+      <main className="app-shell-body app-shell-body-flush">
         {screen.screen === 'dashboard' ? (
           <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
         ) : (

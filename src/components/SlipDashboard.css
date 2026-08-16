@@ -1,11 +1,22 @@
-.slip-dashboard-body {
+.slip-dashboard {
+  height: 100%;
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  flex-direction: column;
+}
+
+.slip-dashboard-body {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .slip-dashboard-grid {
   flex: 1;
+  overflow: auto;
+  align-content: start;
+  padding: var(--space-6);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
@@ -130,6 +141,7 @@
 }
 
 .slip-dashboard-empty {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
