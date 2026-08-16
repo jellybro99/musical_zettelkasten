@@ -1,24 +1,21 @@
 import { Play, Square, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
-import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
-import { filterSlips, formatSlipMeta, totalSteps, type Slip, type SlipFilters } from '../domain/slip'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { filterSlips, formatSlipMeta, type Slip, type SlipFilters } from '../domain/slip'
 import { deleteSlip, listSlips } from '../persistence/slipStorage'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
 
-const STEPS_PER_BEAT = 4
 const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
 
 export interface SlipDashboardProps {
   onOpenSlip: (slipId: string) => void
+  playingId: string | null
+  onTogglePlay: (slip: Slip) => void
 }
 
-export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
+export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashboardProps) {
   const [slips, setSlips] = useState<Slip[] | null>(null)
-  const [playingId, setPlayingId] = useState<string | null>(null)
   const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
-  const engineRef = useRef<PlaybackEngine | null>(null)
-  const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const visibleSlips = useMemo(() => {
     if (slips === null) return null
@@ -39,30 +36,9 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
     }
   }, [])
 
-  useEffect(() => {
-    return () => {
-      if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
-      engineRef.current?.stop()
-    }
-  }, [])
-
   function handleTogglePlay(event: MouseEvent, slip: Slip) {
     event.stopPropagation()
-    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
-
-    if (playingId === slip.id) {
-      engineRef.current?.stop()
-      setPlayingId(null)
-      return
-    }
-
-    if (!engineRef.current) engineRef.current = createPlaybackEngine()
-    engineRef.current.play(slip.notes, slip.tempo)
-    setPlayingId(slip.id)
-
-    const secondsPerStep = 60 / slip.tempo / STEPS_PER_BEAT
-    const durationMs = totalSteps(slip.grid) * secondsPerStep * 1000
-    stopTimeoutRef.current = setTimeout(() => setPlayingId(null), durationMs)
+    onTogglePlay(slip)
   }
 
   async function handleDelete(event: MouseEvent, slipId: string) {
@@ -75,12 +51,6 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
       return
     }
     setSlips((current) => current?.filter((slip) => slip.id !== slipId) ?? current)
-    setPlayingId((current) => {
-      if (current !== slipId) return current
-      if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
-      engineRef.current?.stop()
-      return null
-    })
   }
 
   return (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeTriggerTimes } from './playback'
+import { computePlaybackDurationMs, computePlaybackProgress, computeTriggerTimes, formatPlaybackTime } from './playback'
 import type { Note } from './slip'
 
 function note(overrides: Partial<Note>): Note {
@@ -45,5 +45,59 @@ describe('computeTriggerTimes', () => {
 
   it('returns an empty array for no notes', () => {
     expect(computeTriggerTimes([], 120)).toEqual([])
+  })
+})
+
+describe('computePlaybackDurationMs', () => {
+  it('scales duration with step count at a fixed tempo', () => {
+    expect(computePlaybackDurationMs(120, 32)).toBeCloseTo(4000)
+  })
+
+  it('scales duration inversely with tempo', () => {
+    expect(computePlaybackDurationMs(60, 32)).toBeCloseTo(8000)
+  })
+
+  it('returns 0 for a zero step count', () => {
+    expect(computePlaybackDurationMs(120, 0)).toBe(0)
+  })
+})
+
+describe('computePlaybackProgress', () => {
+  it('reports zero elapsed and full remaining at the start', () => {
+    expect(computePlaybackProgress(4000, 0)).toEqual({ elapsedMs: 0, remainingMs: 4000, ratio: 0 })
+  })
+
+  it('reports elapsed/remaining/ratio partway through', () => {
+    expect(computePlaybackProgress(4000, 1000)).toEqual({ elapsedMs: 1000, remainingMs: 3000, ratio: 0.25 })
+  })
+
+  it('clamps elapsed to the duration once playback should have finished', () => {
+    expect(computePlaybackProgress(4000, 5000)).toEqual({ elapsedMs: 4000, remainingMs: 0, ratio: 1 })
+  })
+
+  it('clamps elapsed to zero for a negative offset', () => {
+    expect(computePlaybackProgress(4000, -50)).toEqual({ elapsedMs: 0, remainingMs: 4000, ratio: 0 })
+  })
+
+  it('treats a zero duration as fully elapsed with a safe ratio', () => {
+    expect(computePlaybackProgress(0, 0)).toEqual({ elapsedMs: 0, remainingMs: 0, ratio: 0 })
+  })
+})
+
+describe('formatPlaybackTime', () => {
+  it('formats sub-minute durations as seconds with one decimal', () => {
+    expect(formatPlaybackTime(800)).toBe('0:00.8')
+  })
+
+  it('formats durations at or above a minute with the minute component', () => {
+    expect(formatPlaybackTime(65000)).toBe('1:05.0')
+  })
+
+  it('pads seconds under ten', () => {
+    expect(formatPlaybackTime(3000)).toBe('0:03.0')
+  })
+
+  it('formats zero as 0:00.0', () => {
+    expect(formatPlaybackTime(0)).toBe('0:00.0')
   })
 })

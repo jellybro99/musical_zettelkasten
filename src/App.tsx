@@ -1,19 +1,51 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { createPlaybackEngine, type PlaybackEngine } from './audio/playbackEngine'
+import { PlaybackBar, type NowPlaying } from './components/PlaybackBar'
 import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
-import { createSlip } from './domain/slip'
+import { computePlaybackDurationMs } from './domain/playback'
+import { createSlip, totalSteps, type Slip } from './domain/slip'
 
 type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 
 function App() {
   const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
+  const engineRef = useRef<PlaybackEngine | null>(null)
+  const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function stopPlayback() {
+    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
+    engineRef.current?.stop()
+    setNowPlaying(null)
+  }
+
+  function playSlip(slip: Slip) {
+    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
+    if (!engineRef.current) engineRef.current = createPlaybackEngine()
+    engineRef.current.play(slip.notes, slip.tempo)
+
+    const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
+    setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, startedAt: Date.now() })
+    stopTimeoutRef.current = setTimeout(() => setNowPlaying(null), durationMs)
+  }
+
+  function togglePlay(slip: Slip) {
+    if (nowPlaying?.slipId === slip.id) {
+      stopPlayback()
+    } else {
+      playSlip(slip)
+    }
+  }
 
   function openSlip(slipId: string) {
+    stopPlayback()
     setScreen({ screen: 'editor', slipId })
   }
 
   function goToDashboard() {
+    if (screen.screen !== 'dashboard') stopPlayback()
     setScreen({ screen: 'dashboard' })
   }
 
@@ -27,11 +59,12 @@ function App() {
       <TopNav onSlipBoxClick={goToDashboard} onCapture={handleCapture} />
       <main className="app-shell-body">
         {screen.screen === 'dashboard' ? (
-          <SlipDashboard onOpenSlip={openSlip} />
+          <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
         ) : (
           <SlipEditor slipId={screen.slipId} onBack={goToDashboard} />
         )}
       </main>
+      <PlaybackBar nowPlaying={nowPlaying} onStop={stopPlayback} />
     </div>
   )
 }
