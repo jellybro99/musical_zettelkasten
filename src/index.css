@@ -129,6 +129,7 @@ h1 {
   color: color-mix(in srgb, var(--color-text) 70%, transparent);
 }
 .input {
+  box-sizing: border-box;
   width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
   font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
   background: transparent;

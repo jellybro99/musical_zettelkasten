@@ -1,4 +1,4 @@
-import { ChevronDown, Piano, Shuffle } from 'lucide-react'
+import { ChevronDown, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
@@ -6,12 +6,25 @@ import './MetadataPanel.css'
 
 export interface MetadataPanelProps {
   slip: Slip
+  isPersisted: boolean
+  onBack: () => void
+  onSave: () => void
+  onDelete: () => void
   onMetadataChange: (input: UpdateSlipMetadataInput) => void
   onAddTag: (tag: string) => void
   onRemoveTag: (tag: string) => void
 }
 
-export function MetadataPanel({ slip, onMetadataChange, onAddTag, onRemoveTag }: MetadataPanelProps) {
+export function MetadataPanel({
+  slip,
+  isPersisted,
+  onBack,
+  onSave,
+  onDelete,
+  onMetadataChange,
+  onAddTag,
+  onRemoveTag,
+}: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
 
   function handleAddTag(event: FormEvent) {
@@ -27,6 +40,24 @@ export function MetadataPanel({ slip, onMetadataChange, onAddTag, onRemoveTag }:
 
   return (
     <div className="metadata-panel">
+      <div className="metadata-panel-transport">
+        <button type="button" className="btn btn-ghost" onClick={onBack}>
+          ← Slip-box
+        </button>
+      </div>
+      <div className="metadata-panel-actions">
+        {!isPersisted && (
+          <button type="button" className="btn btn-primary" onClick={onSave}>
+            <Save size={14} />
+            Save
+          </button>
+        )}
+        <button type="button" className="btn btn-ghost" onClick={onDelete}>
+          <Trash2 size={14} />
+          Delete slip
+        </button>
+      </div>
+
       <div className="field">
         <label htmlFor="slip-title">Title</label>
         <div className="metadata-title-row">

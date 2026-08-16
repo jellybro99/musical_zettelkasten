@@ -1,4 +1,3 @@
-import { Save, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type Slip, type UpdateSlipMetadataInput } from '../domain/slip'
 import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
@@ -103,26 +102,13 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
 
   return (
     <div className="slip-editor-page">
-      <div className="slip-editor-transport">
-        <button type="button" className="btn btn-ghost" onClick={onBack}>
-          ← Slip-box
-        </button>
-        <div className="slip-editor-transport-actions">
-          {!isPersisted && (
-            <button type="button" className="btn btn-primary" onClick={handleSave}>
-              <Save size={14} />
-              Save
-            </button>
-          )}
-          <button type="button" className="btn btn-ghost" onClick={handleDelete}>
-            <Trash2 size={14} />
-            Delete slip
-          </button>
-        </div>
-      </div>
       <div className="slip-editor">
         <MetadataPanel
           slip={slip}
+          isPersisted={isPersisted}
+          onBack={onBack}
+          onSave={handleSave}
+          onDelete={handleDelete}
           onMetadataChange={handleMetadataChange}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}

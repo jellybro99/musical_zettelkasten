@@ -14,6 +14,15 @@
   margin: 0;
 }
 
+.metadata-panel-transport {
+  display: flex;
+}
+
+.metadata-panel-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .metadata-label {
   display: block;
   font-family: var(--font-heading);
@@ -114,6 +123,7 @@
 
 .metadata-tag-add {
   cursor: pointer;
+  border-width: 1px;
   border-style: dashed;
   white-space: nowrap;
 }
