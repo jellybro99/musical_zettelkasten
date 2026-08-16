@@ -14,6 +14,7 @@ function App() {
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
   const engineRef = useRef<PlaybackEngine | null>(null)
   const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const editorPlayRef = useRef<(() => void) | null>(null)
 
   function stopPlayback() {
     if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
@@ -54,6 +55,18 @@ function App() {
     openSlip(slip.id)
   }
 
+  function registerEditorPlay(play: (() => void) | null) {
+    editorPlayRef.current = play
+  }
+
+  function handleBarToggle() {
+    if (nowPlaying) {
+      stopPlayback()
+    } else {
+      editorPlayRef.current?.()
+    }
+  }
+
   return (
     <div className="app-shell">
       <TopNav onSlipBoxClick={goToDashboard} onCapture={handleCapture} />
@@ -64,12 +77,12 @@ function App() {
           <SlipEditor
             slipId={screen.slipId}
             onBack={goToDashboard}
-            playingId={nowPlaying?.slipId ?? null}
-            onTogglePlay={togglePlay}
+            onPlay={playSlip}
+            onRegisterPlay={registerEditorPlay}
           />
         )}
       </main>
-      <PlaybackBar nowPlaying={nowPlaying} onStop={stopPlayback} />
+      <PlaybackBar nowPlaying={nowPlaying} canPlay={screen.screen === 'editor'} onToggle={handleBarToggle} />
     </div>
   )
 }

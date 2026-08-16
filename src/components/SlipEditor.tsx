@@ -1,4 +1,4 @@
-import { Play, Save, Square, Trash2 } from 'lucide-react'
+import { Save, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type Slip, type UpdateSlipMetadataInput } from '../domain/slip'
 import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
@@ -11,17 +11,22 @@ const AUTOSAVE_DELAY_MS = 400
 export interface SlipEditorProps {
   slipId: string
   onBack: () => void
-  playingId: string | null
-  onTogglePlay: (slip: Slip) => void
+  onPlay: (slip: Slip) => void
+  onRegisterPlay: (play: (() => void) | null) => void
 }
 
-export function SlipEditor({ slipId, onBack, playingId, onTogglePlay }: SlipEditorProps) {
+export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const [isPersisted, setIsPersisted] = useState(false)
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pristineJsonRef = useRef<string | null>(null)
   if (pristineJsonRef.current === null) pristineJsonRef.current = JSON.stringify(slip)
+
+  useEffect(() => {
+    onRegisterPlay(() => onPlay(slip))
+    return () => onRegisterPlay(null)
+  }, [slip, onPlay, onRegisterPlay])
 
   useEffect(() => {
     let cancelled = false
@@ -101,10 +106,6 @@ export function SlipEditor({ slipId, onBack, playingId, onTogglePlay }: SlipEdit
       <div className="slip-editor-transport">
         <button type="button" className="slip-editor-transport-button" onClick={onBack}>
           ← Slip-box
-        </button>
-        <button type="button" className="slip-editor-transport-button" onClick={() => onTogglePlay(slip)}>
-          {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
-          {playingId === slip.id ? 'Stop' : 'Play'}
         </button>
         {!isPersisted && (
           <button type="button" className="slip-editor-transport-button" onClick={handleSave}>

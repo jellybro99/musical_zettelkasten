@@ -13,12 +13,13 @@ export interface NowPlaying {
 
 export interface PlaybackBarProps {
   nowPlaying: NowPlaying | null
-  onStop: () => void
+  canPlay: boolean
+  onToggle: () => void
 }
 
 const TICK_MS = 100
 
-export function PlaybackBar({ nowPlaying, onStop }: PlaybackBarProps) {
+export function PlaybackBar({ nowPlaying, canPlay, onToggle }: PlaybackBarProps) {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -37,9 +38,9 @@ export function PlaybackBar({ nowPlaying, onStop }: PlaybackBarProps) {
       <button
         type="button"
         className="btn btn-primary btn-icon playback-bar-toggle"
-        onClick={onStop}
-        disabled={!nowPlaying}
-        aria-label={nowPlaying ? `Stop ${nowPlaying.title}` : 'Nothing playing'}
+        onClick={onToggle}
+        disabled={!nowPlaying && !canPlay}
+        aria-label={nowPlaying ? `Stop ${nowPlaying.title}` : 'Play'}
       >
         {nowPlaying ? <Square size={15} /> : <Play size={15} />}
       </button>
