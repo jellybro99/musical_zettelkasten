@@ -10,11 +10,10 @@ const AUTOSAVE_DELAY_MS = 400
 export interface SlipEditorProps {
   slipId: string
   onBack: () => void
-  onPlay: (slip: Slip) => void
-  onRegisterPlay: (play: (() => void) | null) => void
+  onSlipChange: (slip: Slip) => void
 }
 
-export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEditorProps) {
+export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const [isPersisted, setIsPersisted] = useState(false)
@@ -23,9 +22,8 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
   if (pristineJsonRef.current === null) pristineJsonRef.current = JSON.stringify(slip)
 
   useEffect(() => {
-    onRegisterPlay(() => onPlay(slip))
-    return () => onRegisterPlay(null)
-  }, [slip, onPlay, onRegisterPlay])
+    onSlipChange(slip)
+  }, [slip, onSlipChange])
 
   useEffect(() => {
     let cancelled = false

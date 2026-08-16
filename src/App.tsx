@@ -12,9 +12,9 @@ type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 function App() {
   const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
+  const [currentEditorSlip, setCurrentEditorSlip] = useState<Slip | null>(null)
   const engineRef = useRef<PlaybackEngine | null>(null)
   const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const editorPlayRef = useRef<(() => void) | null>(null)
 
   function stopPlayback() {
     if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
@@ -42,11 +42,13 @@ function App() {
 
   function openSlip(slipId: string) {
     stopPlayback()
+    setCurrentEditorSlip(null)
     setScreen({ screen: 'editor', slipId })
   }
 
   function goToDashboard() {
     if (screen.screen !== 'dashboard') stopPlayback()
+    setCurrentEditorSlip(null)
     setScreen({ screen: 'dashboard' })
   }
 
@@ -55,15 +57,11 @@ function App() {
     openSlip(slip.id)
   }
 
-  function registerEditorPlay(play: (() => void) | null) {
-    editorPlayRef.current = play
-  }
-
   function handleBarToggle() {
     if (nowPlaying) {
       stopPlayback()
-    } else {
-      editorPlayRef.current?.()
+    } else if (currentEditorSlip) {
+      playSlip(currentEditorSlip)
     }
   }
 
@@ -74,12 +72,7 @@ function App() {
         {screen.screen === 'dashboard' ? (
           <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
         ) : (
-          <SlipEditor
-            slipId={screen.slipId}
-            onBack={goToDashboard}
-            onPlay={playSlip}
-            onRegisterPlay={registerEditorPlay}
-          />
+          <SlipEditor slipId={screen.slipId} onBack={goToDashboard} onSlipChange={setCurrentEditorSlip} />
         )}
       </main>
       <PlaybackBar nowPlaying={nowPlaying} canPlay={screen.screen === 'editor'} onToggle={handleBarToggle} />
