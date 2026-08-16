@@ -1,5 +1,7 @@
 # Musical Zettelkasten
 
+Live: https://jellybro99.github.io/musical_zettelkasten/
+
 A note-taking app for musical ideas, inspired by the [Zettelkasten](https://en.wikipedia.org/wiki/Zettelkasten) method: capture small musical ideas as individual **slips**, file them, then later combine them into songs.
 
 ## Concept
