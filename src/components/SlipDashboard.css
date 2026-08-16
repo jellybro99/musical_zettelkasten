@@ -60,12 +60,15 @@
 }
 
 .slip-card-delete:hover {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.slip-card-delete:active {
+  background: color-mix(in srgb, var(--color-text) 18%, transparent);
 }
 
 .slip-card-delete:focus-visible {
-  outline: 2px solid var(--color-danger);
+  outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }
 
@@ -116,12 +119,8 @@
   gap: 6px;
 }
 
-.slip-card-tag {
-  font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
+.slip-card-tags .tag {
+  padding: 2px 7px;
 }
 
 .slip-card-meta {

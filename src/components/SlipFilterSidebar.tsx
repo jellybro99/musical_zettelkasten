@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react'
 import { filterSlips, SLIP_KINDS, type Slip, type SlipFilters, type SlipKind } from '../domain/slip'
 import './SlipFilterSidebar.css'
 
@@ -27,13 +28,16 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
 
   return (
     <aside className="slip-filter-sidebar">
-      <input
-        type="text"
-        className="slip-filter-search"
-        placeholder="Search title or tag"
-        value={filters.search}
-        onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
-      />
+      <div className="slip-filter-search-wrap">
+        <Search className="slip-filter-search-icon" size={14} aria-hidden="true" />
+        <input
+          type="text"
+          className="slip-filter-search"
+          placeholder="Search title or tag"
+          value={filters.search}
+          onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
+        />
+      </div>
 
       <div className="slip-filter-section">
         <span className="slip-filter-heading">Kind</span>
@@ -74,7 +78,7 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
                 <button
                   key={tag}
                   type="button"
-                  className={`slip-filter-tag-chip${isSelected ? ' active' : ''}`}
+                  className={`tag ${isSelected ? 'tag-outline' : 'tag-neutral'} slip-filter-tag-chip`}
                   aria-pressed={isSelected}
                   onClick={() => handleToggleTag(tag)}
                 >

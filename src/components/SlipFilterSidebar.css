@@ -12,14 +12,29 @@
   align-self: flex-start;
 }
 
+.slip-filter-search-wrap {
+  position: relative;
+}
+
+.slip-filter-search-icon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
+  pointer-events: none;
+}
+
 .slip-filter-search {
+  width: 100%;
+  box-sizing: border-box;
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-sm, 4px);
-  padding: 7px 9px;
+  padding: 7px 9px 7px 30px;
 }
 
 .slip-filter-search:focus-visible {
@@ -56,11 +71,12 @@
   justify-content: space-between;
   width: 100%;
   font-size: 13px;
-  padding: 5px 7px;
+  padding: 6px 8px;
   border: none;
+  border-left: 2px solid transparent;
   border-radius: var(--radius-sm, 4px);
   background: none;
-  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
   cursor: pointer;
   text-align: left;
 }
@@ -70,8 +86,9 @@
 }
 
 .slip-filter-option.active {
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
 }
 
 .slip-filter-option:focus-visible {
@@ -89,19 +106,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
-  padding: 3px 8px;
-  border: 1px solid var(--color-divider);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text);
   cursor: pointer;
-}
-
-.slip-filter-tag-chip.active {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-accent);
 }
 
 .slip-filter-tag-chip:focus-visible {
@@ -114,6 +119,7 @@
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 
-.slip-filter-tag-chip.active .slip-filter-count {
-  color: color-mix(in srgb, var(--color-accent) 75%, transparent);
+.slip-filter-tag-chip .slip-filter-count {
+  color: inherit;
+  opacity: 0.7;
 }

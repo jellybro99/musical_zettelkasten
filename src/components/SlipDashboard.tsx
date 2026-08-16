@@ -106,7 +106,7 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
                       <span className="slip-card-kind">{slip.kind}</span>
                       <div className="slip-card-tags">
                         {slip.tags.map((tag) => (
-                          <span key={tag} className="slip-card-tag">
+                          <span key={tag} className="tag tag-neutral">
                             {tag}
                           </span>
                         ))}

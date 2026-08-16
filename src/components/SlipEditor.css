@@ -50,15 +50,19 @@
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-sm, 4px);
   background: var(--color-surface);
-  color: var(--color-danger);
+  color: var(--color-text);
   cursor: pointer;
 }
 
 .slip-editor-delete-button:hover {
-  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.slip-editor-delete-button:active {
+  background: color-mix(in srgb, var(--color-text) 18%, transparent);
 }
 
 .slip-editor-delete-button:focus-visible {
-  outline: 2px solid var(--color-danger);
+  outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }

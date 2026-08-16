@@ -5,7 +5,6 @@
   --color-surface: #eae9e9;
   --color-text: #201f1d;
   --color-accent: #b68235;
-  --color-danger: #a5372a;
   --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
 
   --color-neutral-100: #f8f4f4;
@@ -173,6 +172,7 @@ textarea.input { min-height: 90px; resize: vertical; }
   display: inline-flex; align-items: center; font-size: 11px;
   letter-spacing: 0.02em; padding: 3px 10px;
   border-radius: calc(var(--radius-md) * 0.75);
+  font-family: inherit; background: transparent; border: none;
 }
 .tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
 .tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
