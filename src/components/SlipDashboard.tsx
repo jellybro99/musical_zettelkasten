@@ -1,7 +1,7 @@
-import { Play, Plus, Square, Trash2 } from 'lucide-react'
+import { Play, Square, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
-import { createSlip, filterSlips, formatSlipMeta, totalSteps, type Slip, type SlipFilters } from '../domain/slip'
+import { filterSlips, formatSlipMeta, totalSteps, type Slip, type SlipFilters } from '../domain/slip'
 import { deleteSlip, listSlips } from '../persistence/slipStorage'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
@@ -46,11 +46,6 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
     }
   }, [])
 
-  function handleCapture() {
-    const slip = createSlip()
-    onOpenSlip(slip.id)
-  }
-
   function handleTogglePlay(event: MouseEvent, slip: Slip) {
     event.stopPropagation()
     if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
@@ -90,12 +85,6 @@ export function SlipDashboard({ onOpenSlip }: SlipDashboardProps) {
 
   return (
     <div className="slip-dashboard">
-      <div className="slip-dashboard-header">
-        <button type="button" className="slip-dashboard-capture" onClick={handleCapture}>
-          <Plus size={14} />
-          Capture
-        </button>
-      </div>
       {slips !== null && visibleSlips !== null && (
         slips.length === 0 ? (
           <div className="slip-dashboard-empty">

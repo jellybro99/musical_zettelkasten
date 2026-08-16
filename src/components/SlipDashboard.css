@@ -1,32 +1,3 @@
-.slip-dashboard-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
-.slip-dashboard-capture {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 7px 14px;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.slip-dashboard-capture:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.slip-dashboard-capture:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -1px;
-}
-
 .slip-dashboard-body {
   display: flex;
   gap: 20px;

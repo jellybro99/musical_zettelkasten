@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
+import { createSlip } from './domain/slip'
 
 type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 
@@ -16,15 +17,22 @@ function App() {
     setScreen({ screen: 'dashboard' })
   }
 
+  function handleCapture() {
+    const slip = createSlip()
+    openSlip(slip.id)
+  }
+
   return (
-    <main>
-      <TopNav onSlipBoxClick={goToDashboard} />
-      {screen.screen === 'dashboard' ? (
-        <SlipDashboard onOpenSlip={openSlip} />
-      ) : (
-        <SlipEditor slipId={screen.slipId} onBack={goToDashboard} />
-      )}
-    </main>
+    <div className="app-shell">
+      <TopNav onSlipBoxClick={goToDashboard} onCapture={handleCapture} />
+      <main className="app-shell-body">
+        {screen.screen === 'dashboard' ? (
+          <SlipDashboard onOpenSlip={openSlip} />
+        ) : (
+          <SlipEditor slipId={screen.slipId} onBack={goToDashboard} />
+        )}
+      </main>
+    </div>
   )
 }
 
