@@ -41,21 +41,19 @@ export function MetadataPanel({
   return (
     <div className="metadata-panel">
       <div className="metadata-panel-transport">
-        <button type="button" className="btn btn-ghost" onClick={onBack}>
+        <button type="button" className="btn btn-ghost metadata-panel-back" onClick={onBack}>
           ← Slip-box
         </button>
-        <div className="metadata-panel-actions">
-          {!isPersisted && (
-            <button type="button" className="btn btn-primary" onClick={onSave}>
-              <Save size={14} />
-              Save
-            </button>
-          )}
-          <button type="button" className="btn btn-ghost" onClick={onDelete}>
-            <Trash2 size={14} />
-            Delete slip
+        {!isPersisted && (
+          <button type="button" className="btn btn-ghost metadata-panel-save" onClick={onSave}>
+            <Save size={14} />
+            Save
           </button>
-        </div>
+        )}
+        <button type="button" className="btn btn-ghost metadata-panel-delete" onClick={onDelete}>
+          <Trash2 size={14} />
+          Delete slip
+        </button>
       </div>
 
       <div className="field">
