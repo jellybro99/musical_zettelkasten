@@ -1,5 +1,4 @@
 import { Play, Square } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { computePlaybackProgress, formatPlaybackTime } from '../domain/playback'
 import './PlaybackBar.css'
 
@@ -8,7 +7,7 @@ export interface NowPlaying {
   title: string
   tempo: number
   durationMs: number
-  startedAt: number
+  elapsedMs: number
 }
 
 export interface PlaybackBarProps {
@@ -17,20 +16,9 @@ export interface PlaybackBarProps {
   onToggle: () => void
 }
 
-const TICK_MS = 100
-
 export function PlaybackBar({ nowPlaying, canPlay, onToggle }: PlaybackBarProps) {
-  const [now, setNow] = useState(() => Date.now())
-
-  useEffect(() => {
-    if (!nowPlaying) return
-    setNow(Date.now())
-    const interval = setInterval(() => setNow(Date.now()), TICK_MS)
-    return () => clearInterval(interval)
-  }, [nowPlaying])
-
   const progress = nowPlaying
-    ? computePlaybackProgress(nowPlaying.durationMs, now - nowPlaying.startedAt)
+    ? computePlaybackProgress(nowPlaying.durationMs, nowPlaying.elapsedMs)
     : { elapsedMs: 0, remainingMs: 0, ratio: 0 }
 
   return (

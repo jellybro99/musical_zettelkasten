@@ -14,22 +14,22 @@ function App() {
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
   const [currentEditorSlip, setCurrentEditorSlip] = useState<Slip | null>(null)
   const engineRef = useRef<PlaybackEngine | null>(null)
-  const stopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function stopPlayback() {
-    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
     engineRef.current?.stop()
     setNowPlaying(null)
   }
 
   function playSlip(slip: Slip) {
-    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current)
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
-    engineRef.current.play(slip.notes, slip.tempo)
 
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
-    setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, startedAt: Date.now() })
-    stopTimeoutRef.current = setTimeout(() => setNowPlaying(null), durationMs)
+    setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
+    engineRef.current.play(slip.notes, slip.tempo, {
+      durationMs,
+      onTick: (elapsedMs) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
+      onEnded: () => setNowPlaying(null),
+    })
   }
 
   function togglePlay(slip: Slip) {
