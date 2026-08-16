@@ -104,11 +104,11 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
   return (
     <div className="slip-editor-page">
       <div className="slip-editor-transport">
-        <button type="button" className="slip-editor-transport-button" onClick={onBack}>
+        <button type="button" className="btn btn-ghost" onClick={onBack}>
           ← Slip-box
         </button>
         {!isPersisted && (
-          <button type="button" className="slip-editor-transport-button" onClick={handleSave}>
+          <button type="button" className="btn btn-primary" onClick={handleSave}>
             <Save size={14} />
             Save
           </button>
@@ -124,7 +124,7 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
         <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />
       </div>
       <div className="slip-editor-danger-zone">
-        <button type="button" className="slip-editor-delete-button" onClick={handleDelete}>
+        <button type="button" className="btn btn-ghost" onClick={handleDelete}>
           <Trash2 size={14} />
           Delete slip
         </button>

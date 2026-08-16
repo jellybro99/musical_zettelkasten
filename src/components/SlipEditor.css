@@ -1,68 +1,24 @@
+.slip-editor-page {
+  display: flex;
+  flex-direction: column;
+}
+
 .slip-editor {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 .slip-editor-transport {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.slip-editor-transport-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 7px 14px;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.slip-editor-transport-button:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.slip-editor-transport-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -1px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
 .slip-editor-danger-zone {
   display: flex;
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 16px;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--color-divider);
-}
-
-.slip-editor-delete-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 7px 14px;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.slip-editor-delete-button:hover {
-  background: color-mix(in srgb, var(--color-text) 10%, transparent);
-}
-
-.slip-editor-delete-button:active {
-  background: color-mix(in srgb, var(--color-text) 18%, transparent);
-}
-
-.slip-editor-delete-button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -1px;
 }

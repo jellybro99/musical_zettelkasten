@@ -1,6 +1,6 @@
 .piano-roll {
   position: relative;
-  background: var(--color-bg);
+  background: var(--color-neutral-100);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
@@ -29,9 +29,14 @@
   font-family: var(--font-heading);
   font-size: 10px;
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
-  background: var(--color-surface);
+  background: var(--color-neutral-200);
   border-right: 1px solid var(--color-divider);
   pointer-events: none;
+}
+
+.piano-roll-row.is-black .piano-roll-row-label {
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-200);
 }
 
 .piano-roll-cell {
@@ -71,7 +76,9 @@
 
 .piano-roll-note {
   position: absolute;
-  border-radius: 3px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-accent-700);
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-accent) 70%, var(--color-bg));
   box-shadow: var(--shadow-sm);
   cursor: grab;
