@@ -1,7 +1,6 @@
 import { Play, Save, Square, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
-import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type UpdateSlipMetadataInput } from '../domain/slip'
+import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type Slip, type UpdateSlipMetadataInput } from '../domain/slip'
 import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
@@ -12,20 +11,17 @@ const AUTOSAVE_DELAY_MS = 400
 export interface SlipEditorProps {
   slipId: string
   onBack: () => void
+  playingId: string | null
+  onTogglePlay: (slip: Slip) => void
 }
 
-export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
+export function SlipEditor({ slipId, onBack, playingId, onTogglePlay }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [isLoaded, setIsLoaded] = useState(false)
   const [isPersisted, setIsPersisted] = useState(false)
-  const engineRef = useRef<PlaybackEngine | null>(null)
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pristineJsonRef = useRef<string | null>(null)
   if (pristineJsonRef.current === null) pristineJsonRef.current = JSON.stringify(slip)
-
-  useEffect(() => {
-    return () => engineRef.current?.stop()
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -60,19 +56,6 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
     autosaveTimeoutRef.current = timeout
     return () => clearTimeout(timeout)
   }, [slip, isLoaded, isPersisted])
-
-  function getEngine(): PlaybackEngine {
-    if (!engineRef.current) engineRef.current = createPlaybackEngine()
-    return engineRef.current
-  }
-
-  function handlePlay() {
-    getEngine().play(slip.notes, slip.tempo)
-  }
-
-  function handleStop() {
-    engineRef.current?.stop()
-  }
 
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
@@ -119,13 +102,9 @@ export function SlipEditor({ slipId, onBack }: SlipEditorProps) {
         <button type="button" className="slip-editor-transport-button" onClick={onBack}>
           ← Slip-box
         </button>
-        <button type="button" className="slip-editor-transport-button" onClick={handlePlay}>
-          <Play size={14} />
-          Play
-        </button>
-        <button type="button" className="slip-editor-transport-button" onClick={handleStop}>
-          <Square size={14} />
-          Stop
+        <button type="button" className="slip-editor-transport-button" onClick={() => onTogglePlay(slip)}>
+          {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
+          {playingId === slip.id ? 'Stop' : 'Play'}
         </button>
         {!isPersisted && (
           <button type="button" className="slip-editor-transport-button" onClick={handleSave}>

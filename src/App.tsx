@@ -61,7 +61,12 @@ function App() {
         {screen.screen === 'dashboard' ? (
           <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
         ) : (
-          <SlipEditor slipId={screen.slipId} onBack={goToDashboard} />
+          <SlipEditor
+            slipId={screen.slipId}
+            onBack={goToDashboard}
+            playingId={nowPlaying?.slipId ?? null}
+            onTogglePlay={togglePlay}
+          />
         )}
       </main>
       <PlaybackBar nowPlaying={nowPlaying} onStop={stopPlayback} />
