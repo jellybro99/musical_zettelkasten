@@ -24,20 +24,7 @@
 }
 
 .slip-filter-search {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm, 4px);
-  padding: 7px 9px 7px 30px;
-}
-
-.slip-filter-search:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: -1px;
+  padding-left: 30px;
 }
 
 .slip-filter-section {

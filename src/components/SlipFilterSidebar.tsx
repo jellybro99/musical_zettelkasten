@@ -32,7 +32,7 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
         <Search className="slip-filter-search-icon" size={14} aria-hidden="true" />
         <input
           type="text"
-          className="slip-filter-search"
+          className="input slip-filter-search"
           placeholder="Search title or tag"
           value={filters.search}
           onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
