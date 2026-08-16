@@ -16,11 +16,16 @@
 
 .metadata-panel-transport {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .metadata-panel-actions {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
+  margin-left: auto;
 }
 
 .metadata-label {
