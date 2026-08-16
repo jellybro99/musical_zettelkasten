@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type Slip, type UpdateSlipMetadataInput } from '../domain/slip'
+import { useAutosave } from '../hooks/useAutosave'
 import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
-
-const AUTOSAVE_DELAY_MS = 400
 
 export interface SlipEditorProps {
   slipId: string
@@ -15,49 +14,15 @@ export interface SlipEditorProps {
 
 export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [isPersisted, setIsPersisted] = useState(false)
-  const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pristineJsonRef = useRef<string | null>(null)
-  if (pristineJsonRef.current === null) pristineJsonRef.current = JSON.stringify(slip)
+  const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
+    load: getSlip,
+    save: saveSlip,
+    onLoaded: setSlip,
+  })
 
   useEffect(() => {
     onSlipChange(slip)
   }, [slip, onSlipChange])
-
-  useEffect(() => {
-    let cancelled = false
-    getSlip(slipId)
-      .then((saved) => {
-        if (cancelled) return
-        if (saved) {
-          setSlip(saved)
-          pristineJsonRef.current = JSON.stringify(saved)
-          setIsPersisted(true)
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to load saved slip', error)
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoaded(true)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [slipId])
-
-  useEffect(() => {
-    if (!isLoaded || !isPersisted) return
-    if (JSON.stringify(slip) === pristineJsonRef.current) return
-    const timeout = setTimeout(() => {
-      saveSlip(slip).catch((error) => {
-        console.error('Failed to autosave slip', error)
-      })
-    }, AUTOSAVE_DELAY_MS)
-    autosaveTimeoutRef.current = timeout
-    return () => clearTimeout(timeout)
-  }, [slip, isLoaded, isPersisted])
 
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
@@ -82,13 +47,12 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
       console.error('Failed to save slip', error)
       return
     }
-    pristineJsonRef.current = JSON.stringify(slip)
-    setIsPersisted(true)
+    markSaved()
   }
 
   async function handleDelete() {
     if (!window.confirm(`Delete "${slip.title}"? This cannot be undone.`)) return
-    if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current)
+    cancelPending()
     try {
       await deleteSlip(slipId)
     } catch (error) {
