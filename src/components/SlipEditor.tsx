@@ -107,12 +107,18 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
         <button type="button" className="btn btn-ghost" onClick={onBack}>
           ← Slip-box
         </button>
-        {!isPersisted && (
-          <button type="button" className="btn btn-primary" onClick={handleSave}>
-            <Save size={14} />
-            Save
+        <div className="slip-editor-transport-actions">
+          {!isPersisted && (
+            <button type="button" className="btn btn-primary" onClick={handleSave}>
+              <Save size={14} />
+              Save
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost" onClick={handleDelete}>
+            <Trash2 size={14} />
+            Delete slip
           </button>
-        )}
+        </div>
       </div>
       <div className="slip-editor">
         <MetadataPanel
@@ -121,13 +127,9 @@ export function SlipEditor({ slipId, onBack, onPlay, onRegisterPlay }: SlipEdito
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
         />
-        <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />
-      </div>
-      <div className="slip-editor-danger-zone">
-        <button type="button" className="btn btn-ghost" onClick={handleDelete}>
-          <Trash2 size={14} />
-          Delete slip
-        </button>
+        <div className="slip-editor-roll">
+          <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />
+        </div>
       </div>
     </div>
   )
