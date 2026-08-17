@@ -98,9 +98,9 @@ export function MetadataPanel({
             <Copy size={14} />
             Copy
           </button>
-          <button type="button" className="btn btn-ghost metadata-panel-delete" onClick={onDelete}>
+          <button type="button" className="btn btn-danger metadata-panel-delete" onClick={onDelete}>
             <Trash2 size={14} />
-            Delete slip
+            Delete
           </button>
         </div>
       </div>

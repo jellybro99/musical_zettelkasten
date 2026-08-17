@@ -79,16 +79,21 @@
   outline-offset: -1px;
 }
 
+.slip-card-delete {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
 .slip-card-delete:hover {
-  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
 }
 
 .slip-card-delete:active {
-  background: color-mix(in srgb, var(--color-text) 18%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 24%, transparent);
 }
 
 .slip-card-delete:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-danger);
   outline-offset: -1px;
 }
 

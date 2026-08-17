@@ -38,8 +38,8 @@ A top-nav destination reserved for a future screen (currently a disabled nav but
 **Design system is hand-ported, not vendored.**
 The app's CSS is a hand-ported subset of the Classical design system's tokens and classes, sourced from `Musical Zettelkasten UI Mockups/_ds/`. That folder is a fidelity reference, not a runtime dependency — only the tokens/classes the app actually uses are ported in. When styling, check the mockup DS for the canonical value rather than inventing one, but don't pull in unused DS surface area.
 
-**Strict mono-accent — no danger color.**
-The app has no danger/red color exception. Destructive actions (slip delete, editor delete) use the same accent/neutral ramps as every other control, with no separate `--color-danger` token. This is deliberate, not an oversight — don't reintroduce a red/danger color for new destructive affordances.
+**Mono-accent, with a danger exception for destructive actions.**
+The app is otherwise a strict mono-accent scheme — every non-destructive control uses the `--color-accent`/neutral ramps, and that's unchanged. Destructive actions specifically (slip delete, editor delete) are the one exception: they use a dedicated `--color-danger` token (`.btn-danger` in `src/index.css`) and are visually separated from neighboring non-destructive controls, rather than rendering as an equal-weight ghost button in the same row. See ADR-0003 (supersedes ADR-0002 on this point only — ADR-0002's atomicity decision is untouched). Don't reach for `--color-danger` outside destructive affordances; it is not a second general-purpose accent.
 
 **"Now playing" is a single app-shell-global concept.**
 Exactly one playback engine and "currently playing slip" state exist at a time, shared across the dashboard and the editor via a global playback bar — not scoped per-screen. Playback intentionally stops on navigation (entering/leaving the editor, or leaving the dashboard) rather than persisting across screens; the app does not support background/cross-screen playback.

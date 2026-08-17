@@ -30,6 +30,8 @@
   --color-accent-800: #5a3b0a;
   --color-accent-900: #3a270d;
 
+  --color-danger: #b3392b;
+
   --font-heading: 'Cormorant Garamond', system-ui, sans-serif;
   --font-heading-weight: 600;
   --font-body: 'Lora', system-ui, sans-serif;
@@ -123,6 +125,9 @@ h1 {
 .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
 .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
+.btn-danger:hover { background: color-mix(in srgb, var(--color-danger) 12%, transparent); }
+.btn-danger:active { background: color-mix(in srgb, var(--color-danger) 22%, transparent); }
 .btn-icon { width: 36px; height: 36px; padding: 0; }
 .btn-block { width: 100%; margin-top: var(--space-2); }
 
