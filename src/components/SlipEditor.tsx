@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import { addTag, createSlip, removeTag, updateSlipMetadata, type Note, type Slip, type UpdateSlipMetadataInput } from '../domain/slip'
+import {
+  addReference,
+  addTag,
+  createSlip,
+  removeReference,
+  removeTag,
+  updateSlipMetadata,
+  type Note,
+  type Slip,
+  type UpdateSlipMetadataInput,
+} from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
-import { deleteSlip, getSlip, saveSlip } from '../persistence/slipStorage'
+import { deleteSlip, getSlip, listSlips, saveSlip } from '../persistence/slipStorage'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
@@ -14,6 +24,7 @@ export interface SlipEditorProps {
 
 export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
+  const [allSlips, setAllSlips] = useState<Slip[]>([])
   const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
     load: getSlip,
     save: saveSlip,
@@ -23,6 +34,20 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
   useEffect(() => {
     onSlipChange(slip)
   }, [slip, onSlipChange])
+
+  useEffect(() => {
+    let cancelled = false
+    listSlips()
+      .then((loaded) => {
+        if (!cancelled) setAllSlips(loaded)
+      })
+      .catch((error) => {
+        console.error('Failed to load slips', error)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
@@ -38,6 +63,14 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
 
   function handleRemoveTag(tag: string) {
     setSlip((current) => removeTag(current, tag))
+  }
+
+  function handleAddReference(referencedSlipId: string) {
+    setSlip((current) => addReference(current, allSlips, referencedSlipId))
+  }
+
+  function handleRemoveReference(referencedSlipId: string) {
+    setSlip((current) => removeReference(current, referencedSlipId))
   }
 
   async function handleSave() {
@@ -67,6 +100,7 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
       <div className="slip-editor">
         <MetadataPanel
           slip={slip}
+          allSlips={allSlips}
           isPersisted={isPersisted}
           onBack={onBack}
           onSave={handleSave}
@@ -74,6 +108,8 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
           onMetadataChange={handleMetadataChange}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
+          onAddReference={handleAddReference}
+          onRemoveReference={handleRemoveReference}
         />
         <div className="slip-editor-roll">
           <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />

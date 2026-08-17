@@ -5,7 +5,8 @@ import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
 import { computePlaybackDurationMs } from './domain/playback'
-import { createSlip, totalSteps, type Slip } from './domain/slip'
+import { createSlip, resolveSlipNotes, totalSteps, type Slip } from './domain/slip'
+import { listSlips } from './persistence/slipStorage'
 
 type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 
@@ -20,12 +21,21 @@ function App() {
     setNowPlaying(null)
   }
 
-  function playSlip(slip: Slip) {
+  async function playSlip(slip: Slip) {
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
 
+    let allSlips: Slip[]
+    try {
+      allSlips = await listSlips()
+    } catch (error) {
+      console.error('Failed to load slips for playback', error)
+      return
+    }
+
+    const notes = resolveSlipNotes(slip, allSlips)
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
     setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
-    engineRef.current.play(slip.notes, slip.tempo, {
+    engineRef.current.play(notes, slip.tempo, {
       durationMs,
       onTick: (elapsedMs) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
       onEnded: () => setNowPlaying(null),

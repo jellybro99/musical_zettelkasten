@@ -1,11 +1,12 @@
 import { ChevronDown, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
-import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
+import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { referenceCandidates, SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
 import './MetadataPanel.css'
 
 export interface MetadataPanelProps {
   slip: Slip
+  allSlips: Slip[]
   isPersisted: boolean
   onBack: () => void
   onSave: () => void
@@ -13,10 +14,13 @@ export interface MetadataPanelProps {
   onMetadataChange: (input: UpdateSlipMetadataInput) => void
   onAddTag: (tag: string) => void
   onRemoveTag: (tag: string) => void
+  onAddReference: (referencedSlipId: string) => void
+  onRemoveReference: (referencedSlipId: string) => void
 }
 
 export function MetadataPanel({
   slip,
+  allSlips,
   isPersisted,
   onBack,
   onSave,
@@ -24,8 +28,11 @@ export function MetadataPanel({
   onMetadataChange,
   onAddTag,
   onRemoveTag,
+  onAddReference,
+  onRemoveReference,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
+  const candidates = referenceCandidates(slip, allSlips)
 
   function handleAddTag(event: FormEvent) {
     event.preventDefault()
@@ -36,6 +43,12 @@ export function MetadataPanel({
 
   function handleRandomizeTitle() {
     onMetadataChange({ title: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
+  }
+
+  function handleAddReference(event: ChangeEvent<HTMLSelectElement>) {
+    const referencedSlipId = event.target.value
+    if (!referencedSlipId) return
+    onAddReference(referencedSlipId)
   }
 
   return (
@@ -163,6 +176,46 @@ export function MetadataPanel({
             + tag
           </button>
         </form>
+      </div>
+
+      <div className="field">
+        <span className="metadata-label">References</span>
+        <div className="metadata-tags">
+          {slip.referencedSlipIds.map((referencedSlipId) => {
+            const referenced = allSlips.find((candidate) => candidate.id === referencedSlipId)
+            const title = referenced ? referenced.title : 'Deleted slip'
+            return (
+              <span key={referencedSlipId} className="tag tag-neutral metadata-tag">
+                {title}
+                <button
+                  type="button"
+                  className="metadata-tag-remove"
+                  onClick={() => onRemoveReference(referencedSlipId)}
+                  aria-label={`Remove reference ${title}`}
+                >
+                  ×
+                </button>
+              </span>
+            )
+          })}
+        </div>
+        {candidates.length > 0 && (
+          <select
+            className="input"
+            value=""
+            onChange={handleAddReference}
+            aria-label="Add reference"
+          >
+            <option value="" disabled>
+              Add reference…
+            </option>
+            {candidates.map((candidate) => (
+              <option key={candidate.id} value={candidate.id}>
+                {candidate.title}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </div>
   )
