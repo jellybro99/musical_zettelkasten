@@ -24,6 +24,9 @@ _Avoid_: Label, category
 The action of creating a new slip from the top nav's "Capture" button — the zettelkasten "quick capture" motion. Not a screen: it creates a slip and drops the user into the editor.
 _Avoid_: Create, new slip
 
+**Copy** / **Provenance**:
+Copying a slip produces a new, fully independent slip pre-populated with the original's notes/grid/tempo/key/kind/tags, opened straight in the editor. The copy carries a one-way **provenance** pointer (`copiedFromId`) back to the slip it was copied from, shown as a "Copied from" link in the editor. Provenance is a historical fact recorded once at copy time — never resolved into playback, not reciprocated by the original, and silently omitted if the original has since been deleted. This is unrelated to the removed Reference concept (see Decisions, ADR-0002): a copy's playback is its own notes only.
+
 **Desk**:
 A top-nav destination reserved for a future screen (currently a disabled nav button). One of the app's three intended top-level screens, alongside Slip-box and Arrange.
 
