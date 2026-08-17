@@ -1,8 +1,20 @@
 import { ChevronDown, Copy, GitBranch, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
+import {
+  DEFAULT_GRID,
+  notesOutOfGridBounds,
+  octaveCountToHighPitch,
+  SLIP_KINDS,
+  type GridConfig,
+  type Slip,
+  type SlipKind,
+  type UpdateSlipMetadataInput,
+} from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
 import './MetadataPanel.css'
+
+const BAR_OPTIONS = [1, 2, 4, 8]
+const OCTAVE_OPTIONS = [1, 2, 3]
 
 export interface MetadataPanelProps {
   slip: Slip
@@ -13,6 +25,7 @@ export interface MetadataPanelProps {
   onCopy: () => void
   onDelete: () => void
   onMetadataChange: (input: UpdateSlipMetadataInput) => void
+  onGridChange: (gridPatch: Partial<GridConfig>) => void
   onAddTag: (tag: string) => void
   onRemoveTag: (tag: string) => void
   onNavigateToSlip: (targetSlipId: string) => void
@@ -27,12 +40,15 @@ export function MetadataPanel({
   onCopy,
   onDelete,
   onMetadataChange,
+  onGridChange,
   onAddTag,
   onRemoveTag,
   onNavigateToSlip,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
   const copiedFrom = slip.copiedFromId ? allSlips.find((candidate) => candidate.id === slip.copiedFromId) : undefined
+
+  const currentOctaveCount = Math.round((slip.grid.highPitch - slip.grid.lowPitch + 1) / 12) || 1
 
   function handleAddTag(event: FormEvent) {
     event.preventDefault()
@@ -43,6 +59,26 @@ export function MetadataPanel({
 
   function handleRandomizeTitle() {
     onMetadataChange({ title: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
+  }
+
+  function applyGridChange(gridPatch: Partial<GridConfig>) {
+    const candidateGrid = { ...slip.grid, ...gridPatch }
+    const affectedNotes = notesOutOfGridBounds(slip.notes, candidateGrid)
+    if (affectedNotes.length > 0) {
+      const noteWord = affectedNotes.length === 1 ? 'note' : 'notes'
+      if (!window.confirm(`This will remove ${affectedNotes.length} ${noteWord} outside the new size. Continue?`)) {
+        return
+      }
+    }
+    onGridChange(gridPatch)
+  }
+
+  function handleBarsChange(bars: number) {
+    applyGridChange({ bars })
+  }
+
+  function handleOctaveCountChange(octaveCount: number) {
+    applyGridChange({ highPitch: octaveCountToHighPitch(DEFAULT_GRID.lowPitch, octaveCount) })
   }
 
   return (
@@ -137,6 +173,38 @@ export function MetadataPanel({
           {SLIP_KINDS.map((kind) => (
             <option key={kind} value={kind}>
               {kind}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="field">
+        <label htmlFor="slip-bars">Bars</label>
+        <select
+          id="slip-bars"
+          className="input"
+          value={slip.grid.bars}
+          onChange={(event) => handleBarsChange(Number(event.target.value))}
+        >
+          {BAR_OPTIONS.map((bars) => (
+            <option key={bars} value={bars}>
+              {bars}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="field">
+        <label htmlFor="slip-octave-range">Octave range</label>
+        <select
+          id="slip-octave-range"
+          className="input"
+          value={currentOctaveCount}
+          onChange={(event) => handleOctaveCountChange(Number(event.target.value))}
+        >
+          {OCTAVE_OPTIONS.map((octaveCount) => (
+            <option key={octaveCount} value={octaveCount}>
+              {octaveCount}
             </option>
           ))}
         </select>
