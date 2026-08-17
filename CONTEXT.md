@@ -24,11 +24,15 @@ _Avoid_: Label, category
 The action of creating a new slip from the top nav's "Capture" button — the zettelkasten "quick capture" motion. Not a screen: it creates a slip and drops the user into the editor.
 _Avoid_: Create, new slip
 
+**Reference**:
+A slip can hold references to other slips. A referencing slip's playable/rendered notes are its own notes unioned, recursively, with every referenced slip's notes — resolved live at read/playback time, never copied at the moment the reference is made. A slip may not reference itself, directly or transitively.
+_Avoid_: Embed, Include, Import, Nest, Link, Combine (combine is reserved for what the Arrange screen does to Loops)
+
 **Desk**:
 A top-nav destination reserved for a future screen (currently a disabled nav button). One of the app's three intended top-level screens, alongside Slip-box and Arrange.
 
 **Arrange**:
-A top-nav destination reserved for a future screen (currently a disabled nav button). One of the app's three intended top-level screens, alongside Slip-box and Desk.
+A top-nav destination reserved for a future screen (currently a disabled nav button) where multiple Loop-kind slips get placed on a timeline to build a song. One of the app's three intended top-level screens, alongside Slip-box and Desk. An arrangement is not itself a Slip.
 
 ## Decisions
 
@@ -40,3 +44,6 @@ The app has no danger/red color exception. Destructive actions (slip delete, edi
 
 **"Now playing" is a single app-shell-global concept.**
 Exactly one playback engine and "currently playing slip" state exist at a time, shared across the dashboard and the editor via a global playback bar — not scoped per-screen. Playback intentionally stops on navigation (entering/leaving the editor, or leaving the dashboard) rather than persisting across screens; the app does not support background/cross-screen playback.
+
+**Slip references resolve live, with no time offset, and ignore tempo/key.**
+A slip's playable notes are its own notes unioned with every referenced slip's notes (recursively), computed at read/playback time — never copied at reference time. Referenced notes always start at grid step 0 of the referencing slip and are clipped to its grid length; there is no per-reference time offset control. Tempo and key differences between a slip and what it references are not reconciled — notes are grid-step data, not real-time data, so mismatches are cosmetic only. See ADR-0001.
