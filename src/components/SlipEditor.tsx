@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  addReference,
   addTag,
   copySlip,
   createSlip,
-  removeReference,
   removeTag,
   updateSlipMetadata,
   type Note,
@@ -22,7 +20,7 @@ export interface SlipEditorProps {
   onBack: () => void
   onSlipChange: (slip: Slip) => void
   onStopPlayback: () => void
-  onOpenReference: (currentSlipId: string, targetSlipId: string) => void
+  onNavigateToSlip: (currentSlipId: string, targetSlipId: string) => void
   onCopySlip: (newSlipId: string) => void
 }
 
@@ -31,7 +29,7 @@ export function SlipEditor({
   onBack,
   onSlipChange,
   onStopPlayback,
-  onOpenReference,
+  onNavigateToSlip,
   onCopySlip,
 }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
@@ -76,14 +74,6 @@ export function SlipEditor({
     setSlip((current) => removeTag(current, tag))
   }
 
-  function handleAddReference(referencedSlipId: string) {
-    setSlip((current) => addReference(current, allSlips, referencedSlipId))
-  }
-
-  function handleRemoveReference(referencedSlipId: string) {
-    setSlip((current) => removeReference(current, referencedSlipId))
-  }
-
   async function persistSlip(): Promise<boolean> {
     try {
       await saveSlip(slip)
@@ -95,14 +85,14 @@ export function SlipEditor({
     return true
   }
 
-  async function handleOpenReference(referencedSlipId: string) {
+  async function handleNavigateToSlip(targetSlipId: string) {
     onStopPlayback()
     if (isPersisted) {
       cancelPending()
       const saved = await persistSlip()
       if (!saved) return
     }
-    onOpenReference(slipId, referencedSlipId)
+    onNavigateToSlip(slipId, targetSlipId)
   }
 
   async function handleSave() {
@@ -152,9 +142,7 @@ export function SlipEditor({
           onMetadataChange={handleMetadataChange}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
-          onAddReference={handleAddReference}
-          onRemoveReference={handleRemoveReference}
-          onOpenReference={handleOpenReference}
+          onNavigateToSlip={handleNavigateToSlip}
         />
         <div className="slip-editor-roll">
           <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />

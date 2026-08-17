@@ -110,7 +110,6 @@ export interface Slip {
   key: string
   kind: SlipKind
   tags: string[]
-  referencedSlipIds: string[]
   copiedFromId: string | null
 }
 
@@ -127,7 +126,6 @@ export function createSlip(overrides?: Partial<Slip>): Slip {
     key: '',
     kind: 'Phrase',
     tags: [],
-    referencedSlipIds: [],
     copiedFromId: null,
     ...overrides,
   }
@@ -139,7 +137,6 @@ export function copySlip(slip: Slip): Slip {
     id: crypto.randomUUID(),
     createdAt: Date.now(),
     title: `Copy of ${slip.title}`,
-    referencedSlipIds: [],
     copiedFromId: slip.id,
   }
 }
@@ -195,77 +192,4 @@ function matchesSearch(slip: Slip, search: string): boolean {
 
 export function formatSlipMeta(slip: Slip): string {
   return `${slip.tempo} BPM · ${slip.key} · ${slip.grid.bars} bars`
-}
-
-function findSlip(allSlips: Slip[], id: string): Slip | undefined {
-  return allSlips.find((candidate) => candidate.id === id)
-}
-
-function wouldCreateCycle(slip: Slip, allSlips: Slip[], referencedSlipId: string): boolean {
-  const visited = new Set<string>()
-  const stack = [referencedSlipId]
-
-  while (stack.length > 0) {
-    const current = stack.pop()!
-    if (current === slip.id) return true
-    if (visited.has(current)) continue
-    visited.add(current)
-
-    const currentSlip = findSlip(allSlips, current)
-    if (!currentSlip) continue
-    stack.push(...currentSlip.referencedSlipIds)
-  }
-
-  return false
-}
-
-export function addReference(slip: Slip, allSlips: Slip[], referencedSlipId: string): Slip {
-  if (referencedSlipId === slip.id) return slip
-  if (slip.referencedSlipIds.includes(referencedSlipId)) return slip
-  if (wouldCreateCycle(slip, allSlips, referencedSlipId)) return slip
-
-  return { ...slip, referencedSlipIds: [...slip.referencedSlipIds, referencedSlipId] }
-}
-
-export function removeReference(slip: Slip, referencedSlipId: string): Slip {
-  return { ...slip, referencedSlipIds: slip.referencedSlipIds.filter((id) => id !== referencedSlipId) }
-}
-
-export function referenceCandidates(slip: Slip, allSlips: Slip[]): Slip[] {
-  return allSlips.filter(
-    (candidate) =>
-      candidate.id !== slip.id &&
-      !slip.referencedSlipIds.includes(candidate.id) &&
-      !wouldCreateCycle(slip, allSlips, candidate.id),
-  )
-}
-
-export function resolveSlipNotes(slip: Slip, allSlips: Slip[]): Note[] {
-  const limit = totalSteps(slip.grid)
-  const visited = new Set<string>([slip.id])
-  const collected: Note[] = [...slip.notes]
-
-  function collect(id: string): void {
-    const referenced = findSlip(allSlips, id)
-    if (!referenced) return
-
-    for (const note of referenced.notes) {
-      if (note.start >= limit) continue
-      collected.push({ ...note, length: Math.min(note.length, limit - note.start) })
-    }
-
-    for (const nestedId of referenced.referencedSlipIds) {
-      if (visited.has(nestedId)) continue
-      visited.add(nestedId)
-      collect(nestedId)
-    }
-  }
-
-  for (const referencedId of slip.referencedSlipIds) {
-    if (visited.has(referencedId)) continue
-    visited.add(referencedId)
-    collect(referencedId)
-  }
-
-  return collected
 }

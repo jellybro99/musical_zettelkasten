@@ -5,8 +5,7 @@ import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
 import { computePlaybackDurationMs } from './domain/playback'
-import { createSlip, resolveSlipNotes, totalSteps, type Note, type Slip } from './domain/slip'
-import { listSlips } from './persistence/slipStorage'
+import { createSlip, totalSteps, type Note, type Slip } from './domain/slip'
 
 type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
 
@@ -44,21 +43,12 @@ function App() {
     })
   }
 
-  async function playSlip(slip: Slip) {
+  function playSlip(slip: Slip) {
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
 
-    let allSlips: Slip[]
-    try {
-      allSlips = await listSlips()
-    } catch (error) {
-      console.error('Failed to load slips for playback', error)
-      return
-    }
-
-    const notes = resolveSlipNotes(slip, allSlips)
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
     setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
-    startEngine(notes, slip.tempo, durationMs)
+    startEngine(slip.notes, slip.tempo, durationMs)
   }
 
   function togglePlay(slip: Slip) {
@@ -88,7 +78,7 @@ function App() {
     openSlip(slip.id)
   }
 
-  function handleOpenReference(currentSlipId: string, targetSlipId: string) {
+  function handleNavigateToSlip(currentSlipId: string, targetSlipId: string) {
     setCurrentEditorSlip(null)
     setBackStack((prev) => [...prev, currentSlipId])
     setScreen({ screen: 'editor', slipId: targetSlipId })
@@ -126,7 +116,7 @@ function App() {
             onBack={handleEditorBack}
             onSlipChange={setCurrentEditorSlip}
             onStopPlayback={stopPlayback}
-            onOpenReference={handleOpenReference}
+            onNavigateToSlip={handleNavigateToSlip}
             onCopySlip={openSlip}
           />
         )}

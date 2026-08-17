@@ -1,15 +1,7 @@
 import { ChevronDown, Copy, GitBranch, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
-import { useState, type ChangeEvent, type FormEvent } from 'react'
-import {
-  referenceCandidates,
-  resolveSlipNotes,
-  SLIP_KINDS,
-  type Slip,
-  type SlipKind,
-  type UpdateSlipMetadataInput,
-} from '../domain/slip'
+import { useState, type FormEvent } from 'react'
+import { SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
-import { SlipThumbnail } from './SlipThumbnail'
 import './MetadataPanel.css'
 
 export interface MetadataPanelProps {
@@ -23,9 +15,7 @@ export interface MetadataPanelProps {
   onMetadataChange: (input: UpdateSlipMetadataInput) => void
   onAddTag: (tag: string) => void
   onRemoveTag: (tag: string) => void
-  onAddReference: (referencedSlipId: string) => void
-  onRemoveReference: (referencedSlipId: string) => void
-  onOpenReference: (referencedSlipId: string) => void
+  onNavigateToSlip: (targetSlipId: string) => void
 }
 
 export function MetadataPanel({
@@ -39,12 +29,9 @@ export function MetadataPanel({
   onMetadataChange,
   onAddTag,
   onRemoveTag,
-  onAddReference,
-  onRemoveReference,
-  onOpenReference,
+  onNavigateToSlip,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
-  const candidates = referenceCandidates(slip, allSlips)
   const copiedFrom = slip.copiedFromId ? allSlips.find((candidate) => candidate.id === slip.copiedFromId) : undefined
 
   function handleAddTag(event: FormEvent) {
@@ -56,12 +43,6 @@ export function MetadataPanel({
 
   function handleRandomizeTitle() {
     onMetadataChange({ title: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
-  }
-
-  function handleAddReference(event: ChangeEvent<HTMLSelectElement>) {
-    const referencedSlipId = event.target.value
-    if (!referencedSlipId) return
-    onAddReference(referencedSlipId)
   }
 
   return (
@@ -113,7 +94,7 @@ export function MetadataPanel({
         <button
           type="button"
           className="btn btn-ghost metadata-provenance"
-          onClick={() => onOpenReference(copiedFrom.id)}
+          onClick={() => onNavigateToSlip(copiedFrom.id)}
         >
           <GitBranch size={13} />
           <span className="metadata-provenance-text">
@@ -208,67 +189,6 @@ export function MetadataPanel({
             + tag
           </button>
         </form>
-      </div>
-
-      <div className="field">
-        <span className="metadata-label">References</span>
-        <div className="metadata-references">
-          {slip.referencedSlipIds.map((referencedSlipId) => {
-            const referenced = allSlips.find((candidate) => candidate.id === referencedSlipId)
-
-            if (!referenced) {
-              return (
-                <div key={referencedSlipId} className="reference-card-wrapper">
-                  <div className="reference-card reference-card-missing">
-                    <span className="reference-card-title">Deleted slip</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="reference-card-remove"
-                    onClick={() => onRemoveReference(referencedSlipId)}
-                    aria-label="Remove reference Deleted slip"
-                  >
-                    ×
-                  </button>
-                </div>
-              )
-            }
-
-            return (
-              <div key={referencedSlipId} className="reference-card-wrapper">
-                <button type="button" className="reference-card" onClick={() => onOpenReference(referencedSlipId)}>
-                  <SlipThumbnail notes={resolveSlipNotes(referenced, allSlips)} grid={referenced.grid} />
-                  <span className="reference-card-title">{referenced.title}</span>
-                </button>
-                <button
-                  type="button"
-                  className="reference-card-remove"
-                  onClick={() => onRemoveReference(referencedSlipId)}
-                  aria-label={`Remove reference ${referenced.title}`}
-                >
-                  ×
-                </button>
-              </div>
-            )
-          })}
-        </div>
-        {candidates.length > 0 && (
-          <select
-            className="input"
-            value=""
-            onChange={handleAddReference}
-            aria-label="Add reference"
-          >
-            <option value="" disabled>
-              Add reference…
-            </option>
-            {candidates.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.title}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
     </div>
   )

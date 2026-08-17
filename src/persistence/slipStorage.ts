@@ -20,7 +20,7 @@ function openDatabase(): Promise<IDBDatabase> {
 }
 
 function normalizeSlip(slip: Slip): Slip {
-  return { ...slip, referencedSlipIds: slip.referencedSlipIds ?? [], copiedFromId: slip.copiedFromId ?? null }
+  return { ...slip, copiedFromId: slip.copiedFromId ?? null }
 }
 
 export async function listSlips(): Promise<Slip[]> {
