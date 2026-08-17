@@ -1,6 +1,19 @@
 import { Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
-import { createArrangement, placeClip, updateArrangementMetadata, type PlaceClipInput } from '../domain/arrangement'
+import {
+  createArrangement,
+  moveClip,
+  placeClip,
+  removeClip,
+  renameTrack,
+  resizeClipLoop,
+  toggleTrackMute,
+  toggleTrackSolo,
+  updateArrangementMetadata,
+  type MoveClipInput,
+  type PlaceClipInput,
+  type ResizeClipLoopInput,
+} from '../domain/arrangement'
 import { generateSlipTitle } from '../domain/titleGenerator'
 import type { Slip, SlipFilters } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
@@ -66,6 +79,30 @@ export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps)
     setDraggingSlip(null)
   }, [])
 
+  const handleMoveClip = useCallback((input: MoveClipInput) => {
+    setArrangement((current) => moveClip(current, input))
+  }, [])
+
+  const handleResizeClipLoop = useCallback((input: ResizeClipLoopInput) => {
+    setArrangement((current) => resizeClipLoop(current, input))
+  }, [])
+
+  const handleRemoveClip = useCallback((clipId: string) => {
+    setArrangement((current) => removeClip(current, clipId))
+  }, [])
+
+  const handleRenameTrack = useCallback((trackId: string, name: string) => {
+    setArrangement((current) => renameTrack(current, trackId, name))
+  }, [])
+
+  const handleToggleMute = useCallback((trackId: string) => {
+    setArrangement((current) => toggleTrackMute(current, trackId))
+  }, [])
+
+  const handleToggleSolo = useCallback((trackId: string) => {
+    setArrangement((current) => toggleTrackSolo(current, trackId))
+  }, [])
+
   return (
     <div className="arrangement-view">
       <div className="arrangement-view-header">
@@ -114,6 +151,12 @@ export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps)
           draggingSlip={draggingSlip}
           onPlaceClip={handlePlaceClip}
           onDragEnd={handleDragEnd}
+          onMoveClip={handleMoveClip}
+          onResizeClipLoop={handleResizeClipLoop}
+          onRemoveClip={handleRemoveClip}
+          onRenameTrack={handleRenameTrack}
+          onToggleMute={handleToggleMute}
+          onToggleSolo={handleToggleSolo}
         />
       </div>
     </div>

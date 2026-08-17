@@ -33,12 +33,68 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  padding: 0 var(--space-3);
+  gap: 6px;
+  padding: 0 var(--space-2);
   font-family: var(--font-heading);
   font-size: 13px;
   color: var(--color-text);
   background: var(--color-bg);
   border-right: 1px solid var(--color-divider);
+}
+
+.arrangement-track-name-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+}
+
+.arrangement-track-name-input:hover {
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+
+.arrangement-track-name-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.arrangement-track-controls {
+  display: flex;
+  gap: 3px;
+  flex: none;
+}
+
+.arrangement-track-toggle {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  cursor: pointer;
+}
+
+.arrangement-track-toggle:hover {
+  border-color: var(--color-accent);
+}
+
+.arrangement-track-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.arrangement-track-toggle.is-active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg);
 }
 
 .arrangement-track-lane {
@@ -63,16 +119,50 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  gap: 4px;
+  padding: 0 6px;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   font-size: 12px;
   border: 1px solid var(--color-accent-700);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--color-accent) 70%, var(--color-bg));
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
+  cursor: grab;
+}
+
+.arrangement-clip.is-selected {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.arrangement-clip-grip {
+  flex: none;
+  opacity: 0.6;
+}
+
+.arrangement-clip-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arrangement-clip-loop-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--color-text) 40%, transparent);
+  pointer-events: none;
+}
+
+.arrangement-clip-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
 }
 
 .arrangement-drop-marker {

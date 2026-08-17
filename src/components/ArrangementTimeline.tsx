@@ -1,5 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import { NEW_TRACK, type Arrangement, type PlaceClipInput } from '../domain/arrangement'
+import { GripVertical } from 'lucide-react'
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import {
+  computeLoopMarks,
+  NEW_TRACK,
+  type Arrangement,
+  type Clip,
+  type MoveClipInput,
+  type PlaceClipInput,
+  type ResizeClipLoopInput,
+} from '../domain/arrangement'
 import type { Slip } from '../domain/slip'
 import './ArrangementTimeline.css'
 
@@ -15,6 +24,10 @@ interface DropPreview {
   startBar: number
 }
 
+type ClipDragState =
+  | { type: 'move'; clipId: string; startX: number; startY: number; origStartBar: number; origTrackId: string }
+  | { type: 'resize'; clipId: string; startX: number; origLengthBars: number }
+
 function computeBarCount(arrangement: Arrangement, extraBar: number): number {
   const clipEnds = arrangement.tracks.flatMap((track) => track.clips.map((clip) => clip.startBar + clip.lengthBars))
   return Math.max(MIN_BARS, extraBar, ...clipEnds) + BAR_BUFFER
@@ -26,6 +39,12 @@ export interface ArrangementTimelineProps {
   draggingSlip: Slip | null
   onPlaceClip: (input: PlaceClipInput) => void
   onDragEnd: () => void
+  onMoveClip: (input: MoveClipInput) => void
+  onResizeClipLoop: (input: ResizeClipLoopInput) => void
+  onRemoveClip: (clipId: string) => void
+  onRenameTrack: (trackId: string, name: string) => void
+  onToggleMute: (trackId: string) => void
+  onToggleSolo: (trackId: string) => void
 }
 
 export function ArrangementTimeline({
@@ -34,11 +53,21 @@ export function ArrangementTimeline({
   draggingSlip,
   onPlaceClip,
   onDragEnd,
+  onMoveClip,
+  onResizeClipLoop,
+  onRemoveClip,
+  onRenameTrack,
+  onToggleMute,
+  onToggleSolo,
 }: ArrangementTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const previewRef = useRef<DropPreview | null>(null)
   const [preview, setPreview] = useState<DropPreview | null>(null)
+  const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
+  const clipDragRef = useRef<ClipDragState | null>(null)
 
+  // Rail → timeline placement drag: only active while a slip is being
+  // dragged in from the search rail, so this effect attaches/detaches with it.
   useEffect(() => {
     if (!draggingSlip) return
     const slip = draggingSlip
@@ -88,6 +117,80 @@ export function ArrangementTimeline({
     }
   }, [draggingSlip, onPlaceClip, onDragEnd])
 
+  // Already-placed clip move/resize drag: a persistent listener (like
+  // PianoRoll's note drag) that only acts while clipDragRef is set.
+  useEffect(() => {
+    function handleMouseMove(event: MouseEvent) {
+      const drag = clipDragRef.current
+      const container = containerRef.current
+      if (!drag || !container) return
+
+      if (drag.type === 'move') {
+        const deltaBars = Math.round((event.clientX - drag.startX) / BAR_WIDTH)
+        const startBar = Math.max(0, drag.origStartBar + deltaBars)
+
+        let targetTrackId = drag.origTrackId
+        const rows = container.querySelectorAll<HTMLElement>('[data-track-row]')
+        for (const row of rows) {
+          const rect = row.getBoundingClientRect()
+          if (event.clientY >= rect.top && event.clientY <= rect.bottom) {
+            const id = row.dataset.trackId
+            if (id && id !== NEW_TRACK) targetTrackId = id
+            break
+          }
+        }
+
+        onMoveClip({ clipId: drag.clipId, trackId: targetTrackId, startBar })
+      } else {
+        const deltaBars = Math.round((event.clientX - drag.startX) / BAR_WIDTH)
+        onResizeClipLoop({ clipId: drag.clipId, lengthBars: drag.origLengthBars + deltaBars })
+      }
+    }
+
+    function handleMouseUp() {
+      clipDragRef.current = null
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [onMoveClip, onResizeClipLoop])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!selectedClipId) return
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return
+      event.preventDefault()
+      onRemoveClip(selectedClipId)
+      setSelectedClipId(null)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedClipId, onRemoveClip])
+
+  function handleClipMouseDown(event: ReactMouseEvent, clip: Clip, trackId: string) {
+    event.stopPropagation()
+    setSelectedClipId(clip.id)
+    clipDragRef.current = {
+      type: 'move',
+      clipId: clip.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      origStartBar: clip.startBar,
+      origTrackId: trackId,
+    }
+  }
+
+  function handleResizeMouseDown(event: ReactMouseEvent, clip: Clip) {
+    event.stopPropagation()
+    setSelectedClipId(clip.id)
+    clipDragRef.current = { type: 'resize', clipId: clip.id, startX: event.clientX, origLengthBars: clip.lengthBars }
+  }
+
   const activePreview = draggingSlip ? preview : null
   const barCount = computeBarCount(
     arrangement,
@@ -132,18 +235,54 @@ export function ArrangementTimeline({
           style={{ height: TRACK_HEIGHT }}
         >
           <div className="arrangement-track-label" style={{ width: TRACK_LABEL_WIDTH }}>
-            {track.name}
+            <input
+              type="text"
+              className="arrangement-track-name-input"
+              value={track.name}
+              onChange={(event) => onRenameTrack(track.id, event.target.value)}
+              aria-label={`Track name for ${track.name}`}
+            />
+            <div className="arrangement-track-controls">
+              <button
+                type="button"
+                className={`arrangement-track-toggle${track.muted ? ' is-active' : ''}`}
+                onClick={() => onToggleMute(track.id)}
+                aria-pressed={track.muted}
+                aria-label={track.muted ? `Unmute ${track.name}` : `Mute ${track.name}`}
+              >
+                M
+              </button>
+              <button
+                type="button"
+                className={`arrangement-track-toggle${track.solo ? ' is-active' : ''}`}
+                onClick={() => onToggleSolo(track.id)}
+                aria-pressed={track.solo}
+                aria-label={track.solo ? `Unsolo ${track.name}` : `Solo ${track.name}`}
+              >
+                S
+              </button>
+            </div>
           </div>
           <div className="arrangement-track-lane" style={{ width: barCount * BAR_WIDTH }}>
             {track.clips.map((clip) => {
               const slip = slipsById.get(clip.slipId)
+              const loopMarks = slip ? computeLoopMarks(clip, slip.grid.bars) : []
               return (
                 <div
                   key={clip.id}
-                  className="arrangement-clip"
+                  className={`arrangement-clip${clip.id === selectedClipId ? ' is-selected' : ''}`}
                   style={{ left: clip.startBar * BAR_WIDTH, width: clip.lengthBars * BAR_WIDTH }}
+                  onMouseDown={(event) => handleClipMouseDown(event, clip, track.id)}
                 >
-                  {slip?.title ?? 'Missing slip'}
+                  <GripVertical size={12} className="arrangement-clip-grip" />
+                  <span className="arrangement-clip-title">{slip?.title ?? 'Missing slip'}</span>
+                  {loopMarks.map((bar) => (
+                    <div key={bar} className="arrangement-clip-loop-mark" style={{ left: bar * BAR_WIDTH }} />
+                  ))}
+                  <div
+                    className="arrangement-clip-resize-handle"
+                    onMouseDown={(event) => handleResizeMouseDown(event, clip)}
+                  />
                 </div>
               )
             })}

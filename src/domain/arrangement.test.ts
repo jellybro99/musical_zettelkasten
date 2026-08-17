@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { addTrack, createArrangement, placeClip, updateArrangementMetadata } from './arrangement'
+import {
+  addTrack,
+  clipFitLabel,
+  computeLoopMarks,
+  createArrangement,
+  moveClip,
+  placeClip,
+  removeClip,
+  renameTrack,
+  resizeClipLoop,
+  toggleTrackMute,
+  toggleTrackSolo,
+  updateArrangementMetadata,
+  type Clip,
+} from './arrangement'
 
 describe('createArrangement', () => {
   it('creates an arrangement with default metadata and no tracks', () => {
@@ -183,5 +197,238 @@ describe('placeClip', () => {
 
     expect(result.tracks[0].clips).toEqual([])
     expect(result.tracks[1].clips).toHaveLength(1)
+  })
+})
+
+describe('moveClip', () => {
+  it('repositions a clip within the same track', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 2 })
+    const trackId = placed.tracks[0].id
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = moveClip(placed, { clipId, trackId, startBar: 4 })
+
+    expect(result.tracks[0].clips).toMatchObject([{ id: clipId, startBar: 4 }])
+  })
+
+  it('moves a clip to a different track', () => {
+    const withA = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 2 })
+    const withB = addTrack(withA, { name: 'B' })
+    const [trackA, trackB] = withB.tracks
+    const clipId = trackA.clips[0].id
+
+    const result = moveClip(withB, { clipId, trackId: trackB.id, startBar: 2 })
+
+    expect(result.tracks[0].clips).toEqual([])
+    expect(result.tracks[1].clips).toMatchObject([{ id: clipId, startBar: 2 }])
+  })
+
+  it('snaps a fractional startBar to the nearest whole bar', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 2 })
+    const trackId = placed.tracks[0].id
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = moveClip(placed, { clipId, trackId, startBar: 3.6 })
+
+    expect(result.tracks[0].clips[0].startBar).toBe(4)
+  })
+
+  it('clamps a negative startBar up to bar 0', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 4, slipBars: 2 })
+    const trackId = placed.tracks[0].id
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = moveClip(placed, { clipId, trackId, startBar: -5 })
+
+    expect(result.tracks[0].clips[0].startBar).toBe(0)
+  })
+
+  it('is a safe no-op when moving a clip that does not exist', () => {
+    const arrangement = addTrack(createArrangement())
+
+    const result = moveClip(arrangement, { clipId: 'missing', trackId: arrangement.tracks[0].id, startBar: 4 })
+
+    expect(result).toEqual(arrangement)
+  })
+
+  it('leaves other clips on the source track untouched', () => {
+    const withFirst = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 2 })
+    const trackId = withFirst.tracks[0].id
+    const withSecond = placeClip(withFirst, { trackId, slipId: 'slip-b', startBar: 4, slipBars: 2 })
+    const movedClipId = withSecond.tracks[0].clips[0].id
+    const otherClipId = withSecond.tracks[0].clips[1].id
+
+    const result = moveClip(withSecond, { clipId: movedClipId, trackId, startBar: 8 })
+
+    expect(result.tracks[0].clips).toHaveLength(2)
+    expect(result.tracks[0].clips.find((clip) => clip.id === otherClipId)).toMatchObject({ startBar: 4 })
+  })
+})
+
+describe('resizeClipLoop', () => {
+  it('shrinks a clip length, truncating it', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = resizeClipLoop(placed, { clipId, lengthBars: 2 })
+
+    expect(result.tracks[0].clips[0].lengthBars).toBe(2)
+  })
+
+  it('grows a clip length past the slip length, looping it', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = resizeClipLoop(placed, { clipId, lengthBars: 10 })
+
+    expect(result.tracks[0].clips[0].lengthBars).toBe(10)
+  })
+
+  it('clamps a non-positive length up to 1 bar', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = resizeClipLoop(placed, { clipId, lengthBars: 0 })
+
+    expect(result.tracks[0].clips[0].lengthBars).toBe(1)
+  })
+
+  it('snaps a fractional length to the nearest whole bar', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = resizeClipLoop(placed, { clipId, lengthBars: 5.6 })
+
+    expect(result.tracks[0].clips[0].lengthBars).toBe(6)
+  })
+
+  it('leaves other clip fields untouched', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 2, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = resizeClipLoop(placed, { clipId, lengthBars: 8 })
+
+    expect(result.tracks[0].clips[0]).toMatchObject({ slipId: 'slip-a', startBar: 2 })
+  })
+})
+
+describe('removeClip', () => {
+  it('removes the clip with the given id', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = removeClip(placed, clipId)
+
+    expect(result.tracks[0].clips).toEqual([])
+  })
+
+  it('leaves other clips and tracks untouched', () => {
+    const withFirst = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const trackId = withFirst.tracks[0].id
+    const withSecond = placeClip(withFirst, { trackId, slipId: 'slip-b', startBar: 4, slipBars: 4 })
+    const removedId = withSecond.tracks[0].clips[0].id
+    const keptId = withSecond.tracks[0].clips[1].id
+
+    const result = removeClip(withSecond, removedId)
+
+    expect(result.tracks[0].clips).toMatchObject([{ id: keptId }])
+  })
+
+  it('is a safe no-op when removing a clip that does not exist', () => {
+    const arrangement = addTrack(createArrangement())
+
+    const result = removeClip(arrangement, 'missing')
+
+    expect(result).toEqual(arrangement)
+  })
+})
+
+describe('renameTrack', () => {
+  it('renames the given track', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const result = renameTrack(arrangement, trackId, 'Drums')
+
+    expect(result.tracks[0].name).toBe('Drums')
+  })
+
+  it('leaves other tracks untouched', () => {
+    const arrangement = addTrack(addTrack(createArrangement(), { name: 'A' }), { name: 'B' })
+
+    const result = renameTrack(arrangement, arrangement.tracks[0].id, 'Renamed')
+
+    expect(result.tracks[1].name).toBe('B')
+  })
+})
+
+describe('toggleTrackMute', () => {
+  it('toggles muted on then off', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const muted = toggleTrackMute(arrangement, trackId)
+    const unmuted = toggleTrackMute(muted, trackId)
+
+    expect(muted.tracks[0].muted).toBe(true)
+    expect(unmuted.tracks[0].muted).toBe(false)
+  })
+
+  it('leaves other track fields untouched', () => {
+    const arrangement = addTrack(createArrangement(), { solo: true })
+    const trackId = arrangement.tracks[0].id
+
+    const result = toggleTrackMute(arrangement, trackId)
+
+    expect(result.tracks[0].solo).toBe(true)
+  })
+})
+
+describe('toggleTrackSolo', () => {
+  it('toggles solo on then off', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const soloed = toggleTrackSolo(arrangement, trackId)
+    const unsoloed = toggleTrackSolo(soloed, trackId)
+
+    expect(soloed.tracks[0].solo).toBe(true)
+    expect(unsoloed.tracks[0].solo).toBe(false)
+  })
+})
+
+describe('clipFitLabel', () => {
+  it('returns null when the source and arrangement tempo match', () => {
+    expect(clipFitLabel(120, 120)).toBeNull()
+  })
+
+  it('returns "source→arrangement" when they differ', () => {
+    expect(clipFitLabel(96, 121)).toBe('96→121')
+  })
+})
+
+describe('computeLoopMarks', () => {
+  function clip(overrides: Partial<Clip>): Clip {
+    return { id: 'c1', slipId: 'slip-a', startBar: 0, lengthBars: 4, ...overrides }
+  }
+
+  it('returns no marks when the clip length does not exceed the slip length', () => {
+    expect(computeLoopMarks(clip({ lengthBars: 4 }), 4)).toEqual([])
+  })
+
+  it('returns no marks when the clip is shorter than the slip length', () => {
+    expect(computeLoopMarks(clip({ lengthBars: 2 }), 4)).toEqual([])
+  })
+
+  it('returns one mark per repeat boundary', () => {
+    expect(computeLoopMarks(clip({ lengthBars: 10 }), 4)).toEqual([4, 8])
+  })
+
+  it('handles a slip length of 1 bar', () => {
+    expect(computeLoopMarks(clip({ lengthBars: 4 }), 1)).toEqual([1, 2, 3])
+  })
+
+  it('returns no marks for a zero or negative slip length', () => {
+    expect(computeLoopMarks(clip({ lengthBars: 10 }), 0)).toEqual([])
   })
 })
