@@ -202,7 +202,7 @@ export function PianoRoll({
               <button
                 key={step}
                 type="button"
-                className={`piano-roll-cell ${stepLineClass(step, grid)}${step === steps - 1 ? ' line-end' : ''}`}
+                className={`piano-roll-cell ${step === 0 ? '' : stepLineClass(step, grid)}`}
                 style={{ left: LABEL_WIDTH + step * COL_WIDTH, width: COL_WIDTH, height: ROW_HEIGHT }}
                 onClick={() => handleCellClick(pitch, step)}
                 aria-label={`Place note at ${pitchName(pitch)}, step ${step + 1}`}

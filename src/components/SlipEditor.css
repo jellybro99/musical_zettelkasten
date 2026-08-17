@@ -33,7 +33,9 @@
 }
 
 .slip-editor-roll {
+  box-sizing: border-box;
   min-width: 0;
   min-height: 0;
   overflow: auto;
+  border: 1px solid var(--color-divider);
 }
