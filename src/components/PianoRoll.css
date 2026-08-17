@@ -70,7 +70,7 @@
   padding-right: 6px;
   font-family: var(--font-heading);
   font-size: 10px;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
   background: var(--color-neutral-200);
   cursor: pointer;
 }
