@@ -5,8 +5,8 @@ A zettelkasten for musical ideas: short note patterns ("slips") captured, tagged
 ## Language
 
 **Slip**:
-A single unit of musical material — a note pattern (`notes`/`grid`) plus metadata (`title`, `tempo`, `key`, `kind`, `tags`). Named after the zettelkasten "slip" (a note card).
-_Avoid_: Clip, pattern, snippet
+A single unit of musical material — a note pattern (`notes`/`grid`) plus metadata (`title`, `tempo`, `key`, `kind`, `tags`). Named after the zettelkasten "slip" (a note card). Atomic: a slip cannot hold or resolve another slip's material, so browsing or playing a slip always shows only its own notes. See ADR-0002.
+_Avoid_: Clip, pattern, snippet, Embed, Include, Import, Nest, Link, Reference (composing multiple slips together is Arrange's job, not a Slip capability)
 
 **Slip-box**:
 The library screen listing all slips, with search, tag, and kind filtering. The zettelkasten box the slips live in.
@@ -23,10 +23,6 @@ _Avoid_: Label, category
 **Capture**:
 The action of creating a new slip from the top nav's "Capture" button — the zettelkasten "quick capture" motion. Not a screen: it creates a slip and drops the user into the editor.
 _Avoid_: Create, new slip
-
-**Reference**:
-A slip can hold references to other slips. A referencing slip's playable/rendered notes are its own notes unioned, recursively, with every referenced slip's notes — resolved live at read/playback time, never copied at the moment the reference is made. A slip may not reference itself, directly or transitively.
-_Avoid_: Embed, Include, Import, Nest, Link, Combine (combine is reserved for what the Arrange screen does to Loops)
 
 **Desk**:
 A top-nav destination reserved for a future screen (currently a disabled nav button). One of the app's three intended top-level screens, alongside Slip-box and Arrange.
@@ -45,5 +41,5 @@ The app has no danger/red color exception. Destructive actions (slip delete, edi
 **"Now playing" is a single app-shell-global concept.**
 Exactly one playback engine and "currently playing slip" state exist at a time, shared across the dashboard and the editor via a global playback bar — not scoped per-screen. Playback intentionally stops on navigation (entering/leaving the editor, or leaving the dashboard) rather than persisting across screens; the app does not support background/cross-screen playback.
 
-**Slip references resolve live, with no time offset, and ignore tempo/key.**
-A slip's playable notes are its own notes unioned with every referenced slip's notes (recursively), computed at read/playback time — never copied at reference time. Referenced notes always start at grid step 0 of the referencing slip and are clipped to its grid length; there is no per-reference time offset control. Tempo and key differences between a slip and what it references are not reconciled — notes are grid-step data, not real-time data, so mismatches are cosmetic only. See ADR-0001.
+**Slips are atomic — no slip-to-slip references.**
+A slip cannot hold or resolve another slip's material; playing or browsing a slip always shows only its own notes. Composing multiple slips together is deferred to the future Arrange screen, which combines Loop-kind slips into a song. See ADR-0002 (supersedes ADR-0001).
