@@ -1,7 +1,7 @@
-import { Play, Square, Trash2 } from 'lucide-react'
+import { Copy, Play, Square, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type MouseEvent } from 'react'
-import { filterSlips, formatSlipMeta, type Slip, type SlipFilters } from '../domain/slip'
-import { deleteSlip, listSlips } from '../persistence/slipStorage'
+import { copySlip, filterSlips, formatSlipMeta, type Slip, type SlipFilters } from '../domain/slip'
+import { deleteSlip, listSlips, saveSlip } from '../persistence/slipStorage'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
 
@@ -39,6 +39,18 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
   function handleTogglePlay(event: MouseEvent, slip: Slip) {
     event.stopPropagation()
     onTogglePlay(slip)
+  }
+
+  async function handleCopy(event: MouseEvent, slip: Slip) {
+    event.stopPropagation()
+    const copy = copySlip(slip)
+    try {
+      await saveSlip(copy)
+    } catch (error) {
+      console.error('Failed to copy slip', error)
+      return
+    }
+    onOpenSlip(copy.id)
   }
 
   async function handleDelete(event: MouseEvent, slipId: string) {
@@ -90,6 +102,14 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
                       onClick={(event) => handleTogglePlay(event, slip)}
                     >
                       {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
+                    </button>
+                    <button
+                      type="button"
+                      className="slip-card-copy"
+                      aria-label={`Copy ${slip.title}`}
+                      onClick={(event) => handleCopy(event, slip)}
+                    >
+                      <Copy size={14} />
                     </button>
                     <button
                       type="button"

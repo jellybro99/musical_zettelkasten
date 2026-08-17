@@ -27,6 +27,7 @@
 }
 
 .slip-card-play,
+.slip-card-copy,
 .slip-card-delete {
   position: absolute;
   top: 10px;
@@ -46,6 +47,10 @@
 }
 
 .slip-card-play {
+  right: 78px;
+}
+
+.slip-card-copy {
   right: 44px;
 }
 
@@ -55,17 +60,21 @@
 
 .slip-card-wrapper:hover .slip-card-play,
 .slip-card-wrapper:focus-within .slip-card-play,
+.slip-card-wrapper:hover .slip-card-copy,
+.slip-card-wrapper:focus-within .slip-card-copy,
 .slip-card-wrapper:hover .slip-card-delete,
 .slip-card-wrapper:focus-within .slip-card-delete {
   opacity: 1;
 }
 
-.slip-card-play:hover {
+.slip-card-play:hover,
+.slip-card-copy:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
 
-.slip-card-play:focus-visible {
+.slip-card-play:focus-visible,
+.slip-card-copy:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }

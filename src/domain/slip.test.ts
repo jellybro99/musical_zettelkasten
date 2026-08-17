@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addReference,
   addTag,
+  copySlip,
   createSlip,
   DEFAULT_GRID,
   deleteNote,
@@ -344,6 +345,82 @@ describe('createSlip', () => {
     const slip = createSlip()
 
     expect(slip.createdAt).toEqual(expect.any(Number))
+  })
+})
+
+describe('copySlip', () => {
+  it('copies notes, grid, tempo, key, kind, and tags verbatim', () => {
+    const notes = placeNote([], DEFAULT_GRID, { pitch: 64, start: 4 })
+    const original = createSlip({
+      notes,
+      grid: { ...DEFAULT_GRID, bars: 4 },
+      tempo: 96,
+      key: 'E min',
+      kind: 'Loop',
+      tags: ['keys', 'warm'],
+    })
+
+    const copy = copySlip(original)
+
+    expect(copy.notes).toEqual(original.notes)
+    expect(copy.grid).toEqual(original.grid)
+    expect(copy.tempo).toBe(original.tempo)
+    expect(copy.key).toBe(original.key)
+    expect(copy.kind).toBe(original.kind)
+    expect(copy.tags).toEqual(original.tags)
+  })
+
+  it('prefixes the title with "Copy of "', () => {
+    const original = createSlip({ title: 'Rhodes Chord Stab' })
+
+    const copy = copySlip(original)
+
+    expect(copy.title).toBe('Copy of Rhodes Chord Stab')
+  })
+
+  it('assigns a fresh id, distinct from the original', () => {
+    const original = createSlip()
+
+    const copy = copySlip(original)
+
+    expect(copy.id).toEqual(expect.any(String))
+    expect(copy.id).not.toBe(original.id)
+  })
+
+  it('assigns a fresh createdAt', () => {
+    const original = createSlip({ createdAt: 1000 })
+
+    const copy = copySlip(original)
+
+    expect(copy.createdAt).toEqual(expect.any(Number))
+  })
+
+  it('starts with no references of its own, even when the original had some', () => {
+    const original = createSlip({ referencedSlipIds: ['other'] })
+
+    const copy = copySlip(original)
+
+    expect(copy.referencedSlipIds).toEqual([])
+  })
+
+  it('resolves to its own notes only, not the referenced notes the original pulled in', () => {
+    const ownNotes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const referencedNotes = placeNote([], DEFAULT_GRID, { pitch: 64, start: 4 })
+    const referenced = createSlip({ id: 'referenced', notes: referencedNotes })
+    const original = createSlip({ id: 'original', notes: ownNotes, referencedSlipIds: ['referenced'] })
+
+    const copy = copySlip(original)
+
+    expect(resolveSlipNotes(copy, [copy, referenced])).toEqual(ownNotes)
+  })
+
+  it('does not mutate the original slip', () => {
+    const original = createSlip({ title: 'Original', referencedSlipIds: ['other'] })
+
+    copySlip(original)
+
+    expect(original.title).toBe('Original')
+    expect(original.referencedSlipIds).toEqual(['other'])
   })
 })
 

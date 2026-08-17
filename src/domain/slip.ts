@@ -131,6 +131,16 @@ export function createSlip(overrides?: Partial<Slip>): Slip {
   }
 }
 
+export function copySlip(slip: Slip): Slip {
+  return {
+    ...slip,
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+    title: `Copy of ${slip.title}`,
+    referencedSlipIds: [],
+  }
+}
+
 export interface UpdateSlipMetadataInput {
   title?: string
   tempo?: number
