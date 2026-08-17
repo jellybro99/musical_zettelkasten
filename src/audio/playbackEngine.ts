@@ -16,6 +16,7 @@ export interface PlaybackCallbacks {
 
 export interface PlaybackEngine {
   play(notes: Note[], tempo: number, callbacks: PlaybackCallbacks): void
+  previewPitch(pitch: number, durationMs: number): void
   stop(): void
 }
 
@@ -92,5 +93,24 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     }, TICK_MS)
   }
 
-  return { play, stop }
+  // A single-voice audition, independent of the notes/tempo playback schedule —
+  // stop() first guarantees monophony (cuts off any prior preview) and that a
+  // preview always interrupts full-slip playback.
+  function previewPitch(pitch: number, durationMs: number) {
+    stop()
+    void context.resume()
+
+    const startTime = context.currentTime
+    const osc = context.createOscillator()
+    const gain = context.createGain()
+    osc.type = 'triangle'
+    osc.frequency.value = midiToFrequency(pitch)
+    gain.gain.value = 1
+    osc.connect(gain).connect(context.destination)
+    osc.start(startTime)
+    osc.stop(startTime + durationMs / 1000)
+    activeGains = [gain]
+  }
+
+  return { play, previewPitch, stop }
 }

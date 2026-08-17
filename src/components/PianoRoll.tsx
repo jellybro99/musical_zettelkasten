@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { computePlaybackDurationMs } from '../domain/playback'
 import { deleteNote, moveNote, placeNote, resizeNote, totalSteps, type GridConfig, type Note } from '../domain/slip'
 import './PianoRoll.css'
 
@@ -6,6 +7,9 @@ const ROW_HEIGHT = 26
 const COL_WIDTH = 22
 const LABEL_WIDTH = 64
 const RULER_HEIGHT = 24
+
+// Key-rail auditioning is a quick blip independent of tempo/grid, not tied to any note length.
+const KEY_RAIL_PREVIEW_DURATION_MS = 180
 
 const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -24,16 +28,27 @@ function stepLineClass(step: number, grid: GridConfig): string {
 }
 
 type DragState =
-  | { type: 'move'; id: string; startX: number; startY: number; origPitch: number; origStart: number }
+  | {
+      type: 'move'
+      id: string
+      startX: number
+      startY: number
+      origPitch: number
+      origStart: number
+      length: number
+      lastPreviewedPitch: number
+    }
   | { type: 'resize'; id: string; startX: number; origLength: number }
 
 export interface PianoRollProps {
   notes: Note[]
   grid: GridConfig
+  tempo: number
   onNotesChange: (updater: (notes: Note[]) => Note[]) => void
+  onPreviewNote: (pitch: number, durationMs: number) => void
 }
 
-export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
+export function PianoRoll({ notes, grid, tempo, onNotesChange, onPreviewNote }: PianoRollProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const dragState = useRef<DragState | null>(null)
   const steps = totalSteps(grid)
@@ -44,6 +59,11 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
   }
 
   function handleCellClick(pitch: number, start: number) {
+    const preview = placeNote(notes, grid, { pitch, start })
+    if (preview.length !== notes.length) {
+      const created = preview[preview.length - 1]
+      onPreviewNote(created.pitch, computePlaybackDurationMs(tempo, created.length))
+    }
     onNotesChange((current) => placeNote(current, grid, { pitch, start }))
   }
 
@@ -57,7 +77,14 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
       startY: event.clientY,
       origPitch: note.pitch,
       origStart: note.start,
+      length: note.length,
+      lastPreviewedPitch: note.pitch,
     }
+    onPreviewNote(note.pitch, computePlaybackDurationMs(tempo, note.length))
+  }
+
+  function handleRowLabelClick(pitch: number) {
+    onPreviewNote(pitch, KEY_RAIL_PREVIEW_DURATION_MS)
   }
 
   function handleResizeHandleMouseDown(event: React.MouseEvent, note: Note) {
@@ -74,13 +101,20 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
       if (drag.type === 'move') {
         const deltaStart = Math.round((event.clientX - drag.startX) / COL_WIDTH)
         const deltaPitch = -Math.round((event.clientY - drag.startY) / ROW_HEIGHT)
+        const targetPitch = drag.origPitch + deltaPitch
         onNotesChange((current) =>
           moveNote(current, grid, {
             id: drag.id,
-            pitch: drag.origPitch + deltaPitch,
+            pitch: targetPitch,
             start: drag.origStart + deltaStart,
           }),
         )
+
+        const clampedPitch = Math.min(grid.highPitch, Math.max(grid.lowPitch, targetPitch))
+        if (clampedPitch !== drag.lastPreviewedPitch) {
+          drag.lastPreviewedPitch = clampedPitch
+          onPreviewNote(clampedPitch, computePlaybackDurationMs(tempo, drag.length))
+        }
       } else {
         const deltaLength = Math.round((event.clientX - drag.startX) / COL_WIDTH)
         onNotesChange((current) =>
@@ -99,7 +133,7 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [grid, onNotesChange])
+  }, [grid, tempo, onNotesChange, onPreviewNote])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -137,7 +171,11 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
             className={`piano-roll-row${isBlackKey(pitch) ? ' is-black' : ''}`}
             style={{ top: rowIndex * ROW_HEIGHT, height: ROW_HEIGHT }}
           >
-            <span className="piano-roll-row-label" style={{ width: LABEL_WIDTH }}>
+            <span
+              className="piano-roll-row-label"
+              style={{ width: LABEL_WIDTH }}
+              onClick={() => handleRowLabelClick(pitch)}
+            >
               {pitchName(pitch)}
             </span>
             {Array.from({ length: steps }, (_, step) => (
