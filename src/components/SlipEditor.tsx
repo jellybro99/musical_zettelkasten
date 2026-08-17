@@ -22,6 +22,7 @@ export interface SlipEditorProps {
   onBack: () => void
   onSlipChange: (slip: Slip) => void
   onStopPlayback: () => void
+  onPreviewNote: (pitch: number, durationMs: number) => void
   onNavigateToSlip: (currentSlipId: string, targetSlipId: string) => void
   onCopySlip: (newSlipId: string) => void
 }
@@ -31,6 +32,7 @@ export function SlipEditor({
   onBack,
   onSlipChange,
   onStopPlayback,
+  onPreviewNote,
   onNavigateToSlip,
   onCopySlip,
 }: SlipEditorProps) {
@@ -152,7 +154,13 @@ export function SlipEditor({
           onNavigateToSlip={handleNavigateToSlip}
         />
         <div className="slip-editor-roll">
-          <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />
+          <PianoRoll
+            notes={slip.notes}
+            grid={slip.grid}
+            tempo={slip.tempo}
+            onNotesChange={handleNotesChange}
+            onPreviewNote={onPreviewNote}
+          />
         </div>
       </div>
     </div>

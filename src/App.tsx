@@ -28,6 +28,12 @@ function App() {
     setNowPlaying(null)
   }
 
+  function previewNote(pitch: number, durationMs: number) {
+    if (!engineRef.current) engineRef.current = createPlaybackEngine()
+    engineRef.current.previewPitch(pitch, durationMs)
+    setNowPlaying(null)
+  }
+
   function startEngine(notes: Note[], tempo: number, durationMs: number) {
     engineRef.current?.play(notes, tempo, {
       durationMs,
@@ -116,6 +122,7 @@ function App() {
             onBack={handleEditorBack}
             onSlipChange={setCurrentEditorSlip}
             onStopPlayback={stopPlayback}
+            onPreviewNote={previewNote}
             onNavigateToSlip={handleNavigateToSlip}
             onCopySlip={openSlip}
           />
