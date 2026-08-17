@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { createPlaybackEngine, type PlaybackEngine } from './audio/playbackEngine'
+import { ArrangementDashboard } from './components/ArrangementDashboard'
+import { ArrangementView } from './components/ArrangementView'
 import { PlaybackBar, type NowPlaying } from './components/PlaybackBar'
 import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
@@ -7,7 +9,11 @@ import { TopNav } from './components/TopNav'
 import { computePlaybackDurationMs } from './domain/playback'
 import { createSlip, totalSteps, type Note, type Slip } from './domain/slip'
 
-type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
+type Screen =
+  | { screen: 'dashboard' }
+  | { screen: 'editor'; slipId: string }
+  | { screen: 'arrangement-list' }
+  | { screen: 'arrangement'; arrangementId: string }
 
 function App() {
   const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
@@ -53,12 +59,12 @@ function App() {
     if (!engineRef.current) engineRef.current = createPlaybackEngine()
 
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
-    setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
+    setNowPlaying({ kind: 'slip', slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
     startEngine(slip.notes, slip.tempo, durationMs)
   }
 
   function togglePlay(slip: Slip) {
-    if (nowPlaying?.slipId === slip.id) {
+    if (nowPlaying?.kind === 'slip' && nowPlaying.slipId === slip.id) {
       stopPlayback()
     } else {
       playSlip(slip)
@@ -77,6 +83,20 @@ function App() {
     setCurrentEditorSlip(null)
     setBackStack([])
     setScreen({ screen: 'dashboard' })
+  }
+
+  function goToArrangements() {
+    if (screen.screen !== 'arrangement-list') stopPlayback()
+    setCurrentEditorSlip(null)
+    setBackStack([])
+    setScreen({ screen: 'arrangement-list' })
+  }
+
+  function openArrangement(arrangementId: string) {
+    stopPlayback()
+    setCurrentEditorSlip(null)
+    setBackStack([])
+    setScreen({ screen: 'arrangement', arrangementId })
   }
 
   function handleCapture() {
@@ -112,11 +132,20 @@ function App() {
 
   return (
     <div className="app-shell">
-      <TopNav onSlipBoxClick={goToDashboard} onCapture={handleCapture} />
+      <TopNav
+        onSlipBoxClick={goToDashboard}
+        onArrangeClick={goToArrangements}
+        onCapture={handleCapture}
+        activeScreen={screen.screen === 'arrangement-list' || screen.screen === 'arrangement' ? 'arrange' : 'dashboard'}
+      />
       <main className="app-shell-body app-shell-body-flush">
         {screen.screen === 'dashboard' ? (
-          <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
-        ) : (
+          <SlipDashboard
+            onOpenSlip={openSlip}
+            playingId={nowPlaying?.kind === 'slip' ? nowPlaying.slipId : null}
+            onTogglePlay={togglePlay}
+          />
+        ) : screen.screen === 'editor' ? (
           <SlipEditor
             slipId={screen.slipId}
             onBack={handleEditorBack}
@@ -126,6 +155,10 @@ function App() {
             onNavigateToSlip={handleNavigateToSlip}
             onCopySlip={openSlip}
           />
+        ) : screen.screen === 'arrangement-list' ? (
+          <ArrangementDashboard onOpenArrangement={openArrangement} />
+        ) : (
+          <ArrangementView arrangementId={screen.arrangementId} onBack={goToArrangements} />
         )}
       </main>
       <PlaybackBar

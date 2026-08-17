@@ -124,7 +124,7 @@ export interface Slip {
   copiedFromId: string | null
 }
 
-const MIN_TEMPO = 1
+export const MIN_TEMPO = 1
 
 export function createSlip(overrides?: Partial<Slip>): Slip {
   return {

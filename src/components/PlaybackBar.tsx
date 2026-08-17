@@ -2,13 +2,9 @@ import { Play, Repeat, Square } from 'lucide-react'
 import { computePlaybackProgress, formatPlaybackTime } from '../domain/playback'
 import './PlaybackBar.css'
 
-export interface NowPlaying {
-  slipId: string
-  title: string
-  tempo: number
-  durationMs: number
-  elapsedMs: number
-}
+export type NowPlaying =
+  | { kind: 'slip'; slipId: string; title: string; tempo: number; durationMs: number; elapsedMs: number }
+  | { kind: 'arrangement'; arrangementId: string; title: string; tempo: number; durationMs: number; elapsedMs: number }
 
 export interface PlaybackBarProps {
   nowPlaying: NowPlaying | null

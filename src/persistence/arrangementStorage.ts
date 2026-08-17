@@ -1,46 +1,40 @@
-import type { Slip } from '../domain/slip'
-import { openDatabase, SLIPS_STORE as STORE_NAME } from './database'
+import type { Arrangement } from '../domain/arrangement'
+import { ARRANGEMENTS_STORE as STORE_NAME, openDatabase } from './database'
 
-function normalizeSlip(slip: Slip): Slip {
-  return { ...slip, copiedFromId: slip.copiedFromId ?? null }
-}
-
-export async function listSlips(): Promise<Slip[]> {
+export async function listArrangements(): Promise<Arrangement[]> {
   const db = await openDatabase()
   try {
-    const slips = await new Promise<Slip[]>((resolve, reject) => {
+    return await new Promise<Arrangement[]>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly')
       const request = tx.objectStore(STORE_NAME).getAll()
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error)
     })
-    return slips.map(normalizeSlip)
   } finally {
     db.close()
   }
 }
 
-export async function getSlip(id: string): Promise<Slip | null> {
+export async function getArrangement(id: string): Promise<Arrangement | null> {
   const db = await openDatabase()
   try {
-    const slip = await new Promise<Slip | null>((resolve, reject) => {
+    return await new Promise<Arrangement | null>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly')
       const request = tx.objectStore(STORE_NAME).get(id)
       request.onsuccess = () => resolve(request.result ?? null)
       request.onerror = () => reject(request.error)
     })
-    return slip ? normalizeSlip(slip) : null
   } finally {
     db.close()
   }
 }
 
-export async function saveSlip(slip: Slip): Promise<void> {
+export async function saveArrangement(arrangement: Arrangement): Promise<void> {
   const db = await openDatabase()
   try {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite')
-      tx.objectStore(STORE_NAME).put(slip)
+      tx.objectStore(STORE_NAME).put(arrangement)
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error)
     })
@@ -49,7 +43,7 @@ export async function saveSlip(slip: Slip): Promise<void> {
   }
 }
 
-export async function deleteSlip(id: string): Promise<void> {
+export async function deleteArrangement(id: string): Promise<void> {
   const db = await openDatabase()
   try {
     await new Promise<void>((resolve, reject) => {

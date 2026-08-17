@@ -1,4 +1,4 @@
-import { computeTriggerTimes } from '../domain/playback'
+import { computeTriggerTimes, type NoteTrigger } from '../domain/playback'
 import type { Note } from '../domain/slip'
 
 const RELEASE_SECONDS = 0.02
@@ -8,14 +8,18 @@ function midiToFrequency(pitch: number): number {
   return 440 * 2 ** ((pitch - 69) / 12)
 }
 
-export interface PlaybackCallbacks {
-  durationMs: number
+export interface TriggerCallbacks {
   onTick: (elapsedMs: number) => void
   onEnded: () => void
 }
 
+export interface PlaybackCallbacks extends TriggerCallbacks {
+  durationMs: number
+}
+
 export interface PlaybackEngine {
   play(notes: Note[], tempo: number, callbacks: PlaybackCallbacks): void
+  playTriggers(triggers: NoteTrigger[], durationMs: number, callbacks: TriggerCallbacks): void
   previewPitch(pitch: number, durationMs: number): void
   stop(): void
 }
@@ -54,12 +58,15 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     activeGains = []
   }
 
-  function play(notes: Note[], tempo: number, { durationMs, onTick, onEnded }: PlaybackCallbacks) {
+  // Single scheduling implementation: single-slip playback and arrangement
+  // playback both reduce to "a flat list of note triggers plus a total
+  // duration" before reaching here, regardless of how many slips they came from.
+  function playTriggers(triggers: NoteTrigger[], durationMs: number, { onTick, onEnded }: TriggerCallbacks) {
     stop()
     void context.resume()
 
     const startTime = context.currentTime
-    activeGains = computeTriggerTimes(notes, tempo).map((trigger) => {
+    activeGains = triggers.map((trigger) => {
       const osc = context.createOscillator()
       const gain = context.createGain()
       osc.type = 'triangle'
@@ -93,6 +100,10 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     }, TICK_MS)
   }
 
+  function play(notes: Note[], tempo: number, { durationMs, onTick, onEnded }: PlaybackCallbacks) {
+    playTriggers(computeTriggerTimes(notes, tempo), durationMs, { onTick, onEnded })
+  }
+
   // A single-voice audition, independent of the notes/tempo playback schedule —
   // stop() first guarantees monophony (cuts off any prior preview) and that a
   // preview always interrupts full-slip playback.
@@ -112,5 +123,5 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     activeGains = [gain]
   }
 
-  return { play, previewPitch, stop }
+  return { play, playTriggers, previewPitch, stop }
 }

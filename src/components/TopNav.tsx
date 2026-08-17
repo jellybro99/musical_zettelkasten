@@ -3,10 +3,12 @@ import './TopNav.css'
 
 export interface TopNavProps {
   onSlipBoxClick: () => void
+  onArrangeClick: () => void
   onCapture: () => void
+  activeScreen: 'dashboard' | 'arrange'
 }
 
-export function TopNav({ onSlipBoxClick, onCapture }: TopNavProps) {
+export function TopNav({ onSlipBoxClick, onArrangeClick, onCapture, activeScreen }: TopNavProps) {
   return (
     <nav className="nav">
       <span className="nav-brand">
@@ -18,13 +20,18 @@ export function TopNav({ onSlipBoxClick, onCapture }: TopNavProps) {
         </button>
         <button
           type="button"
-          className="top-nav-item top-nav-item-active"
-          aria-current="page"
+          className={`top-nav-item${activeScreen === 'dashboard' ? ' top-nav-item-active' : ''}`}
+          aria-current={activeScreen === 'dashboard' ? 'page' : undefined}
           onClick={onSlipBoxClick}
         >
           Slip-box
         </button>
-        <button type="button" className="top-nav-item" disabled>
+        <button
+          type="button"
+          className={`top-nav-item${activeScreen === 'arrange' ? ' top-nav-item-active' : ''}`}
+          aria-current={activeScreen === 'arrange' ? 'page' : undefined}
+          onClick={onArrangeClick}
+        >
           Arrange
         </button>
       </div>
