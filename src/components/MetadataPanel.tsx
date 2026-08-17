@@ -164,23 +164,23 @@ export function MetadataPanel({
         </div>
       </div>
 
-      <div className="metadata-field-row">
-        <div className="field">
-          <label htmlFor="slip-kind">Kind</label>
-          <select
-            id="slip-kind"
-            className="input"
-            value={slip.kind}
-            onChange={(event) => onMetadataChange({ kind: event.target.value as SlipKind })}
-          >
-            {SLIP_KINDS.map((kind) => (
-              <option key={kind} value={kind}>
-                {kind}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="field">
+        <label htmlFor="slip-kind">Kind</label>
+        <select
+          id="slip-kind"
+          className="input"
+          value={slip.kind}
+          onChange={(event) => onMetadataChange({ kind: event.target.value as SlipKind })}
+        >
+          {SLIP_KINDS.map((kind) => (
+            <option key={kind} value={kind}>
+              {kind}
+            </option>
+          ))}
+        </select>
+      </div>
 
+      <div className="metadata-field-row">
         <div className="field">
           <label htmlFor="slip-bars">Bars</label>
           <select
@@ -196,22 +196,22 @@ export function MetadataPanel({
             ))}
           </select>
         </div>
-      </div>
 
-      <div className="field">
-        <label htmlFor="slip-octave-range">Octave range</label>
-        <select
-          id="slip-octave-range"
-          className="input"
-          value={currentOctaveCount}
-          onChange={(event) => handleOctaveCountChange(Number(event.target.value))}
-        >
-          {OCTAVE_OPTIONS.map((octaveCount) => (
-            <option key={octaveCount} value={octaveCount}>
-              {octaveCount}
-            </option>
-          ))}
-        </select>
+        <div className="field">
+          <label htmlFor="slip-octave-range">Octave range</label>
+          <select
+            id="slip-octave-range"
+            className="input"
+            value={currentOctaveCount}
+            onChange={(event) => handleOctaveCountChange(Number(event.target.value))}
+          >
+            {OCTAVE_OPTIONS.map((octaveCount) => (
+              <option key={octaveCount} value={octaveCount}>
+                {octaveCount}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="hr" />
