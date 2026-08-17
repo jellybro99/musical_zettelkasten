@@ -161,16 +161,18 @@ export function SlipEditor({
           onRemoveTag={handleRemoveTag}
           onNavigateToSlip={handleNavigateToSlip}
         />
-        <div className="slip-editor-roll">
-          <PianoRoll
-            notes={slip.notes}
-            grid={slip.grid}
-            tempo={slip.tempo}
-            onNotesChange={handleNotesChange}
-            onPreviewNote={handlePreviewNote}
-            previewEnabled={previewEnabled}
-            onTogglePreview={() => setPreviewEnabled((current) => !current)}
-          />
+        <div className="slip-editor-roll-card">
+          <div className="slip-editor-roll">
+            <PianoRoll
+              notes={slip.notes}
+              grid={slip.grid}
+              tempo={slip.tempo}
+              onNotesChange={handleNotesChange}
+              onPreviewNote={handlePreviewNote}
+              previewEnabled={previewEnabled}
+              onTogglePreview={() => setPreviewEnabled((current) => !current)}
+            />
+          </div>
         </div>
       </div>
     </div>
