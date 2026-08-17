@@ -1,3 +1,22 @@
+.piano-roll-ruler {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: none;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-bg);
+}
+
+.piano-roll-ruler-number {
+  position: absolute;
+  top: 5px;
+  padding-left: 6px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
 .piano-roll {
   position: relative;
   background: var(--color-neutral-100);

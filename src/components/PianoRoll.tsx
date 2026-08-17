@@ -4,7 +4,8 @@ import './PianoRoll.css'
 
 const ROW_HEIGHT = 26
 const COL_WIDTH = 22
-const LABEL_WIDTH = 40
+const LABEL_WIDTH = 56
+const RULER_HEIGHT = 24
 
 const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -114,50 +115,62 @@ export function PianoRoll({ notes, grid, onNotesChange }: PianoRollProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedId, onNotesChange])
 
+  const rollWidth = LABEL_WIDTH + steps * COL_WIDTH
+
   return (
-    <div
-      className="piano-roll"
-      style={{ width: LABEL_WIDTH + steps * COL_WIDTH, height: pitches.length * ROW_HEIGHT }}
-    >
-      {pitches.map((pitch, rowIndex) => (
-        <div
-          key={pitch}
-          className={`piano-roll-row${isBlackKey(pitch) ? ' is-black' : ''}`}
-          style={{ top: rowIndex * ROW_HEIGHT, height: ROW_HEIGHT }}
-        >
-          <span className="piano-roll-row-label" style={{ width: LABEL_WIDTH }}>
-            {pitchName(pitch)}
+    <>
+      <div className="piano-roll-ruler" style={{ width: rollWidth, height: RULER_HEIGHT }}>
+        {Array.from({ length: grid.bars }, (_, bar) => (
+          <span
+            key={bar}
+            className="piano-roll-ruler-number"
+            style={{ left: LABEL_WIDTH + bar * grid.stepsPerBar * COL_WIDTH }}
+          >
+            {bar + 1}
           </span>
-          {Array.from({ length: steps }, (_, step) => (
-            <button
-              key={step}
-              type="button"
-              className={`piano-roll-cell ${stepLineClass(step, grid)}${step === steps - 1 ? ' line-end' : ''}`}
-              style={{ left: LABEL_WIDTH + step * COL_WIDTH, width: COL_WIDTH, height: ROW_HEIGHT }}
-              onClick={() => handleCellClick(pitch, step)}
-              aria-label={`Place note at ${pitchName(pitch)}, step ${step + 1}`}
-            />
-          ))}
-        </div>
-      ))}
-      {notes.map((note) => (
-        <div
-          key={note.id}
-          className={`piano-roll-note${note.id === selectedId ? ' is-selected' : ''}`}
-          style={{
-            top: (grid.highPitch - note.pitch) * ROW_HEIGHT + 2,
-            left: LABEL_WIDTH + note.start * COL_WIDTH + 2,
-            width: note.length * COL_WIDTH - 4,
-            height: ROW_HEIGHT - 4,
-          }}
-          onMouseDown={(event) => handleNoteMouseDown(event, note)}
-        >
+        ))}
+      </div>
+      <div className="piano-roll" style={{ width: rollWidth, height: pitches.length * ROW_HEIGHT }}>
+        {pitches.map((pitch, rowIndex) => (
           <div
-            className="piano-roll-note-handle"
-            onMouseDown={(event) => handleResizeHandleMouseDown(event, note)}
-          />
-        </div>
-      ))}
-    </div>
+            key={pitch}
+            className={`piano-roll-row${isBlackKey(pitch) ? ' is-black' : ''}`}
+            style={{ top: rowIndex * ROW_HEIGHT, height: ROW_HEIGHT }}
+          >
+            <span className="piano-roll-row-label" style={{ width: LABEL_WIDTH }}>
+              {pitchName(pitch)}
+            </span>
+            {Array.from({ length: steps }, (_, step) => (
+              <button
+                key={step}
+                type="button"
+                className={`piano-roll-cell ${stepLineClass(step, grid)}${step === steps - 1 ? ' line-end' : ''}`}
+                style={{ left: LABEL_WIDTH + step * COL_WIDTH, width: COL_WIDTH, height: ROW_HEIGHT }}
+                onClick={() => handleCellClick(pitch, step)}
+                aria-label={`Place note at ${pitchName(pitch)}, step ${step + 1}`}
+              />
+            ))}
+          </div>
+        ))}
+        {notes.map((note) => (
+          <div
+            key={note.id}
+            className={`piano-roll-note${note.id === selectedId ? ' is-selected' : ''}`}
+            style={{
+              top: (grid.highPitch - note.pitch) * ROW_HEIGHT + 2,
+              left: LABEL_WIDTH + note.start * COL_WIDTH + 2,
+              width: note.length * COL_WIDTH - 4,
+              height: ROW_HEIGHT - 4,
+            }}
+            onMouseDown={(event) => handleNoteMouseDown(event, note)}
+          >
+            <div
+              className="piano-roll-note-handle"
+              onMouseDown={(event) => handleResizeHandleMouseDown(event, note)}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
