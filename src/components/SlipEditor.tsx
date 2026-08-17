@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import {
   addReference,
   addTag,
+  copySlip,
   createSlip,
   removeReference,
   removeTag,
@@ -22,9 +23,17 @@ export interface SlipEditorProps {
   onSlipChange: (slip: Slip) => void
   onStopPlayback: () => void
   onOpenReference: (currentSlipId: string, targetSlipId: string) => void
+  onCopySlip: (newSlipId: string) => void
 }
 
-export function SlipEditor({ slipId, onBack, onSlipChange, onStopPlayback, onOpenReference }: SlipEditorProps) {
+export function SlipEditor({
+  slipId,
+  onBack,
+  onSlipChange,
+  onStopPlayback,
+  onOpenReference,
+  onCopySlip,
+}: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
@@ -100,6 +109,23 @@ export function SlipEditor({ slipId, onBack, onSlipChange, onStopPlayback, onOpe
     await persistSlip()
   }
 
+  async function handleCopy() {
+    onStopPlayback()
+    if (isPersisted) {
+      cancelPending()
+      const saved = await persistSlip()
+      if (!saved) return
+    }
+    const copy = copySlip(slip)
+    try {
+      await saveSlip(copy)
+    } catch (error) {
+      console.error('Failed to copy slip', error)
+      return
+    }
+    onCopySlip(copy.id)
+  }
+
   async function handleDelete() {
     if (!window.confirm(`Delete "${slip.title}"? This cannot be undone.`)) return
     cancelPending()
@@ -121,6 +147,7 @@ export function SlipEditor({ slipId, onBack, onSlipChange, onStopPlayback, onOpe
           isPersisted={isPersisted}
           onBack={onBack}
           onSave={handleSave}
+          onCopy={handleCopy}
           onDelete={handleDelete}
           onMetadataChange={handleMetadataChange}
           onAddTag={handleAddTag}

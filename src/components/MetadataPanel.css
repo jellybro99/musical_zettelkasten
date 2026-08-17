@@ -15,25 +15,17 @@
 }
 
 .metadata-panel-transport {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.metadata-panel-actions {
+  display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.metadata-panel-back {
-  grid-column: 1;
-  justify-self: start;
-}
-
-.metadata-panel-save {
-  grid-column: 2;
-  justify-self: center;
-}
-
-.metadata-panel-delete {
-  grid-column: 3;
-  justify-self: end;
 }
 
 .metadata-label {

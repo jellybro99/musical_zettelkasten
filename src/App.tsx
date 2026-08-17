@@ -127,6 +127,7 @@ function App() {
             onSlipChange={setCurrentEditorSlip}
             onStopPlayback={stopPlayback}
             onOpenReference={handleOpenReference}
+            onCopySlip={openSlip}
           />
         )}
       </main>

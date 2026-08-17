@@ -1,4 +1,4 @@
-import { ChevronDown, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
+import { ChevronDown, Copy, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   referenceCandidates,
@@ -18,6 +18,7 @@ export interface MetadataPanelProps {
   isPersisted: boolean
   onBack: () => void
   onSave: () => void
+  onCopy: () => void
   onDelete: () => void
   onMetadataChange: (input: UpdateSlipMetadataInput) => void
   onAddTag: (tag: string) => void
@@ -33,6 +34,7 @@ export function MetadataPanel({
   isPersisted,
   onBack,
   onSave,
+  onCopy,
   onDelete,
   onMetadataChange,
   onAddTag,
@@ -67,16 +69,22 @@ export function MetadataPanel({
         <button type="button" className="btn btn-ghost metadata-panel-back" onClick={onBack}>
           ← Back
         </button>
-        {!isPersisted && (
-          <button type="button" className="btn btn-ghost metadata-panel-save" onClick={onSave}>
-            <Save size={14} />
-            Save
+        <div className="metadata-panel-actions">
+          {!isPersisted && (
+            <button type="button" className="btn btn-ghost metadata-panel-save" onClick={onSave}>
+              <Save size={14} />
+              Save
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost metadata-panel-copy" onClick={onCopy}>
+            <Copy size={14} />
+            Copy
           </button>
-        )}
-        <button type="button" className="btn btn-ghost metadata-panel-delete" onClick={onDelete}>
-          <Trash2 size={14} />
-          Delete slip
-        </button>
+          <button type="button" className="btn btn-ghost metadata-panel-delete" onClick={onDelete}>
+            <Trash2 size={14} />
+            Delete slip
+          </button>
+        </div>
       </div>
 
       <div className="field">
