@@ -39,4 +39,5 @@
   overflow: auto;
   border: 1px solid var(--color-divider);
   border-left: 0;
+  border-top: 0;
 }
