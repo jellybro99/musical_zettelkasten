@@ -38,6 +38,7 @@ export function SlipEditor({
 }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
+  const [previewEnabled, setPreviewEnabled] = useState(false)
   const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
     load: getSlip,
     save: saveSlip,
@@ -65,6 +66,13 @@ export function SlipEditor({
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
   }, [])
+
+  const handlePreviewNote = useCallback(
+    (pitch: number, durationMs: number) => {
+      if (previewEnabled) onPreviewNote(pitch, durationMs)
+    },
+    [previewEnabled, onPreviewNote],
+  )
 
   function handleMetadataChange(input: UpdateSlipMetadataInput) {
     setSlip((current) => updateSlipMetadata(current, input))
@@ -159,7 +167,9 @@ export function SlipEditor({
             grid={slip.grid}
             tempo={slip.tempo}
             onNotesChange={handleNotesChange}
-            onPreviewNote={onPreviewNote}
+            onPreviewNote={handlePreviewNote}
+            previewEnabled={previewEnabled}
+            onTogglePreview={() => setPreviewEnabled((current) => !current)}
           />
         </div>
       </div>

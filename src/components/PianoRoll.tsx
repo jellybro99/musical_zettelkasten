@@ -1,3 +1,4 @@
+import { Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { computePlaybackDurationMs } from '../domain/playback'
 import { deleteNote, moveNote, placeNote, resizeNote, totalSteps, type GridConfig, type Note } from '../domain/slip'
@@ -35,7 +36,6 @@ type DragState =
       startY: number
       origPitch: number
       origStart: number
-      length: number
       lastPreviewedPitch: number
     }
   | { type: 'resize'; id: string; startX: number; origLength: number }
@@ -46,9 +46,19 @@ export interface PianoRollProps {
   tempo: number
   onNotesChange: (updater: (notes: Note[]) => Note[]) => void
   onPreviewNote: (pitch: number, durationMs: number) => void
+  previewEnabled: boolean
+  onTogglePreview: () => void
 }
 
-export function PianoRoll({ notes, grid, tempo, onNotesChange, onPreviewNote }: PianoRollProps) {
+export function PianoRoll({
+  notes,
+  grid,
+  tempo,
+  onNotesChange,
+  onPreviewNote,
+  previewEnabled,
+  onTogglePreview,
+}: PianoRollProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const dragState = useRef<DragState | null>(null)
   const steps = totalSteps(grid)
@@ -77,10 +87,9 @@ export function PianoRoll({ notes, grid, tempo, onNotesChange, onPreviewNote }: 
       startY: event.clientY,
       origPitch: note.pitch,
       origStart: note.start,
-      length: note.length,
       lastPreviewedPitch: note.pitch,
     }
-    onPreviewNote(note.pitch, computePlaybackDurationMs(tempo, note.length))
+    onPreviewNote(note.pitch, KEY_RAIL_PREVIEW_DURATION_MS)
   }
 
   function handleRowLabelClick(pitch: number) {
@@ -113,7 +122,7 @@ export function PianoRoll({ notes, grid, tempo, onNotesChange, onPreviewNote }: 
         const clampedPitch = Math.min(grid.highPitch, Math.max(grid.lowPitch, targetPitch))
         if (clampedPitch !== drag.lastPreviewedPitch) {
           drag.lastPreviewedPitch = clampedPitch
-          onPreviewNote(clampedPitch, computePlaybackDurationMs(tempo, drag.length))
+          onPreviewNote(clampedPitch, KEY_RAIL_PREVIEW_DURATION_MS)
         }
       } else {
         const deltaLength = Math.round((event.clientX - drag.startX) / COL_WIDTH)
@@ -154,6 +163,17 @@ export function PianoRoll({ notes, grid, tempo, onNotesChange, onPreviewNote }: 
   return (
     <>
       <div className="piano-roll-ruler" style={{ width: rollWidth, height: RULER_HEIGHT }}>
+        <button
+          type="button"
+          className="piano-roll-preview-toggle"
+          style={{ width: LABEL_WIDTH, height: RULER_HEIGHT }}
+          onClick={onTogglePreview}
+          aria-pressed={previewEnabled}
+          aria-label={previewEnabled ? 'Mute note preview' : 'Unmute note preview'}
+          title={previewEnabled ? 'Mute note preview' : 'Unmute note preview'}
+        >
+          {previewEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+        </button>
         {Array.from({ length: grid.bars }, (_, bar) => (
           <span
             key={bar}
