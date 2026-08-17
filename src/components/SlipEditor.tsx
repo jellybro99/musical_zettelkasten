@@ -56,7 +56,7 @@ export function SlipEditor({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [slipId])
 
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
