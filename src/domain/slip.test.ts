@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addReference,
   addTag,
   createSlip,
   DEFAULT_GRID,
@@ -8,8 +9,11 @@ import {
   formatSlipMeta,
   moveNote,
   placeNote,
+  referenceCandidates,
+  removeReference,
   removeTag,
   resizeNote,
+  resolveSlipNotes,
   snapToGrid,
   totalSteps,
   updateSlipMetadata,
@@ -311,6 +315,7 @@ describe('createSlip', () => {
       key: '',
       kind: 'Phrase',
       tags: [],
+      referencedSlipIds: [],
     })
   })
 
@@ -542,5 +547,230 @@ describe('formatSlipMeta', () => {
     const slip = createSlip({ tempo: 96, key: 'E min', grid: { ...DEFAULT_GRID, bars: 4 } })
 
     expect(formatSlipMeta(slip)).toBe('96 BPM · E min · 4 bars')
+  })
+})
+
+describe('addReference', () => {
+  it('adds a reference to a slip with none', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b' })
+
+    const result = addReference(a, [a, b], 'b')
+
+    expect(result.referencedSlipIds).toEqual(['b'])
+  })
+
+  it('appends to existing references rather than replacing them', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b' })
+    const c = createSlip({ id: 'c' })
+
+    const result = addReference(a, [a, b, c], 'c')
+
+    expect(result.referencedSlipIds).toEqual(['b', 'c'])
+  })
+
+  it('is a safe no-op for a self-reference', () => {
+    const a = createSlip({ id: 'a' })
+
+    const result = addReference(a, [a], 'a')
+
+    expect(result.referencedSlipIds).toEqual([])
+  })
+
+  it('is a safe no-op when the id is already referenced', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b' })
+
+    const result = addReference(a, [a, b], 'b')
+
+    expect(result.referencedSlipIds).toEqual(['b'])
+  })
+
+  it('is a safe no-op when the addition would create a direct cycle', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b', referencedSlipIds: ['a'] })
+
+    const result = addReference(a, [a, b], 'b')
+
+    expect(result.referencedSlipIds).toEqual([])
+  })
+
+  it('is a safe no-op when the addition would create a multi-hop cycle', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b', referencedSlipIds: ['c'] })
+    const c = createSlip({ id: 'c', referencedSlipIds: ['a'] })
+
+    const result = addReference(a, [a, b, c], 'b')
+
+    expect(result.referencedSlipIds).toEqual([])
+  })
+
+  it('does not mutate the input slip', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b' })
+
+    addReference(a, [a, b], 'b')
+
+    expect(a.referencedSlipIds).toEqual([])
+  })
+})
+
+describe('removeReference', () => {
+  it('removes a present reference', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b', 'c'] })
+
+    const result = removeReference(a, 'b')
+
+    expect(result.referencedSlipIds).toEqual(['c'])
+  })
+
+  it('is a safe no-op when the id is not referenced', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b'] })
+
+    const result = removeReference(a, 'missing')
+
+    expect(result.referencedSlipIds).toEqual(['b'])
+  })
+
+  it('does not mutate the input slip', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b'] })
+
+    removeReference(a, 'b')
+
+    expect(a.referencedSlipIds).toEqual(['b'])
+  })
+})
+
+describe('referenceCandidates', () => {
+  it('excludes the slip itself', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b' })
+
+    const result = referenceCandidates(a, [a, b])
+
+    expect(result).toEqual([b])
+  })
+
+  it('excludes already-referenced slips', () => {
+    const a = createSlip({ id: 'a', referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b' })
+    const c = createSlip({ id: 'c' })
+
+    const result = referenceCandidates(a, [a, b, c])
+
+    expect(result).toEqual([c])
+  })
+
+  it('excludes a slip that would close a direct cycle', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b', referencedSlipIds: ['a'] })
+
+    const result = referenceCandidates(a, [a, b])
+
+    expect(result).toEqual([])
+  })
+
+  it('excludes a slip that would close a multi-hop cycle', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b', referencedSlipIds: ['c'] })
+    const c = createSlip({ id: 'c', referencedSlipIds: ['a'] })
+    const d = createSlip({ id: 'd' })
+
+    const result = referenceCandidates(a, [a, b, c, d])
+
+    expect(result).toEqual([d])
+  })
+
+  it('includes every other slip when there is nothing to exclude', () => {
+    const a = createSlip({ id: 'a' })
+    const b = createSlip({ id: 'b' })
+    const c = createSlip({ id: 'c' })
+
+    const result = referenceCandidates(a, [a, b, c])
+
+    expect(result).toEqual([b, c])
+  })
+})
+
+describe('resolveSlipNotes', () => {
+  it('returns a slip\'s own notes unchanged when it has no references', () => {
+    const notes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const a = createSlip({ id: 'a', notes })
+
+    const result = resolveSlipNotes(a, [a])
+
+    expect(result).toEqual(notes)
+  })
+
+  it('unions in a single referenced slip\'s notes', () => {
+    const aNotes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const bNotes = placeNote([], DEFAULT_GRID, { pitch: 64, start: 4 })
+    const a = createSlip({ id: 'a', notes: aNotes, referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b', notes: bNotes })
+
+    const result = resolveSlipNotes(a, [a, b])
+
+    expect(result).toEqual([...aNotes, ...bNotes])
+  })
+
+  it('resolves multiple levels deep', () => {
+    const aNotes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const bNotes = placeNote([], DEFAULT_GRID, { pitch: 62, start: 2 })
+    const cNotes = placeNote([], DEFAULT_GRID, { pitch: 64, start: 4 })
+    const a = createSlip({ id: 'a', notes: aNotes, referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b', notes: bNotes, referencedSlipIds: ['c'] })
+    const c = createSlip({ id: 'c', notes: cNotes })
+
+    const result = resolveSlipNotes(a, [a, b, c])
+
+    expect(result).toEqual([...aNotes, ...bNotes, ...cNotes])
+  })
+
+  it('skips a referenced id that is missing from allSlips', () => {
+    const aNotes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const a = createSlip({ id: 'a', notes: aNotes, referencedSlipIds: ['deleted'] })
+
+    const result = resolveSlipNotes(a, [a])
+
+    expect(result).toEqual(aNotes)
+  })
+
+  it('does not infinite-loop or duplicate-resolve on a corrupt cyclical reference graph', () => {
+    const aNotes = placeNote([], DEFAULT_GRID, { pitch: 60, start: 0 })
+    const bNotes = placeNote([], DEFAULT_GRID, { pitch: 62, start: 2 })
+    const a = createSlip({ id: 'a', notes: aNotes, referencedSlipIds: ['b'] })
+    const b = createSlip({ id: 'b', notes: bNotes, referencedSlipIds: ['a'] })
+
+    const result = resolveSlipNotes(a, [a, b])
+
+    expect(result).toEqual([...aNotes, ...bNotes])
+  })
+
+  it('drops a referenced note that starts at or past the resolving slip\'s grid length', () => {
+    const grid = { ...DEFAULT_GRID, bars: 1, stepsPerBar: 4 }
+    const limit = totalSteps(grid)
+    const a = createSlip({ id: 'a', grid, referencedSlipIds: ['b'] })
+    const bNotes = [
+      { id: 'in-range', pitch: 60, start: limit - 1, length: 1, velocity: 0.8 },
+      { id: 'out-of-range', pitch: 60, start: limit, length: 1, velocity: 0.8 },
+    ]
+    const b = createSlip({ id: 'b', notes: bNotes })
+
+    const result = resolveSlipNotes(a, [a, b])
+
+    expect(result).toEqual([bNotes[0]])
+  })
+
+  it('shortens a referenced note that starts inside the grid but runs past its end', () => {
+    const grid = { ...DEFAULT_GRID, bars: 1, stepsPerBar: 4 }
+    const limit = totalSteps(grid)
+    const a = createSlip({ id: 'a', grid, referencedSlipIds: ['b'] })
+    const bNotes = [{ id: 'overhang', pitch: 60, start: limit - 2, length: 5, velocity: 0.8 }]
+    const b = createSlip({ id: 'b', notes: bNotes })
+
+    const result = resolveSlipNotes(a, [a, b])
+
+    expect(result).toEqual([{ ...bNotes[0], length: 2 }])
   })
 })
