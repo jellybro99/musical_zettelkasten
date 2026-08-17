@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&display=swap');
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/lora/400.css';
+@import '@fontsource/lora/600.css';
 
 :root {
   --color-bg: #f3f2f2;
@@ -45,7 +48,7 @@
   --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
 
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 html,
