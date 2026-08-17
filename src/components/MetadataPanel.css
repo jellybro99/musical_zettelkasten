@@ -28,12 +28,6 @@
   gap: var(--space-2);
 }
 
-.metadata-panel-delete {
-  margin-left: var(--space-2);
-  padding-left: calc(var(--space-2) + var(--space-3) * 1.2);
-  border-left: 1px solid var(--color-divider);
-}
-
 .metadata-label {
   display: block;
   font-family: var(--font-heading);
