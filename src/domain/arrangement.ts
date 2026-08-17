@@ -49,3 +49,39 @@ export function updateArrangementMetadata(
     ...(input.tempo !== undefined ? { tempo: Math.max(MIN_TEMPO, Math.round(input.tempo)) } : {}),
   }
 }
+
+export function addTrack(arrangement: Arrangement, overrides?: Partial<Track>): Arrangement {
+  const track: Track = { id: crypto.randomUUID(), name: 'New track', muted: false, solo: false, clips: [], ...overrides }
+  return { ...arrangement, tracks: [...arrangement.tracks, track] }
+}
+
+export const NEW_TRACK = 'new-track'
+
+export interface PlaceClipInput {
+  trackId: string | typeof NEW_TRACK
+  slipId: string
+  startBar: number
+  // The referenced slip's own bar count, so a freshly-placed clip starts out
+  // playing the whole pattern rather than a default-length slice of it.
+  slipBars: number
+}
+
+export function placeClip(arrangement: Arrangement, input: PlaceClipInput): Arrangement {
+  const clip: Clip = {
+    id: crypto.randomUUID(),
+    slipId: input.slipId,
+    startBar: Math.max(0, Math.round(input.startBar)),
+    lengthBars: Math.max(1, Math.round(input.slipBars)),
+  }
+
+  if (input.trackId === NEW_TRACK) {
+    return addTrack(arrangement, { clips: [clip] })
+  }
+
+  return {
+    ...arrangement,
+    tracks: arrangement.tracks.map((track) =>
+      track.id === input.trackId ? { ...track, clips: [...track.clips, clip] } : track,
+    ),
+  }
+}

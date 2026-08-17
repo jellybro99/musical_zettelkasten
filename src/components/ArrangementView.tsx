@@ -1,10 +1,16 @@
 import { Shuffle } from 'lucide-react'
-import { useState } from 'react'
-import { createArrangement, updateArrangementMetadata } from '../domain/arrangement'
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { createArrangement, placeClip, updateArrangementMetadata, type PlaceClipInput } from '../domain/arrangement'
 import { generateSlipTitle } from '../domain/titleGenerator'
+import type { Slip, SlipFilters } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
 import { getArrangement, saveArrangement } from '../persistence/arrangementStorage'
+import { listSlips } from '../persistence/slipStorage'
+import { ArrangeSearchRail } from './ArrangeSearchRail'
+import { ArrangementTimeline } from './ArrangementTimeline'
 import './ArrangementView.css'
+
+const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
 
 export interface ArrangementViewProps {
   arrangementId: string
@@ -13,11 +19,31 @@ export interface ArrangementViewProps {
 
 export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps) {
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
+  const [allSlips, setAllSlips] = useState<Slip[]>([])
+  const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
+  const [draggingSlip, setDraggingSlip] = useState<Slip | null>(null)
+
   useAutosave(arrangement, arrangementId, {
     load: getArrangement,
     save: saveArrangement,
     onLoaded: setArrangement,
   })
+
+  useEffect(() => {
+    let cancelled = false
+    listSlips()
+      .then((loaded) => {
+        if (!cancelled) setAllSlips(loaded)
+      })
+      .catch((error) => {
+        console.error('Failed to load slips', error)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const slipsById = useMemo(() => new Map(allSlips.map((slip) => [slip.id, slip])), [allSlips])
 
   function handleMetadataChange(input: { name?: string; tempo?: number }) {
     setArrangement((current) => updateArrangementMetadata(current, input))
@@ -26,6 +52,19 @@ export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps)
   function handleRandomizeName() {
     handleMetadataChange({ name: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
   }
+
+  function handleSlipDragStart(event: MouseEvent, slip: Slip) {
+    event.preventDefault()
+    setDraggingSlip(slip)
+  }
+
+  const handlePlaceClip = useCallback((input: PlaceClipInput) => {
+    setArrangement((current) => placeClip(current, input))
+  }, [])
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingSlip(null)
+  }, [])
 
   return (
     <div className="arrangement-view">
@@ -63,7 +102,19 @@ export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps)
         </div>
       </div>
       <div className="arrangement-view-body">
-        <p className="arrangement-view-placeholder">Drag slips here to start building your song.</p>
+        <ArrangeSearchRail
+          slips={allSlips}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onSlipDragStart={handleSlipDragStart}
+        />
+        <ArrangementTimeline
+          arrangement={arrangement}
+          slipsById={slipsById}
+          draggingSlip={draggingSlip}
+          onPlaceClip={handlePlaceClip}
+          onDragEnd={handleDragEnd}
+        />
       </div>
     </div>
   )

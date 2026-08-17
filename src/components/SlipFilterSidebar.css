@@ -81,6 +81,23 @@
   outline-offset: -1px;
 }
 
+.slip-filter-tempo-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slip-filter-tempo-range .input {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.slip-filter-tempo-sep {
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  font-size: 12px;
+}
+
 .slip-filter-tag-chips {
   display: flex;
   flex-wrap: wrap;

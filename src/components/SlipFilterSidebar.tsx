@@ -26,6 +26,14 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
     onFiltersChange({ ...filters, kind })
   }
 
+  function handleMinTempoChange(value: string) {
+    onFiltersChange({ ...filters, minTempo: value === '' ? undefined : Number(value) })
+  }
+
+  function handleMaxTempoChange(value: string) {
+    onFiltersChange({ ...filters, maxTempo: value === '' ? undefined : Number(value) })
+  }
+
   return (
     <aside className="slip-filter-sidebar">
       <div className="slip-filter-search-wrap">
@@ -65,6 +73,31 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="slip-filter-section">
+        <span className="slip-filter-heading">Tempo (BPM)</span>
+        <div className="slip-filter-tempo-range">
+          <input
+            type="number"
+            min={1}
+            className="input"
+            placeholder="Min"
+            aria-label="Minimum tempo"
+            value={filters.minTempo ?? ''}
+            onChange={(event) => handleMinTempoChange(event.target.value)}
+          />
+          <span className="slip-filter-tempo-sep">–</span>
+          <input
+            type="number"
+            min={1}
+            className="input"
+            placeholder="Max"
+            aria-label="Maximum tempo"
+            value={filters.maxTempo ?? ''}
+            onChange={(event) => handleMaxTempoChange(event.target.value)}
+          />
+        </div>
       </div>
 
       {allTags.length > 0 && (

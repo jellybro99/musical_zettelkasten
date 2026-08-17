@@ -40,12 +40,6 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.arrangement-view-placeholder {
-  font-family: var(--font-heading);
-  font-size: 16px;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  align-items: stretch;
+  overflow: hidden;
 }

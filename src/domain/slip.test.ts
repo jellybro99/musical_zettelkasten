@@ -746,6 +746,36 @@ describe('filterSlips', () => {
 
     expect(result).toEqual([slips[2]])
   })
+
+  it('excludes a slip whose tempo is below minTempo', () => {
+    const tempoSlips = [createSlip({ tempo: 90 }), createSlip({ tempo: 120 })]
+
+    const result = filterSlips(tempoSlips, { search: '', tags: [], kind: 'all', minTempo: 100 })
+
+    expect(result).toEqual([tempoSlips[1]])
+  })
+
+  it('excludes a slip whose tempo is above maxTempo', () => {
+    const tempoSlips = [createSlip({ tempo: 90 }), createSlip({ tempo: 120 })]
+
+    const result = filterSlips(tempoSlips, { search: '', tags: [], kind: 'all', maxTempo: 100 })
+
+    expect(result).toEqual([tempoSlips[0]])
+  })
+
+  it('includes a slip whose tempo exactly matches a min/max bound', () => {
+    const tempoSlips = [createSlip({ tempo: 100 })]
+
+    const result = filterSlips(tempoSlips, { search: '', tags: [], kind: 'all', minTempo: 100, maxTempo: 100 })
+
+    expect(result).toEqual(tempoSlips)
+  })
+
+  it('treats unset minTempo/maxTempo as no-ops', () => {
+    const result = filterSlips(slips, { search: '', tags: [], kind: 'all' })
+
+    expect(result).toEqual(slips)
+  })
 })
 
 describe('formatSlipMeta', () => {

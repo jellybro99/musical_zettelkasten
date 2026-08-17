@@ -194,6 +194,8 @@ export interface SlipFilters {
   search: string
   tags: string[]
   kind: SlipKind | 'all'
+  minTempo?: number
+  maxTempo?: number
 }
 
 export function filterSlips(slips: Slip[], filters: SlipFilters): Slip[] {
@@ -203,6 +205,8 @@ export function filterSlips(slips: Slip[], filters: SlipFilters): Slip[] {
     if (filters.kind !== 'all' && slip.kind !== filters.kind) return false
     if (!filters.tags.every((tag) => slip.tags.includes(tag))) return false
     if (search && !matchesSearch(slip, search)) return false
+    if (filters.minTempo !== undefined && slip.tempo < filters.minTempo) return false
+    if (filters.maxTempo !== undefined && slip.tempo > filters.maxTempo) return false
     return true
   })
 }
