@@ -39,14 +39,15 @@
   left: 0;
   top: 0;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: 6px;
   font-family: var(--font-heading);
   font-size: 10px;
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
   background: var(--color-neutral-200);
-  border-right: 1px solid var(--color-divider);
   pointer-events: none;
 }
 

@@ -4,7 +4,7 @@ import './PianoRoll.css'
 
 const ROW_HEIGHT = 26
 const COL_WIDTH = 22
-const LABEL_WIDTH = 56
+const LABEL_WIDTH = 64
 const RULER_HEIGHT = 24
 
 const PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
