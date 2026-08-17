@@ -6,7 +6,8 @@ import { PlaybackBar, type NowPlaying } from './components/PlaybackBar'
 import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
-import { computePlaybackDurationMs } from './domain/playback'
+import type { Arrangement } from './domain/arrangement'
+import { computeArrangementPlayback, computePlaybackDurationMs, type ArrangementNoteTrigger } from './domain/playback'
 import { createSlip, totalSteps, type Note, type Slip } from './domain/slip'
 
 type Screen =
@@ -19,6 +20,10 @@ function App() {
   const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
   const [currentEditorSlip, setCurrentEditorSlip] = useState<Slip | null>(null)
+  const [currentArrangement, setCurrentArrangement] = useState<{
+    arrangement: Arrangement
+    slipsById: Map<string, Slip>
+  } | null>(null)
   const [backStack, setBackStack] = useState<string[]>([])
   const [loop, setLoop] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
@@ -40,19 +45,40 @@ function App() {
     setNowPlaying(null)
   }
 
+  function makeTriggerCallbacks(onEnded: () => void) {
+    return {
+      onTick: (elapsedMs: number) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
+      onEnded,
+    }
+  }
+
   function startEngine(notes: Note[], tempo: number, durationMs: number) {
     engineRef.current?.play(notes, tempo, {
       durationMs,
-      onTick: (elapsedMs) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
-      onEnded: () => {
+      ...makeTriggerCallbacks(() => {
         if (loopRef.current) {
           setNowPlaying((prev) => (prev ? { ...prev, elapsedMs: 0 } : prev))
           startEngine(notes, tempo, durationMs)
         } else {
           setNowPlaying(null)
         }
-      },
+      }),
     })
+  }
+
+  function startArrangementTriggers(triggers: ArrangementNoteTrigger[], durationMs: number) {
+    engineRef.current?.playTriggers(
+      triggers,
+      durationMs,
+      makeTriggerCallbacks(() => {
+        if (loopRef.current) {
+          setNowPlaying((prev) => (prev ? { ...prev, elapsedMs: 0 } : prev))
+          startArrangementTriggers(triggers, durationMs)
+        } else {
+          setNowPlaying(null)
+        }
+      }),
+    )
   }
 
   function playSlip(slip: Slip) {
@@ -71,9 +97,25 @@ function App() {
     }
   }
 
+  function playArrangement(arrangement: Arrangement, slipsById: Map<string, Slip>) {
+    if (!engineRef.current) engineRef.current = createPlaybackEngine()
+
+    const { triggers, durationMs } = computeArrangementPlayback(arrangement, slipsById)
+    setNowPlaying({
+      kind: 'arrangement',
+      arrangementId: arrangement.id,
+      title: arrangement.name,
+      tempo: arrangement.tempo,
+      durationMs,
+      elapsedMs: 0,
+    })
+    startArrangementTriggers(triggers, durationMs)
+  }
+
   function openSlip(slipId: string) {
     stopPlayback()
     setCurrentEditorSlip(null)
+    setCurrentArrangement(null)
     setBackStack([])
     setScreen({ screen: 'editor', slipId })
   }
@@ -81,6 +123,7 @@ function App() {
   function goToDashboard() {
     if (screen.screen !== 'dashboard') stopPlayback()
     setCurrentEditorSlip(null)
+    setCurrentArrangement(null)
     setBackStack([])
     setScreen({ screen: 'dashboard' })
   }
@@ -88,6 +131,7 @@ function App() {
   function goToArrangements() {
     if (screen.screen !== 'arrangement-list') stopPlayback()
     setCurrentEditorSlip(null)
+    setCurrentArrangement(null)
     setBackStack([])
     setScreen({ screen: 'arrangement-list' })
   }
@@ -95,6 +139,7 @@ function App() {
   function openArrangement(arrangementId: string) {
     stopPlayback()
     setCurrentEditorSlip(null)
+    setCurrentArrangement(null)
     setBackStack([])
     setScreen({ screen: 'arrangement', arrangementId })
   }
@@ -125,8 +170,10 @@ function App() {
   function handleBarToggle() {
     if (nowPlaying) {
       stopPlayback()
-    } else if (currentEditorSlip) {
+    } else if (screen.screen === 'editor' && currentEditorSlip) {
       playSlip(currentEditorSlip)
+    } else if (screen.screen === 'arrangement' && currentArrangement) {
+      playArrangement(currentArrangement.arrangement, currentArrangement.slipsById)
     }
   }
 
@@ -158,12 +205,16 @@ function App() {
         ) : screen.screen === 'arrangement-list' ? (
           <ArrangementDashboard onOpenArrangement={openArrangement} />
         ) : (
-          <ArrangementView arrangementId={screen.arrangementId} onBack={goToArrangements} />
+          <ArrangementView
+            arrangementId={screen.arrangementId}
+            onBack={goToArrangements}
+            onArrangementChange={setCurrentArrangement}
+          />
         )}
       </main>
       <PlaybackBar
         nowPlaying={nowPlaying}
-        canPlay={screen.screen === 'editor'}
+        canPlay={screen.screen === 'editor' || screen.screen === 'arrangement'}
         loop={loop}
         onToggle={handleBarToggle}
         onToggleLoop={toggleLoop}

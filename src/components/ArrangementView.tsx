@@ -10,6 +10,7 @@ import {
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
+  type Arrangement,
   type MoveClipInput,
   type PlaceClipInput,
   type ResizeClipLoopInput,
@@ -28,9 +29,10 @@ const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
 export interface ArrangementViewProps {
   arrangementId: string
   onBack: () => void
+  onArrangementChange: (state: { arrangement: Arrangement; slipsById: Map<string, Slip> }) => void
 }
 
-export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps) {
+export function ArrangementView({ arrangementId, onBack, onArrangementChange }: ArrangementViewProps) {
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
@@ -57,6 +59,10 @@ export function ArrangementView({ arrangementId, onBack }: ArrangementViewProps)
   }, [])
 
   const slipsById = useMemo(() => new Map(allSlips.map((slip) => [slip.id, slip])), [allSlips])
+
+  useEffect(() => {
+    onArrangementChange({ arrangement, slipsById })
+  }, [arrangement, slipsById, onArrangementChange])
 
   function handleMetadataChange(input: { name?: string; tempo?: number }) {
     setArrangement((current) => updateArrangementMetadata(current, input))
