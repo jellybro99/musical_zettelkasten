@@ -4,7 +4,9 @@ import {
   copySlip,
   createSlip,
   removeTag,
+  resizeSlipGrid,
   updateSlipMetadata,
+  type GridConfig,
   type Note,
   type Slip,
   type UpdateSlipMetadataInput,
@@ -64,6 +66,10 @@ export function SlipEditor({
 
   function handleMetadataChange(input: UpdateSlipMetadataInput) {
     setSlip((current) => updateSlipMetadata(current, input))
+  }
+
+  function handleGridChange(gridPatch: Partial<GridConfig>) {
+    setSlip((current) => resizeSlipGrid(current, gridPatch))
   }
 
   function handleAddTag(tag: string) {
@@ -140,6 +146,7 @@ export function SlipEditor({
           onCopy={handleCopy}
           onDelete={handleDelete}
           onMetadataChange={handleMetadataChange}
+          onGridChange={handleGridChange}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
           onNavigateToSlip={handleNavigateToSlip}

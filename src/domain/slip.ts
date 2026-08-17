@@ -96,6 +96,17 @@ export function deleteNote(notes: Note[], id: string): Note[] {
   return notes.filter((note) => note.id !== id)
 }
 
+export function octaveCountToHighPitch(lowPitch: number, octaveCount: number): number {
+  return lowPitch + octaveCount * 12 - 1
+}
+
+export function notesOutOfGridBounds(notes: Note[], grid: GridConfig): Note[] {
+  return notes.filter(
+    (note) =>
+      note.pitch < grid.lowPitch || note.pitch > grid.highPitch || note.start + note.length > totalSteps(grid),
+  )
+}
+
 export const SLIP_KINDS = ['Loop', 'One-shot', 'Phrase', 'Texture'] as const
 
 export type SlipKind = (typeof SLIP_KINDS)[number]
@@ -155,6 +166,17 @@ export function updateSlipMetadata(slip: Slip, input: UpdateSlipMetadataInput): 
     ...(input.tempo !== undefined ? { tempo: Math.max(MIN_TEMPO, Math.round(input.tempo)) } : {}),
     ...(input.key !== undefined ? { key: input.key } : {}),
     ...(input.kind !== undefined ? { kind: input.kind } : {}),
+  }
+}
+
+export function resizeSlipGrid(slip: Slip, gridPatch: Partial<GridConfig>): Slip {
+  const grid = { ...slip.grid, ...gridPatch }
+  const outOfBoundsIds = new Set(notesOutOfGridBounds(slip.notes, grid).map((note) => note.id))
+
+  return {
+    ...slip,
+    grid,
+    notes: slip.notes.filter((note) => !outOfBoundsIds.has(note.id)),
   }
 }
 

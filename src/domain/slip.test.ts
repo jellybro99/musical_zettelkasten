@@ -8,9 +8,12 @@ import {
   filterSlips,
   formatSlipMeta,
   moveNote,
+  notesOutOfGridBounds,
+  octaveCountToHighPitch,
   placeNote,
   removeTag,
   resizeNote,
+  resizeSlipGrid,
   snapToGrid,
   totalSteps,
   updateSlipMetadata,
@@ -297,6 +300,140 @@ describe('deleteNote', () => {
     const result = deleteNote(notes, 'missing')
 
     expect(result).toEqual(notes)
+  })
+})
+
+describe('octaveCountToHighPitch', () => {
+  it('maps an octave count of 1 to a single octave above the low anchor', () => {
+    expect(octaveCountToHighPitch(60, 1)).toBe(71)
+  })
+
+  it('maps an octave count of 2 to two octaves above the low anchor', () => {
+    expect(octaveCountToHighPitch(60, 2)).toBe(83)
+  })
+
+  it('maps an octave count of 3 to three octaves above the low anchor', () => {
+    expect(octaveCountToHighPitch(60, 3)).toBe(95)
+  })
+
+  it('is anchored at whatever low pitch is passed in', () => {
+    expect(octaveCountToHighPitch(48, 1)).toBe(59)
+  })
+})
+
+describe('notesOutOfGridBounds', () => {
+  it('excludes notes whose pitch and span both fall within the grid', () => {
+    const notes = [{ id: 'a', pitch: 64, start: 4, length: 2, velocity: 0.8 }]
+
+    const result = notesOutOfGridBounds(notes, DEFAULT_GRID)
+
+    expect(result).toEqual([])
+  })
+
+  it('includes a note whose pitch is above the grid highPitch', () => {
+    const notes = [{ id: 'a', pitch: DEFAULT_GRID.highPitch + 1, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = notesOutOfGridBounds(notes, DEFAULT_GRID)
+
+    expect(result).toEqual(notes)
+  })
+
+  it('includes a note whose pitch is below the grid lowPitch', () => {
+    const notes = [{ id: 'a', pitch: DEFAULT_GRID.lowPitch - 1, start: 0, length: 1, velocity: 0.8 }]
+
+    const result = notesOutOfGridBounds(notes, DEFAULT_GRID)
+
+    expect(result).toEqual(notes)
+  })
+
+  it('includes a note whose start plus length exceeds the grid total steps', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: totalSteps(DEFAULT_GRID) - 1, length: 2, velocity: 0.8 },
+    ]
+
+    const result = notesOutOfGridBounds(notes, DEFAULT_GRID)
+
+    expect(result).toEqual(notes)
+  })
+
+  it('evaluates notes against the given candidate grid, not any stored grid', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 20, length: 1, velocity: 0.8 }]
+    const shrunkGrid = { ...DEFAULT_GRID, bars: 1 }
+
+    const result = notesOutOfGridBounds(notes, shrunkGrid)
+
+    expect(result).toEqual(notes)
+  })
+
+  it('returns multiple out-of-bounds notes and skips in-bounds ones', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: DEFAULT_GRID.highPitch + 3, start: 0, length: 1, velocity: 0.8 },
+      { id: 'c', pitch: 62, start: totalSteps(DEFAULT_GRID), length: 1, velocity: 0.8 },
+    ]
+
+    const result = notesOutOfGridBounds(notes, DEFAULT_GRID)
+
+    expect(result).toEqual([notes[1], notes[2]])
+  })
+})
+
+describe('resizeSlipGrid', () => {
+  it('merges the grid patch into the slip grid', () => {
+    const slip = createSlip({ grid: DEFAULT_GRID })
+
+    const result = resizeSlipGrid(slip, { bars: 4 })
+
+    expect(result.grid).toEqual({ ...DEFAULT_GRID, bars: 4 })
+  })
+
+  it('drops notes that fall outside the new grid', () => {
+    const notes = [
+      { id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 },
+      { id: 'b', pitch: DEFAULT_GRID.highPitch + 5, start: 0, length: 1, velocity: 0.8 },
+    ]
+    const slip = createSlip({ notes, grid: DEFAULT_GRID })
+
+    const result = resizeSlipGrid(slip, { highPitch: DEFAULT_GRID.highPitch })
+
+    expect(result.notes).toEqual([notes[0]])
+  })
+
+  it('keeps notes that remain within the new grid', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+    const slip = createSlip({ notes, grid: DEFAULT_GRID })
+
+    const result = resizeSlipGrid(slip, { bars: 4 })
+
+    expect(result.notes).toEqual(notes)
+  })
+
+  it('drops notes made a shrink invalid by a smaller bar count', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 20, length: 1, velocity: 0.8 }]
+    const slip = createSlip({ notes, grid: DEFAULT_GRID })
+
+    const result = resizeSlipGrid(slip, { bars: 1 })
+
+    expect(result.notes).toEqual([])
+  })
+
+  it('does not mutate the input slip', () => {
+    const notes = [{ id: 'a', pitch: 60, start: 0, length: 1, velocity: 0.8 }]
+    const slip = createSlip({ notes, grid: DEFAULT_GRID })
+
+    resizeSlipGrid(slip, { bars: 4 })
+
+    expect(slip.grid).toEqual(DEFAULT_GRID)
+    expect(slip.notes).toEqual(notes)
+  })
+
+  it('leaves other slip fields untouched', () => {
+    const slip = createSlip({ title: 'Keep me', tempo: 90 })
+
+    const result = resizeSlipGrid(slip, { bars: 4 })
+
+    expect(result.title).toBe('Keep me')
+    expect(result.tempo).toBe(90)
   })
 })
 
