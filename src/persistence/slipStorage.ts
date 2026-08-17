@@ -19,15 +19,20 @@ function openDatabase(): Promise<IDBDatabase> {
   })
 }
 
+function normalizeSlip(slip: Slip): Slip {
+  return { ...slip, referencedSlipIds: slip.referencedSlipIds ?? [] }
+}
+
 export async function listSlips(): Promise<Slip[]> {
   const db = await openDatabase()
   try {
-    return await new Promise<Slip[]>((resolve, reject) => {
+    const slips = await new Promise<Slip[]>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly')
       const request = tx.objectStore(STORE_NAME).getAll()
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error)
     })
+    return slips.map(normalizeSlip)
   } finally {
     db.close()
   }
@@ -36,12 +41,13 @@ export async function listSlips(): Promise<Slip[]> {
 export async function getSlip(id: string): Promise<Slip | null> {
   const db = await openDatabase()
   try {
-    return await new Promise<Slip | null>((resolve, reject) => {
+    const slip = await new Promise<Slip | null>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly')
       const request = tx.objectStore(STORE_NAME).get(id)
       request.onsuccess = () => resolve(request.result ?? null)
       request.onerror = () => reject(request.error)
     })
+    return slip ? normalizeSlip(slip) : null
   } finally {
     db.close()
   }
