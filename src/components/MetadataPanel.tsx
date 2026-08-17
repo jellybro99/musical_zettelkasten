@@ -139,59 +139,63 @@ export function MetadataPanel({
         </button>
       )}
 
-      <div className="field">
-        <label htmlFor="slip-tempo">Tempo (BPM)</label>
-        <input
-          id="slip-tempo"
-          type="number"
-          min={1}
-          className="input"
-          value={slip.tempo}
-          onChange={(event) => onMetadataChange({ tempo: Number(event.target.value) })}
-        />
+      <div className="metadata-field-row">
+        <div className="field">
+          <label htmlFor="slip-tempo">Tempo (BPM)</label>
+          <input
+            id="slip-tempo"
+            type="number"
+            min={1}
+            className="input"
+            value={slip.tempo}
+            onChange={(event) => onMetadataChange({ tempo: Number(event.target.value) })}
+          />
+        </div>
+
+        <div className="field">
+          <label htmlFor="slip-key">Key</label>
+          <input
+            id="slip-key"
+            type="text"
+            className="input"
+            value={slip.key}
+            onChange={(event) => onMetadataChange({ key: event.target.value })}
+          />
+        </div>
       </div>
 
-      <div className="field">
-        <label htmlFor="slip-key">Key</label>
-        <input
-          id="slip-key"
-          type="text"
-          className="input"
-          value={slip.key}
-          onChange={(event) => onMetadataChange({ key: event.target.value })}
-        />
-      </div>
+      <div className="metadata-field-row">
+        <div className="field">
+          <label htmlFor="slip-kind">Kind</label>
+          <select
+            id="slip-kind"
+            className="input"
+            value={slip.kind}
+            onChange={(event) => onMetadataChange({ kind: event.target.value as SlipKind })}
+          >
+            {SLIP_KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {kind}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div className="field">
-        <label htmlFor="slip-kind">Kind</label>
-        <select
-          id="slip-kind"
-          className="input"
-          value={slip.kind}
-          onChange={(event) => onMetadataChange({ kind: event.target.value as SlipKind })}
-        >
-          {SLIP_KINDS.map((kind) => (
-            <option key={kind} value={kind}>
-              {kind}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="field">
-        <label htmlFor="slip-bars">Bars</label>
-        <select
-          id="slip-bars"
-          className="input"
-          value={slip.grid.bars}
-          onChange={(event) => handleBarsChange(Number(event.target.value))}
-        >
-          {BAR_OPTIONS.map((bars) => (
-            <option key={bars} value={bars}>
-              {bars}
-            </option>
-          ))}
-        </select>
+        <div className="field">
+          <label htmlFor="slip-bars">Bars</label>
+          <select
+            id="slip-bars"
+            className="input"
+            value={slip.grid.bars}
+            onChange={(event) => handleBarsChange(Number(event.target.value))}
+          >
+            {BAR_OPTIONS.map((bars) => (
+              <option key={bars} value={bars}>
+                {bars}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="field">

@@ -47,6 +47,16 @@
   flex: 1;
 }
 
+.metadata-field-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.metadata-field-row .field {
+  flex: 1;
+  min-width: 0;
+}
+
 .metadata-provenance {
   display: flex;
   align-items: center;
