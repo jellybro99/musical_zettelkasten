@@ -12,8 +12,20 @@
   overflow: hidden;
 }
 
-.slip-editor-roll-card {
+.slip-editor-roll-area {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slip-editor-roll-card {
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 100%;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -26,7 +38,6 @@
 }
 
 .slip-editor-roll {
-  flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: auto;
