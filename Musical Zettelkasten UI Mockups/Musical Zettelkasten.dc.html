@@ -31,9 +31,248 @@
   </style>
 </helmet>
 
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">musical·zettelkasten — arrangement</span></div>
+  <p class="dv-preface"><b>Where slips become a song.</b> Search the slip-box on the left and <b>drag slips onto the timeline</b> — one is shown mid-drag with its drop marker. The arrangement owns a <b>tempo</b>, and any slip recorded at another tempo gets a <b>fit badge</b> (96→121) as it conforms. Clips can be <b>repositioned</b> (grip + drag), <b>looped</b> (right edge handle; loop repeats are marked by hairlines inside the clip), and <b>varied</b> — the open popover makes a variation of the Rhodes slip, transposed +3 with room to add notes. The song name has a <b>randomizer</b>. Static mock.</p>
+  <div class="dv-opts">
+
+    <!-- ══════════════════════ 3a · ARRANGEMENT ══════════════════════ -->
+    <div class="dv-opt" id="3a">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Arrange — combining slips <small>drag, loop, vary</small></div>
+      <div class="dv-card" style="width:1280px">
+        <div style="display:flex;flex-direction:column;height:940px;background:var(--color-bg)">
+          <!-- nav -->
+          <div style="display:flex;align-items:center;gap:24px;padding:13px 22px;border-bottom:1px solid var(--color-divider);flex:none">
+            <span style="font-family:var(--font-heading);font-weight:600;font-size:19px;letter-spacing:-.01em">Zettel<span style="color:var(--color-accent)">·</span>kasten</span>
+            <nav style="display:flex;gap:20px;font-size:13.5px">
+              <a href="#1a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Desk</a>
+              <a href="#1b" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Slip-box</a>
+              <a href="#3a" style="color:var(--color-accent);text-decoration:none;border-bottom:2px solid var(--color-accent);padding-bottom:3px">Arrange</a>
+            </nav>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+              <button type="button" class="btn btn-secondary" style="padding:7px 14px">Export mix</button>
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--color-accent-200);border:1px solid var(--color-divider);display:grid;place-items:center;font-family:var(--font-heading);font-weight:600;font-size:14px;color:var(--color-accent-800)">M</div>
+            </div>
+          </div>
+
+          <div style="flex:1;display:grid;grid-template-columns:268px 1fr;overflow:hidden">
+            <!-- search rail -->
+            <aside style="border-right:1px solid var(--color-divider);display:flex;flex-direction:column;overflow:hidden;background:var(--color-neutral-100)">
+              <div style="padding:18px 18px 14px;display:flex;flex-direction:column;gap:12px;flex:none;border-bottom:1px solid var(--color-divider)">
+                <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)">Slip-box</div>
+                <div style="position:relative">
+                  <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:color-mix(in srgb,var(--color-text) 45%,transparent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input class="input" placeholder="Search 142 slips…" style="padding-left:30px;background:var(--color-bg)">
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <span class="tag tag-neutral" style="padding:2px 8px;font-size:10.5px">keys</span>
+                  <span class="tag tag-neutral" style="padding:2px 8px;font-size:10.5px">bass</span>
+                  <span class="tag tag-neutral" style="padding:2px 8px;font-size:10.5px">drums</span>
+                  <span class="tag tag-neutral" style="padding:2px 8px;font-size:10.5px">texture</span>
+                </div>
+                <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:color-mix(in srgb,var(--color-text) 70%,transparent)"><input type="checkbox" style="accent-color:var(--color-accent)">Only slips already at 121 BPM</label>
+              </div>
+              <div style="flex:1;overflow:hidden;padding:14px 14px">
+                <div style="font-size:11px;color:color-mix(in srgb,var(--color-text) 52%,transparent);margin-bottom:10px">Recently filed · 5 of 142 · drag onto a track</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ arrRail }}" as="s" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--color-divider);border-radius:var(--radius-md);background:var(--color-bg);cursor:grab" style-hover="border-color:var(--color-accent)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="color-mix(in srgb,var(--color-text) 30%,transparent)" stroke-width="2" stroke-linecap="round" style="flex:none"><circle cx="9" cy="6" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="18" r="1.3"/></svg>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--color-accent)">{{ s.num }} · {{ s.kind }}</div>
+                        <div style="font-family:var(--font-heading);font-weight:600;font-size:13.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.title }}</div>
+                        <div style="margin-top:4px"><dc-import name="Waveform" seed="{{ s.seed }}" height="18" bars="40" hint-size="100%,18px"></dc-import></div>
+                        <div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 52%,transparent);margin-top:3px">{{ s.bpm }} · {{ s.key }} · {{ s.len }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </aside>
+
+            <!-- timeline side -->
+            <div style="display:flex;flex-direction:column;overflow:hidden;position:relative">
+              <!-- song header -->
+              <div style="display:flex;align-items:center;gap:18px;padding:15px 22px;border-bottom:1px solid var(--color-divider);flex:none">
+                <div>
+                  <div style="font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--color-accent);margin-bottom:1px">Arrangement</div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <input value="Nightbus" style="border:none;background:transparent;font-family:var(--font-heading);font-weight:600;font-size:26px;color:var(--color-text);padding:0;width:190px">
+                    <button type="button" class="btn btn-ghost btn-icon" style="width:30px;height:30px;color:var(--color-accent)" title="Suggest another name"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/></svg></button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:22px;margin-left:auto">
+                  <div>
+                    <div style="font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 50%,transparent);margin-bottom:3px">Tempo</div>
+                    <div style="display:flex;align-items:center;gap:6px;border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:3px 5px;background:var(--color-neutral-100)">
+                      <button type="button" class="btn btn-ghost btn-icon" style="width:22px;height:22px">−</button>
+                      <span style="font-family:ui-monospace,Menlo,monospace;font-size:15px;font-variant-numeric:tabular-nums;min-width:30px;text-align:center">{{ songBpm }}</span>
+                      <button type="button" class="btn btn-ghost btn-icon" style="width:22px;height:22px">+</button>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 50%,transparent);margin-bottom:3px">Key</div>
+                    <div style="border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:6px 10px;background:var(--color-neutral-100);font-family:ui-monospace,Menlo,monospace;font-size:13px">G min</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 50%,transparent);margin-bottom:3px">Length</div>
+                    <div style="font-family:ui-monospace,Menlo,monospace;font-size:13px">8 bars · 0:15</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ruler -->
+              <div style="display:grid;grid-template-columns:150px 1fr;flex:none;border-bottom:1px solid var(--color-divider);background:var(--color-neutral-100)">
+                <div style="border-right:1px solid var(--color-divider);display:flex;align-items:center;padding-left:12px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 45%,transparent)">Tracks</div>
+                <div style="position:relative;height:28px;overflow:hidden">
+                  <div style="position:absolute;inset:0;width:{{ arrW }}px">
+                    <sc-for list="{{ arrBars }}" as="b" hint-placeholder-count="8">
+                      <div style="position:absolute;top:0;bottom:0;left:{{ b.left }}px;width:{{ b.lineW }}px;background:{{ b.lineColor }}"></div>
+                      <sc-if value="{{ b.show }}" hint-placeholder-val="{{ true }}">
+                        <div style="position:absolute;left:{{ b.left }}px;top:7px;padding-left:6px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 62%,transparent)">{{ b.n }}</div>
+                      </sc-if>
+                    </sc-for>
+                    <div style="position:absolute;left:{{ arrPlayX }}px;top:0;bottom:0;width:1.5px;background:var(--color-accent)"></div>
+                    <div style="position:absolute;left:{{ arrPlayX }}px;top:3px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--color-accent)"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- tracks -->
+              <div style="flex:1;overflow:hidden">
+                <sc-for list="{{ tracks }}" as="t" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid var(--color-divider);height:96px">
+                    <div style="border-right:1px solid var(--color-divider);padding:11px 12px;display:flex;flex-direction:column;gap:6px">
+                      <div style="font-family:var(--font-heading);font-weight:600;font-size:15px">{{ t.name }}</div>
+                      <div style="font-size:10.5px;color:color-mix(in srgb,var(--color-text) 50%,transparent)">{{ t.kind }}</div>
+                      <div style="display:flex;gap:5px;margin-top:auto">
+                        <button type="button" class="btn btn-ghost" style="padding:2px 7px;font-size:10px;font-family:ui-monospace,Menlo,monospace">M</button>
+                        <button type="button" class="btn btn-ghost" style="padding:2px 7px;font-size:10px;font-family:ui-monospace,Menlo,monospace">S</button>
+                      </div>
+                    </div>
+                    <div style="position:relative;overflow:hidden">
+                      <div style="position:relative;width:{{ arrW }}px;height:96px">
+                        <sc-for list="{{ arrBars }}" as="b" hint-placeholder-count="8">
+                          <div style="position:absolute;top:0;bottom:0;left:{{ b.left }}px;width:{{ b.lineW }}px;background:{{ b.lineColor }}"></div>
+                        </sc-for>
+                        <sc-for list="{{ t.clips }}" as="c" hint-placeholder-count="1">
+                          <div style="position:absolute;top:8px;left:{{ c.left }}px;width:{{ c.width }}px;height:80px;border:1px solid var(--color-accent-700);border-radius:var(--radius-sm);background:var(--color-accent-100);box-shadow:var(--shadow-sm);overflow:hidden">
+                            <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid color-mix(in srgb,var(--color-accent-700) 35%,transparent)">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-800)" stroke-width="2.2" stroke-linecap="round" style="flex:none;cursor:grab"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>
+                              <span style="font-family:var(--font-heading);font-weight:600;font-size:11.5px;color:var(--color-accent-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</span>
+                              <sc-if value="{{ c.fitLabel }}" hint-placeholder-val="{{ false }}">
+                                <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;padding:1px 4px;border:1px solid var(--color-accent-700);border-radius:2px;color:var(--color-accent-800);flex:none">{{ c.fitLabel }}</span>
+                              </sc-if>
+                              <sc-if value="{{ c.variation }}" hint-placeholder-val="{{ false }}">
+                                <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;padding:1px 4px;background:var(--color-accent-700);color:var(--color-bg);border-radius:2px;flex:none">{{ c.variation }}</span>
+                              </sc-if>
+                              <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;color:var(--color-accent-800);margin-left:auto;flex:none">{{ c.num }}</span>
+                            </div>
+                            <div style="padding:7px 6px 0"><dc-import name="Waveform" seed="{{ c.seed }}" height="40" bars="{{ c.wbars }}" color="var(--color-accent-700)" dim="color-mix(in srgb,var(--color-accent-700) 32%,transparent)" hint-size="100%,40px"></dc-import></div>
+                            <sc-for list="{{ c.loopMarks }}" as="m" hint-placeholder-count="0">
+                              <div style="position:absolute;top:22px;bottom:0;left:{{ m.x }}px;width:1px;border-left:1px dashed color-mix(in srgb,var(--color-accent-700) 55%,transparent)"></div>
+                              <div style="position:absolute;bottom:3px;left:{{ m.x }}px;transform:translateX(-50%);color:var(--color-accent-800)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div>
+                            </sc-for>
+                            <div style="position:absolute;top:0;bottom:0;right:0;width:7px;background:color-mix(in srgb,var(--color-accent-700) 22%,transparent);border-left:1px solid var(--color-accent-700);cursor:ew-resize;display:flex;align-items:center;justify-content:center"><div style="width:1px;height:18px;background:var(--color-accent-800)"></div></div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+                <!-- drop lane with slip mid-drag -->
+                <div style="display:grid;grid-template-columns:150px 1fr;height:96px">
+                  <div style="border-right:1px solid var(--color-divider);padding:11px 12px;display:flex;align-items:center;font-size:12px;color:color-mix(in srgb,var(--color-text) 45%,transparent)">New track</div>
+                  <div style="position:relative;overflow:hidden;background:color-mix(in srgb,var(--color-accent) 4%,transparent)">
+                    <div style="position:relative;width:{{ arrW }}px;height:96px">
+                      <sc-for list="{{ arrBars }}" as="b" hint-placeholder-count="8">
+                        <div style="position:absolute;top:0;bottom:0;left:{{ b.left }}px;width:{{ b.lineW }}px;background:{{ b.lineColor }}"></div>
+                      </sc-for>
+                      <div style="position:absolute;top:0;bottom:0;left:{{ dropX }}px;width:2px;background:var(--color-accent)"></div>
+                      <div style="position:absolute;top:8px;left:{{ dropX }}px;width:380px;height:80px;border:1.5px dashed var(--color-accent);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--color-accent) 10%,transparent)"></div>
+                      <div style="position:absolute;top:2px;left:{{ dropX }}px;width:372px;height:80px;transform:translate(14px,10px) rotate(-1.2deg);border:1px solid var(--color-accent-700);border-radius:var(--radius-sm);background:var(--color-bg);box-shadow:var(--shadow-lg);opacity:.94;overflow:hidden">
+                        <div style="display:flex;align-items:center;gap:6px;padding:5px 7px;border-bottom:1px solid var(--color-divider)">
+                          <span style="font-family:var(--font-heading);font-weight:600;font-size:12px;color:var(--color-text)">Plucky Arp</span>
+                          <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;padding:1px 4px;border:1px solid var(--color-accent-700);border-radius:2px;color:var(--color-accent-800)">128→121</span>
+                          <span style="font-family:ui-monospace,Menlo,monospace;font-size:8.5px;color:color-mix(in srgb,var(--color-text) 55%,transparent);margin-left:auto">SB-071</span>
+                        </div>
+                        <div style="padding:8px 7px 0"><dc-import name="Waveform" seed="71" height="40" bars="56" hint-size="100%,40px"></dc-import></div>
+                      </div>
+                      <div style="position:absolute;top:70px;left:{{ dropX }}px;transform:translate(16px,0);font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--color-accent-800);background:var(--color-bg);border:1px solid var(--color-accent-300);border-radius:2px;padding:1px 5px">drop at bar 1 · snapped</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- variation popover -->
+              <div style="position:absolute;left:626px;top:318px;width:34px;height:1px;background:var(--color-neutral-400)"></div>
+              <div style="position:absolute;left:660px;top:292px;width:308px;border:1px solid var(--color-neutral-400);border-radius:var(--radius-md);background:var(--color-bg);box-shadow:var(--shadow-lg);padding:16px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:3px">
+                  <span style="font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--color-accent)">Make a variation</span>
+                  <span style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:color-mix(in srgb,var(--color-text) 50%,transparent)">from SB-033</span>
+                </div>
+                <div style="font-family:var(--font-heading);font-weight:600;font-size:18px;margin-bottom:12px">Rhodes Chord Stab <span style="color:var(--color-accent-800)">var. 2</span></div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:12.5px;color:color-mix(in srgb,var(--color-text) 75%,transparent)">Transpose</span>
+                    <div style="display:flex;align-items:center;gap:6px;border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:2px 4px">
+                      <button type="button" class="btn btn-ghost btn-icon" style="width:20px;height:20px">−</button>
+                      <span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;min-width:44px;text-align:center">+3 st</span>
+                      <button type="button" class="btn btn-ghost btn-icon" style="width:20px;height:20px">+</button>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-size:12.5px;color:color-mix(in srgb,var(--color-text) 75%,transparent)">Key</span>
+                    <span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px">E min → G min</span>
+                  </div>
+                  <div class="hr" style="margin:2px 0"></div>
+                  <a href="#2a" style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--color-divider);border-radius:var(--radius-md);text-decoration:none;color:var(--color-text)" style-hover="border-color:var(--color-accent);background:var(--color-accent-100)">
+                    <span style="font-size:12.5px">Add notes in the MIDI editor</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  </a>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:color-mix(in srgb,var(--color-text) 70%,transparent)"><input type="checkbox" data-on="on" style="accent-color:var(--color-accent)">Keep linked to the original slip</label>
+                  <div style="display:flex;gap:8px;margin-top:2px">
+                    <button type="button" class="btn btn-primary" style="flex:1;font-size:13px">Create variation</button>
+                    <button type="button" class="btn btn-secondary" style="font-size:13px">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- player -->
+          <div style="display:flex;align-items:center;gap:18px;padding:9px 20px;border-top:1px solid var(--color-divider);background:var(--color-neutral-100);flex:none">
+            <div style="display:flex;align-items:center;gap:6px">
+              <button type="button" class="btn btn-ghost btn-icon" style="width:32px;height:32px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+              <button type="button" class="btn btn-primary" style="width:38px;height:38px;padding:0;border-radius:50%"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+              <button type="button" class="btn btn-ghost btn-icon" style="width:32px;height:32px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;width:200px">
+              <div style="width:38px;height:38px;border-radius:3px;background:var(--color-neutral-200);display:grid;place-items:center;color:var(--color-accent);flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+              <div style="overflow:hidden"><div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 50%,transparent)">Arrangement</div><div style="font-family:var(--font-heading);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Nightbus</div></div>
+            </div>
+            <div style="flex:1;display:flex;align-items:center;gap:11px">
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">4.3.1</span>
+              <div style="flex:1"><dc-import name="Waveform" seed="121" height="26" bars="140" playhead="0.44" hint-size="100%,26px"></dc-import></div>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">8.4.4</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;color:color-mix(in srgb,var(--color-text) 60%,transparent)">
+              <button type="button" class="btn btn-ghost btn-icon" style="width:30px;height:30px;color:var(--color-accent)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--color-text)">{{ songBpm }} BPM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: “show the slip-box search with no results” · “add an automation lane” · “make the variation flow a full-screen step”</p>
+</section>
+
 <section class="dv-turn" id="t2">
   <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">musical·zettelkasten — MIDI editor</span></div>
-  <p class="dv-preface"><b>A slip whose sound is editable notes.</b> Same editor chrome as <a class="dv-oid" href="#1c">1c</a>/<a class="dv-oid" href="#1d">1d</a>, but the waveform pane is swapped for a <b>piano roll</b>: hairline bar/beat grid, gold note blocks, a velocity lane beneath, and the standard tool rail. It's the “Rhodes Chord Stab” slip (SB-033) opened for editing. Static mock.</p>
+  <p class="dv-preface"><b>A slip whose sound is editable notes.</b> Same chrome as the other screens, but the waveform pane is swapped for a <b>piano roll</b>: hairline bar/beat grid, gold note blocks, a velocity lane beneath, and the standard tool rail. It's the “Rhodes Chord Stab” slip (SB-033) opened for editing. The roll runs <b>four bars across two octaves</b> (C3–C5), so a full progression reads at once. Static mock.</p>
   <div class="dv-opts">
 
     <!-- ══════════════════════ 2a · MIDI PIANO-ROLL EDITOR ══════════════════════ -->
@@ -47,7 +286,7 @@
             <nav style="display:flex;gap:20px;font-size:13.5px">
               <a href="#1a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Desk</a>
               <a href="#1b" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Slip-box</a>
-              <a href="#1e" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
+              <a href="#3a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
             </nav>
             <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
               <button type="button" class="btn btn-secondary" style="padding:7px 14px">Done editing</button>
@@ -57,12 +296,12 @@
           <!-- body: left meta rail + roll -->
           <div style="flex:1;display:grid;grid-template-columns:296px 1fr;overflow:hidden">
             <!-- meta rail -->
-            <aside style="border-right:1px solid var(--color-divider);padding:26px 24px;display:flex;flex-direction:column;gap:22px;overflow:hidden">
+            <aside style="border-right:1px solid var(--color-divider);padding:22px 24px;display:flex;flex-direction:column;gap:18px;overflow-y:auto">
               <div>
                 <a href="#1b" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--color-accent);text-decoration:none;margin-bottom:14px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back to slip-box</a>
                 <div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent)">SB-033 · Phrase · MIDI</div>
                 <input value="Rhodes Chord Stab" style="width:100%;border:none;background:transparent;font-family:var(--font-heading);font-weight:600;font-size:27px;color:var(--color-text);padding:2px 0;margin-top:2px">
-                <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 58%,transparent)">2 bars · 96 BPM · E min · 12 notes</div>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 58%,transparent)">4 bars · 96 BPM · E min · {{ noteCount }} notes</div>
               </div>
               <div class="hr" style="margin:0"></div>
               <div>
@@ -76,7 +315,7 @@
               <div>
                 <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:12px">Snap &amp; length</div>
                 <div style="display:flex;flex-direction:column;gap:10px">
-                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:color-mix(in srgb,var(--color-text) 78%,transparent)">Grid</span><div class="seg" style="height:30px"><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap"><span>1/8</span></label><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap" checked><span>1/16</span></label><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap"><span>1/32</span></label></div></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:color-mix(in srgb,var(--color-text) 78%,transparent)">Grid</span><div class="seg" style="height:30px"><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap"><span>1/8</span></label><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap" data-on="on"><span>1/16</span></label><label class="seg-opt" style="padding:4px 10px;font-size:12px"><input type="radio" name="snap"><span>1/32</span></label></div></div>
                   <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;color:color-mix(in srgb,var(--color-text) 78%,transparent)">Quantize</span><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--color-text)">88%</span></div>
                   <div style="height:4px;border-radius:2px;background:var(--color-divider);position:relative"><div style="position:absolute;inset:0 12% 0 0;background:var(--color-accent);border-radius:2px"></div><div style="position:absolute;left:88%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--color-bg);border:1.5px solid var(--color-accent)"></div></div>
                 </div>
@@ -88,7 +327,7 @@
               </div>
               <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
                 <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:2px">Referenced in</div>
-                <a href="#1e" style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--color-divider);border-radius:var(--radius-md);text-decoration:none;color:var(--color-text)"><span style="font-size:13px">Nightbus</span><span style="font-size:11px;color:color-mix(in srgb,var(--color-text) 50%,transparent)">bars 9–12</span></a>
+                <a href="#3a" style="display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--color-divider);border-radius:var(--radius-md);text-decoration:none;color:var(--color-text)"><span style="font-size:13px">Nightbus</span><span style="font-size:11px;color:color-mix(in srgb,var(--color-text) 50%,transparent)">bars 9–12</span></a>
               </div>
             </aside>
 
@@ -97,7 +336,7 @@
               <!-- tool bar -->
               <div style="display:flex;align-items:center;gap:16px;padding:12px 22px;border-bottom:1px solid var(--color-divider);flex:none">
                 <div class="seg" style="height:34px">
-                  <label class="seg-opt" style="padding:6px 10px" title="Select"><input type="radio" name="miditool" checked><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg></label>
+                  <label class="seg-opt" style="padding:6px 10px" title="Select"><input type="radio" name="miditool" data-on="on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg></label>
                   <label class="seg-opt" style="padding:6px 10px" title="Draw"><input type="radio" name="miditool"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg></label>
                   <label class="seg-opt" style="padding:6px 10px" title="Erase"><input type="radio" name="miditool"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4L14 4l6 6-8.5 8.5"/><path d="M22 21H7"/></svg></label>
                 </div>
@@ -118,11 +357,12 @@
                 <div style="border-right:1px solid var(--color-divider)"></div>
                 <div style="position:relative;height:30px;overflow:hidden">
                   <div style="position:absolute;inset:0;width:{{ gridW }}px">
-                    <div style="position:absolute;left:0;top:7px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:var(--color-text);padding-left:6px">1</div>
-                    <div style="position:absolute;left:352px;top:7px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:var(--color-text);padding-left:6px">2</div>
-                    <!-- playhead flag -->
-                    <div style="position:absolute;left:176px;top:0;bottom:0;width:1.5px;background:var(--color-accent)"></div>
-                    <div style="position:absolute;left:176px;top:4px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--color-accent)"></div>
+                    <sc-for list="{{ rulerBars }}" as="b" hint-placeholder-count="4">
+                      <div style="position:absolute;top:0;bottom:0;left:{{ b.left }}px;width:1px;background:var(--color-neutral-400)"></div>
+                      <div style="position:absolute;left:{{ b.left }}px;top:7px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:var(--color-text);padding-left:6px">{{ b.n }}</div>
+                    </sc-for>
+                    <div style="position:absolute;left:{{ playX }}px;top:0;bottom:0;width:1.5px;background:var(--color-accent)"></div>
+                    <div style="position:absolute;left:{{ playX }}px;top:4px;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--color-accent)"></div>
                   </div>
                 </div>
               </div>
@@ -131,7 +371,7 @@
                 <!-- keyboard -->
                 <div style="border-right:1px solid var(--color-divider);position:relative;overflow:hidden">
                   <sc-for list="{{ midiRows }}" as="r" hint-placeholder-count="12">
-                    <div style="height:26px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;border-bottom:1px solid color-mix(in srgb,var(--color-divider) 60%,transparent);background:{{ r.keyBg }};color:{{ r.keyFg }}">{{ r.name }}</div>
+                    <div style="height:24px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;border-bottom:1px solid color-mix(in srgb,var(--color-divider) 60%,transparent);background:{{ r.keyBg }};color:{{ r.keyFg }}">{{ r.label }}</div>
                   </sc-for>
                 </div>
                 <!-- note field -->
@@ -139,14 +379,14 @@
                   <div style="position:relative;width:{{ gridW }}px;height:{{ gridH }}px">
                     <!-- row bands -->
                     <sc-for list="{{ midiRows }}" as="r" hint-placeholder-count="12">
-                      <div style="position:absolute;left:0;right:0;top:{{ r.top }}px;height:26px;background:{{ r.laneBg }};border-bottom:1px solid color-mix(in srgb,var(--color-divider) 55%,transparent)"></div>
+                      <div style="position:absolute;left:0;right:0;top:{{ r.top }}px;height:24px;background:{{ r.laneBg }};border-bottom:1px solid color-mix(in srgb,var(--color-divider) 45%,transparent)"></div>
                     </sc-for>
                     <!-- vertical grid lines -->
                     <sc-for list="{{ midiCols }}" as="c" hint-placeholder-count="32">
                       <div style="position:absolute;top:0;bottom:0;left:{{ c.left }}px;width:{{ c.lineW }}px;background:{{ c.lineColor }}"></div>
                     </sc-for>
                     <!-- playhead -->
-                    <div style="position:absolute;top:0;bottom:0;left:176px;width:1.5px;background:color-mix(in srgb,var(--color-accent) 70%,transparent)"></div>
+                    <div style="position:absolute;top:0;bottom:0;left:{{ playX }}px;width:1.5px;background:color-mix(in srgb,var(--color-accent) 70%,transparent)"></div>
                     <!-- notes -->
                     <sc-for list="{{ midiNotes }}" as="n" hint-placeholder-count="12">
                       <div style="position:absolute;top:{{ n.top2 }}px;left:{{ n.left }}px;width:{{ n.width }}px;height:{{ n.height }}px;background:{{ n.fill }};border:1px solid var(--color-accent-700);border-radius:2px;box-shadow:var(--shadow-sm)"></div>
@@ -180,9 +420,9 @@
               <div style="overflow:hidden"><div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--color-text) 50%,transparent)">Editing</div><div style="font-family:var(--font-heading);font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Rhodes Chord Stab</div></div>
             </div>
             <div style="flex:1;display:flex;align-items:center;gap:11px">
-              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">1.2.1</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">2.2.1</span>
               <div style="flex:1"><dc-import name="Waveform" seed="33" height="26" bars="120" playhead="0.5" hint-size="100%,26px"></dc-import></div>
-              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">2.4.4</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 55%,transparent)">4.4.4</span>
             </div>
             <div style="display:flex;align-items:center;gap:14px;color:color-mix(in srgb,var(--color-text) 60%,transparent)">
               <button type="button" class="btn btn-ghost btn-icon" style="width:30px;height:30px;color:var(--color-accent)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
@@ -195,12 +435,12 @@
     </div>
 
   </div>
-  <p class="dv-next">Try next: “add a second MIDI clip lane” · “show the draw tool mid-drag” · “make the roll scroll to 4 bars”</p>
+  <p class="dv-next">Try next: “add a second MIDI clip lane” · “show the draw tool mid-drag” · “extend to 8 bars”</p>
 </section>
 
 <section class="dv-turn" id="t1">
   <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">musical·zettelkasten — first look</span></div>
-  <p class="dv-preface"><b>The idea I'm designing to:</b> your audio snippets are <b>catalog slips in a slip-box</b>. You capture small loops and one-shots, file them, and later <b>combine</b> them into songs by dragging slips onto an arrangement. I've leaned the Classical system into that metaphor — slips read like index cards, waveforms are drawn as hairline gold strokes, and the arrangement assembles like a manuscript. Five screens below; the <b>editor</b> is shown in two directions since you asked me to push it hardest — <a class="dv-oid" href="#1c">1c</a> reads like a library record, <a class="dv-oid" href="#1d">1d</a> like a workbench. Everything is a static mock. Sample content is electronic/beats.</p>
+  <p class="dv-preface"><b>The idea I'm designing to:</b> your audio snippets are <b>catalog slips in a slip-box</b>. You capture small loops and one-shots, file them, and later <b>combine</b> them into songs by dragging slips onto an arrangement. I've leaned the Classical system into that metaphor — slips read like index cards, waveforms are drawn as hairline gold strokes, and the arrangement assembles like a manuscript. Two screens in this first pass — the <b>editor</b> and <b>arrangement</b> arrived in later turns above. Everything is a static mock. Sample content is electronic/beats.</p>
 
   <div class="dv-opts">
 
@@ -215,7 +455,7 @@
             <nav style="display:flex;gap:20px;font-size:13.5px">
               <a href="#1a" style="color:var(--color-accent);text-decoration:none;border-bottom:2px solid var(--color-accent);padding-bottom:3px">Desk</a>
               <a href="#1b" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Slip-box</a>
-              <a href="#1e" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
+              <a href="#3a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
             </nav>
             <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
               <div style="position:relative">
@@ -239,13 +479,13 @@
                   <h3 style="margin:0 0 3px;font-size:23px">Nightbus</h3>
                   <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 58%,transparent);margin-bottom:14px">11 slips · 2:14 · G min · 121 BPM</div>
                   <div style="height:4px;border-radius:2px;background:var(--color-divider);position:relative;margin-bottom:8px"><div style="position:absolute;inset:0 36% 0 0;background:var(--color-accent);border-radius:2px"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:color-mix(in srgb,var(--color-text) 55%,transparent)">edited 2h ago · 64% arranged</span><a href="#1e" class="btn btn-ghost" style="font-size:12.5px">Open in Arrange →</a></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:color-mix(in srgb,var(--color-text) 55%,transparent)">edited 2h ago · 64% arranged</span><a href="#3a" class="btn btn-ghost" style="font-size:12.5px">Open in Arrange →</a></div>
                 </div>
                 <div style="border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:18px 18px 16px">
                   <h3 style="margin:0 0 3px;font-size:23px">untitled 04</h3>
                   <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--color-text) 58%,transparent);margin-bottom:14px">5 slips · 0:52 · C min · 128 BPM</div>
                   <div style="height:4px;border-radius:2px;background:var(--color-divider);position:relative;margin-bottom:8px"><div style="position:absolute;inset:0 72% 0 0;background:var(--color-accent);border-radius:2px"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:color-mix(in srgb,var(--color-text) 55%,transparent)">edited yesterday · 28% arranged</span><a href="#1e" class="btn btn-ghost" style="font-size:12.5px">Open in Arrange →</a></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:color-mix(in srgb,var(--color-text) 55%,transparent)">edited yesterday · 28% arranged</span><a href="#3a" class="btn btn-ghost" style="font-size:12.5px">Open in Arrange →</a></div>
                 </div>
               </div>
               <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px"><span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)">Recent slips</span><a href="#1b" style="font-size:12.5px;color:var(--color-accent);text-decoration:none">Open slip-box →</a></div>
@@ -322,7 +562,7 @@
             <nav style="display:flex;gap:20px;font-size:13.5px">
               <a href="#1a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Desk</a>
               <a href="#1b" style="color:var(--color-accent);text-decoration:none;border-bottom:2px solid var(--color-accent);padding-bottom:3px">Slip-box</a>
-              <a href="#1e" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
+              <a href="#3a" style="color:color-mix(in srgb,var(--color-text) 70%,transparent);text-decoration:none">Arrange</a>
             </nav>
             <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
               <button type="button" class="btn btn-primary" style="padding:7px 14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>Capture</button>
@@ -364,7 +604,7 @@
                 <div style="display:flex;align-items:baseline;gap:10px"><h3 style="margin:0;font-size:22px">All slips</h3><span style="font-size:12.5px;color:color-mix(in srgb,var(--color-text) 55%,transparent)">142 filed · 9 unused</span></div>
                 <div style="display:flex;align-items:center;gap:14px">
                   <span style="font-size:12.5px;color:color-mix(in srgb,var(--color-text) 60%,transparent)">Sort: <span style="color:var(--color-text)">Recently filed</span></span>
-                  <div class="seg" style="height:32px"><label class="seg-opt" style="padding:5px 9px"><input type="radio" name="lbview" checked><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></label><label class="seg-opt" style="padding:5px 9px"><input type="radio" name="lbview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></label></div>
+                  <div class="seg" style="height:32px"><label class="seg-opt" style="padding:5px 9px"><input type="radio" name="lbview" data-on="on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></label><label class="seg-opt" style="padding:5px 9px"><input type="radio" name="lbview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></label></div>
                 </div>
               </div>
               <div style="flex:1;overflow:hidden;padding:22px 26px">
@@ -413,11 +653,26 @@
 
   </div>
 
-  <p class="dv-next">Try next: “push <a class="dv-oid" href="#1d">1d</a> further — I like the workbench” · “make the slips in <a class="dv-oid" href="#1b">1b</a> a denser list” · “add a graph/backlinks screen” · “new visual direction for the slips”</p>
+  <p class="dv-next">Try next: “make the slips in <a class="dv-oid" href="#1b">1b</a> a denser list” · “add a graph/backlinks screen” · “new visual direction for the slips”</p>
 </section>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
+  componentDidMount() {
+    // Template markup is HTML-parsed, so React's camelCase defaultChecked never
+    // survives; mark the intended inputs with data-on and set them here so the
+    // design system's .seg-opt:has(input:checked) styling applies.
+    this.applyDefaults();
+  }
+  componentDidUpdate() { this.applyDefaults(); }
+  applyDefaults() {
+    const apply = () => document.querySelectorAll('input[data-on]').forEach(i => {
+      if (!i.checked) i.checked = true;
+    });
+    apply();
+    requestAnimationFrame(apply);
+  }
+
   renderVals() {
     const snippets = [
       {num:'SB-007',title:'Sub Bass — Gm',kind:'Loop',bpm:'121',key:'G min',len:'4 bars',tags:['bass','analog'],seed:7},
@@ -432,27 +687,39 @@ class Component extends DCLogic {
     ];
     // Piano-roll note data for the MIDI editor (Rhodes Chord Stab — E min).
     // pitch: semitone row from top (0 = top of visible range). start/len in 16th-step columns.
+    // Row 0 = C5 at the top, descending chromatically to C3 (two octaves).
+    const P = {C5:0,B4:1,A4:3,G4:5,FS4:6,F4:7,E4:8,D4:10,C4:12,B3:13,A3:15,G3:17,FS3:18,E3:20,D3:22,C3:24};
     const midiNotes = [
-      // Em chord stab (E-G-B) hits on the downbeats
-      {pitch:2,start:0,len:3,vel:0.92},{pitch:5,start:0,len:3,vel:0.8},{pitch:9,start:0,len:3,vel:0.74},
-      {pitch:2,start:8,len:3,vel:0.85},{pitch:5,start:8,len:3,vel:0.72},{pitch:9,start:8,len:3,vel:0.68},
-      // Cmaj7 answer (C-E-G-B)
-      {pitch:12,start:16,len:6,vel:0.9},{pitch:9,start:16,len:6,vel:0.78},{pitch:5,start:16,len:6,vel:0.7},{pitch:2,start:16,len:6,vel:0.64},
-      // little melodic tail
-      {pitch:2,start:24,len:2,vel:0.6},{pitch:0,start:26,len:2,vel:0.66},{pitch:2,start:28,len:4,vel:0.82},
+      // bar 1 — Em
+      {pitch:P.E3,start:0,len:8,vel:0.94},{pitch:P.E3,start:8,len:6,vel:0.72},
+      {pitch:P.E4,start:0,len:6,vel:0.82},{pitch:P.G4,start:0,len:6,vel:0.74},{pitch:P.B4,start:0,len:6,vel:0.68},
+      {pitch:P.E4,start:8,len:4,vel:0.7},{pitch:P.G4,start:8,len:4,vel:0.63},{pitch:P.B4,start:8,len:4,vel:0.58},
+      // bar 2 — Cmaj7
+      {pitch:P.C3,start:16,len:9,vel:0.9},{pitch:P.C3,start:26,len:5,vel:0.66},
+      {pitch:P.C4,start:16,len:11,vel:0.84},{pitch:P.E4,start:16,len:11,vel:0.76},{pitch:P.G4,start:16,len:11,vel:0.7},{pitch:P.B4,start:16,len:11,vel:0.62},
+      // bar 3 — Am7
+      {pitch:P.A3,start:32,len:8,vel:0.92},{pitch:P.A3,start:40,len:6,vel:0.7},
+      {pitch:P.C4,start:32,len:10,vel:0.8},{pitch:P.E4,start:32,len:10,vel:0.73},{pitch:P.A4,start:32,len:10,vel:0.66},
+      {pitch:P.B4,start:44,len:3,vel:0.6},
+      // bar 4 — D, with a melodic tail up top
+      {pitch:P.D3,start:48,len:8,vel:0.88},{pitch:P.D3,start:56,len:4,vel:0.64},
+      {pitch:P.D4,start:48,len:6,vel:0.78},{pitch:P.FS4,start:48,len:6,vel:0.72},{pitch:P.A4,start:48,len:6,vel:0.65},
+      {pitch:P.B4,start:56,len:3,vel:0.7},{pitch:P.C5,start:59,len:2,vel:0.76},{pitch:P.B4,start:61,len:3,vel:0.86},
     ];
-    // 12-row keyboard, E minor-ish scale over the visible window (top → bottom)
-    const rowDefs = [
-      {name:'C5',black:false},{name:'B4',black:false},{name:'A#4',black:true},{name:'A4',black:false},
-      {name:'G4',black:false},{name:'F#4',black:true},{name:'F4',black:false},{name:'E4',black:false},
-      {name:'D#4',black:true},{name:'D4',black:false},{name:'C#4',black:true},{name:'C4',black:false},
-    ];
-    const STEPS = 32, ROWH = 26, COLW = 22;
+    // Two octaves, C5 down to C3 (25 chromatic rows)
+    const PC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const rowDefs = [];
+    for (let m = 72; m >= 48; m--) { // C5 → C3
+      const n = PC[m % 12];
+      rowDefs.push({ name: n + (Math.floor(m / 12) - 1), black: n.includes('#') });
+    }
+    const STEPS = 64, ROWH = 24, COLW = 14;
     const rows = rowDefs.map((r,i) => ({
-      key:i, name:r.name, top:i*ROWH,
+      key:i, name:r.name, top:i*ROWH, label: r.black ? '' : r.name,
       keyBg: r.black ? 'var(--color-neutral-800)' : 'var(--color-bg)',
       keyFg: r.black ? 'var(--color-neutral-200)' : 'color-mix(in srgb,var(--color-text) 60%,transparent)',
-      laneBg: r.black ? 'color-mix(in srgb,var(--color-text) 5%,transparent)' : 'transparent',
+      laneBg: r.black ? 'color-mix(in srgb,var(--color-text) 5%,transparent)'
+        : r.name.charAt(0) === 'C' ? 'color-mix(in srgb,var(--color-text) 2.5%,transparent)' : 'transparent',
     }));
     const notes = midiNotes.map((n,i) => ({
       key:i, top2:n.pitch*ROWH+2, left:n.start*COLW, width:n.len*COLW-3, height:ROWH-4,
@@ -466,10 +733,53 @@ class Component extends DCLogic {
         : i%4===0 ? 'color-mix(in srgb,var(--color-divider) 90%,transparent)'
         : 'color-mix(in srgb,var(--color-divider) 45%,transparent)',
     }));
+    const rulerBars = [1,2,3,4].map(b => ({ key:b, n:b, left:(b-1)*16*COLW }));
+
+    // ── Arrangement view ──────────────────────────────────────────────
+    const BARW = 96, BARS = 8, SONG_BPM = 121;
+    const arrBars = Array.from({length:BARS+1},(_,i)=>({
+      key:i, n:i+1, left:i*BARW, show:i<BARS,
+      lineColor: i%4===0 ? 'var(--color-neutral-400)' : 'color-mix(in srgb,var(--color-divider) 85%,transparent)',
+      lineW: i%4===0 ? 1.5 : 1,
+    }));
+    const trackDefs = [
+      {name:'Drums', kind:'4 slips', clips:[
+        {num:'SB-012',title:'Punchy Kick',bar:0,len:4,seed:12,loops:4,bpm:null},
+        {num:'SB-088',title:'Break — Chopped',bar:4,len:4,seed:88,loops:2,bpm:90},
+      ]},
+      {name:'Bass', kind:'1 slip', clips:[
+        {num:'SB-007',title:'Sub Bass — Gm',bar:0,len:6,seed:7,loops:3,bpm:121},
+      ]},
+      {name:'Keys', kind:'1 slip · variation', clips:[
+        {num:'SB-033',title:'Rhodes Chord Stab',bar:2,len:3,seed:33,loops:2,bpm:96,variation:'var. 2 · +3'},
+      ]},
+      {name:'Texture', kind:'1 slip', clips:[
+        {num:'SB-044',title:'Vinyl Crackle Bed',bar:0,len:5,seed:44,loops:1,bpm:null},
+      ]},
+    ];
+    const tracks = trackDefs.map((t,ti) => ({
+      key:ti, name:t.name, kind:t.kind,
+      clips: t.clips.map((c,ci) => ({
+        key:ci, num:c.num, title:c.title, seed:c.seed,
+        left:c.bar*BARW, width:c.len*BARW-4,
+        wbars: c.len*14,
+        variation: c.variation || '',
+        fitLabel: c.bpm && c.bpm !== SONG_BPM ? `${c.bpm}→${SONG_BPM}` : '',
+        loopMarks: Array.from({length:Math.max(0,c.loops-1)},(_,k)=>({
+          key:k, x:((k+1)*(c.len/c.loops))*BARW,
+        })),
+      })),
+    }));
+    const arrRail = [snippets[3], snippets[7], snippets[5], snippets[4], snippets[2]]
+      .map((s,i)=>({ k:i, ...s }));
     return {
       snippets, recentSlips: [snippets[6], snippets[7], snippets[8]],
-      midiRows: rows, midiNotes: notes, midiCols: cols,
+      midiRows: rows, midiNotes: notes, midiCols: cols, rulerBars,
       gridW: STEPS*COLW, gridH: rows.length*ROWH,
+      rowH: ROWH, playX: 20*COLW, noteCount: notes.length,
+      on: true,
+      tracks, arrBars, arrRail, arrW: BARS*BARW,
+      arrPlayX: 3.5*BARW, dropX: 0, songBpm: SONG_BPM,
     };
   }
 }
