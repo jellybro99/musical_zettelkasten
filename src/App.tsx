@@ -5,7 +5,7 @@ import { SlipDashboard } from './components/SlipDashboard'
 import { SlipEditor } from './components/SlipEditor'
 import { TopNav } from './components/TopNav'
 import { computePlaybackDurationMs } from './domain/playback'
-import { createSlip, resolveSlipNotes, totalSteps, type Slip } from './domain/slip'
+import { createSlip, resolveSlipNotes, totalSteps, type Note, type Slip } from './domain/slip'
 import { listSlips } from './persistence/slipStorage'
 
 type Screen = { screen: 'dashboard' } | { screen: 'editor'; slipId: string }
@@ -15,11 +15,33 @@ function App() {
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
   const [currentEditorSlip, setCurrentEditorSlip] = useState<Slip | null>(null)
   const [backStack, setBackStack] = useState<string[]>([])
+  const [loop, setLoop] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
+  const loopRef = useRef(false)
+
+  function toggleLoop() {
+    loopRef.current = !loopRef.current
+    setLoop(loopRef.current)
+  }
 
   function stopPlayback() {
     engineRef.current?.stop()
     setNowPlaying(null)
+  }
+
+  function startEngine(notes: Note[], tempo: number, durationMs: number) {
+    engineRef.current?.play(notes, tempo, {
+      durationMs,
+      onTick: (elapsedMs) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
+      onEnded: () => {
+        if (loopRef.current) {
+          setNowPlaying((prev) => (prev ? { ...prev, elapsedMs: 0 } : prev))
+          startEngine(notes, tempo, durationMs)
+        } else {
+          setNowPlaying(null)
+        }
+      },
+    })
   }
 
   async function playSlip(slip: Slip) {
@@ -36,11 +58,7 @@ function App() {
     const notes = resolveSlipNotes(slip, allSlips)
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
     setNowPlaying({ slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
-    engineRef.current.play(notes, slip.tempo, {
-      durationMs,
-      onTick: (elapsedMs) => setNowPlaying((prev) => (prev ? { ...prev, elapsedMs } : prev)),
-      onEnded: () => setNowPlaying(null),
-    })
+    startEngine(notes, slip.tempo, durationMs)
   }
 
   function togglePlay(slip: Slip) {
@@ -112,7 +130,13 @@ function App() {
           />
         )}
       </main>
-      <PlaybackBar nowPlaying={nowPlaying} canPlay={screen.screen === 'editor'} onToggle={handleBarToggle} />
+      <PlaybackBar
+        nowPlaying={nowPlaying}
+        canPlay={screen.screen === 'editor'}
+        loop={loop}
+        onToggle={handleBarToggle}
+        onToggleLoop={toggleLoop}
+      />
     </div>
   )
 }

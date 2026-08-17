@@ -1,4 +1,4 @@
-import { Play, Square } from 'lucide-react'
+import { Play, Repeat, Square } from 'lucide-react'
 import { computePlaybackProgress, formatPlaybackTime } from '../domain/playback'
 import './PlaybackBar.css'
 
@@ -13,10 +13,12 @@ export interface NowPlaying {
 export interface PlaybackBarProps {
   nowPlaying: NowPlaying | null
   canPlay: boolean
+  loop: boolean
   onToggle: () => void
+  onToggleLoop: () => void
 }
 
-export function PlaybackBar({ nowPlaying, canPlay, onToggle }: PlaybackBarProps) {
+export function PlaybackBar({ nowPlaying, canPlay, loop, onToggle, onToggleLoop }: PlaybackBarProps) {
   const progress = nowPlaying
     ? computePlaybackProgress(nowPlaying.durationMs, nowPlaying.elapsedMs)
     : { elapsedMs: 0, remainingMs: 0, ratio: 0 }
@@ -31,6 +33,15 @@ export function PlaybackBar({ nowPlaying, canPlay, onToggle }: PlaybackBarProps)
         aria-label={nowPlaying ? `Stop ${nowPlaying.title}` : 'Play'}
       >
         {nowPlaying ? <Square size={15} /> : <Play size={15} />}
+      </button>
+      <button
+        type="button"
+        className={`btn btn-icon playback-bar-loop ${loop ? 'btn-primary' : 'btn-secondary'}`}
+        onClick={onToggleLoop}
+        aria-pressed={loop}
+        aria-label={loop ? 'Disable loop' : 'Enable loop'}
+      >
+        <Repeat size={15} />
       </button>
       <div className="playback-bar-title">{nowPlaying ? nowPlaying.title : 'Nothing playing'}</div>
       <div className="playback-bar-progress">

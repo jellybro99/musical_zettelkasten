@@ -8,7 +8,8 @@
   flex: none;
 }
 
-.playback-bar-toggle {
+.playback-bar-toggle,
+.playback-bar-loop {
   border-radius: 50%;
   flex: none;
 }
