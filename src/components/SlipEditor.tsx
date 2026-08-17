@@ -20,9 +20,11 @@ export interface SlipEditorProps {
   slipId: string
   onBack: () => void
   onSlipChange: (slip: Slip) => void
+  onStopPlayback: () => void
+  onOpenReference: (currentSlipId: string, targetSlipId: string) => void
 }
 
-export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
+export function SlipEditor({ slipId, onBack, onSlipChange, onStopPlayback, onOpenReference }: SlipEditorProps) {
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
@@ -73,14 +75,29 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
     setSlip((current) => removeReference(current, referencedSlipId))
   }
 
-  async function handleSave() {
+  async function persistSlip(): Promise<boolean> {
     try {
       await saveSlip(slip)
     } catch (error) {
       console.error('Failed to save slip', error)
-      return
+      return false
     }
     markSaved()
+    return true
+  }
+
+  async function handleOpenReference(referencedSlipId: string) {
+    onStopPlayback()
+    if (isPersisted) {
+      cancelPending()
+      const saved = await persistSlip()
+      if (!saved) return
+    }
+    onOpenReference(slipId, referencedSlipId)
+  }
+
+  async function handleSave() {
+    await persistSlip()
   }
 
   async function handleDelete() {
@@ -110,6 +127,7 @@ export function SlipEditor({ slipId, onBack, onSlipChange }: SlipEditorProps) {
           onRemoveTag={handleRemoveTag}
           onAddReference={handleAddReference}
           onRemoveReference={handleRemoveReference}
+          onOpenReference={handleOpenReference}
         />
         <div className="slip-editor-roll">
           <PianoRoll notes={slip.notes} grid={slip.grid} onNotesChange={handleNotesChange} />

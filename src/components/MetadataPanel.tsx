@@ -1,7 +1,15 @@
 import { ChevronDown, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
-import { referenceCandidates, SLIP_KINDS, type Slip, type SlipKind, type UpdateSlipMetadataInput } from '../domain/slip'
+import {
+  referenceCandidates,
+  resolveSlipNotes,
+  SLIP_KINDS,
+  type Slip,
+  type SlipKind,
+  type UpdateSlipMetadataInput,
+} from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
+import { SlipThumbnail } from './SlipThumbnail'
 import './MetadataPanel.css'
 
 export interface MetadataPanelProps {
@@ -16,6 +24,7 @@ export interface MetadataPanelProps {
   onRemoveTag: (tag: string) => void
   onAddReference: (referencedSlipId: string) => void
   onRemoveReference: (referencedSlipId: string) => void
+  onOpenReference: (referencedSlipId: string) => void
 }
 
 export function MetadataPanel({
@@ -30,6 +39,7 @@ export function MetadataPanel({
   onRemoveTag,
   onAddReference,
   onRemoveReference,
+  onOpenReference,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
   const candidates = referenceCandidates(slip, allSlips)
@@ -55,7 +65,7 @@ export function MetadataPanel({
     <div className="metadata-panel">
       <div className="metadata-panel-transport">
         <button type="button" className="btn btn-ghost metadata-panel-back" onClick={onBack}>
-          ← Slip-box
+          ← Back
         </button>
         {!isPersisted && (
           <button type="button" className="btn btn-ghost metadata-panel-save" onClick={onSave}>
@@ -180,22 +190,43 @@ export function MetadataPanel({
 
       <div className="field">
         <span className="metadata-label">References</span>
-        <div className="metadata-tags">
+        <div className="metadata-references">
           {slip.referencedSlipIds.map((referencedSlipId) => {
             const referenced = allSlips.find((candidate) => candidate.id === referencedSlipId)
-            const title = referenced ? referenced.title : 'Deleted slip'
+
+            if (!referenced) {
+              return (
+                <div key={referencedSlipId} className="reference-card-wrapper">
+                  <div className="reference-card reference-card-missing">
+                    <span className="reference-card-title">Deleted slip</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="reference-card-remove"
+                    onClick={() => onRemoveReference(referencedSlipId)}
+                    aria-label="Remove reference Deleted slip"
+                  >
+                    ×
+                  </button>
+                </div>
+              )
+            }
+
             return (
-              <span key={referencedSlipId} className="tag tag-neutral metadata-tag">
-                {title}
+              <div key={referencedSlipId} className="reference-card-wrapper">
+                <button type="button" className="reference-card" onClick={() => onOpenReference(referencedSlipId)}>
+                  <SlipThumbnail notes={resolveSlipNotes(referenced, allSlips)} grid={referenced.grid} />
+                  <span className="reference-card-title">{referenced.title}</span>
+                </button>
                 <button
                   type="button"
-                  className="metadata-tag-remove"
+                  className="reference-card-remove"
                   onClick={() => onRemoveReference(referencedSlipId)}
-                  aria-label={`Remove reference ${title}`}
+                  aria-label={`Remove reference ${referenced.title}`}
                 >
                   ×
                 </button>
-              </span>
+              </div>
             )
           })}
         </div>

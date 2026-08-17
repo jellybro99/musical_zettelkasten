@@ -14,6 +14,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>({ screen: 'dashboard' })
   const [nowPlaying, setNowPlaying] = useState<NowPlaying | null>(null)
   const [currentEditorSlip, setCurrentEditorSlip] = useState<Slip | null>(null)
+  const [backStack, setBackStack] = useState<string[]>([])
   const engineRef = useRef<PlaybackEngine | null>(null)
 
   function stopPlayback() {
@@ -53,18 +54,38 @@ function App() {
   function openSlip(slipId: string) {
     stopPlayback()
     setCurrentEditorSlip(null)
+    setBackStack([])
     setScreen({ screen: 'editor', slipId })
   }
 
   function goToDashboard() {
     if (screen.screen !== 'dashboard') stopPlayback()
     setCurrentEditorSlip(null)
+    setBackStack([])
     setScreen({ screen: 'dashboard' })
   }
 
   function handleCapture() {
     const slip = createSlip()
     openSlip(slip.id)
+  }
+
+  function handleOpenReference(currentSlipId: string, targetSlipId: string) {
+    setCurrentEditorSlip(null)
+    setBackStack((prev) => [...prev, currentSlipId])
+    setScreen({ screen: 'editor', slipId: targetSlipId })
+  }
+
+  function handleEditorBack() {
+    if (backStack.length === 0) {
+      goToDashboard()
+      return
+    }
+    const previousSlipId = backStack[backStack.length - 1]
+    stopPlayback()
+    setCurrentEditorSlip(null)
+    setBackStack((prev) => prev.slice(0, -1))
+    setScreen({ screen: 'editor', slipId: previousSlipId })
   }
 
   function handleBarToggle() {
@@ -82,7 +103,13 @@ function App() {
         {screen.screen === 'dashboard' ? (
           <SlipDashboard onOpenSlip={openSlip} playingId={nowPlaying?.slipId ?? null} onTogglePlay={togglePlay} />
         ) : (
-          <SlipEditor slipId={screen.slipId} onBack={goToDashboard} onSlipChange={setCurrentEditorSlip} />
+          <SlipEditor
+            slipId={screen.slipId}
+            onBack={handleEditorBack}
+            onSlipChange={setCurrentEditorSlip}
+            onStopPlayback={stopPlayback}
+            onOpenReference={handleOpenReference}
+          />
         )}
       </main>
       <PlaybackBar nowPlaying={nowPlaying} canPlay={screen.screen === 'editor'} onToggle={handleBarToggle} />
