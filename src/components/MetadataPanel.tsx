@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
+import { ChevronDown, Copy, GitBranch, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   referenceCandidates,
@@ -45,6 +45,7 @@ export function MetadataPanel({
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
   const candidates = referenceCandidates(slip, allSlips)
+  const copiedFrom = slip.copiedFromId ? allSlips.find((candidate) => candidate.id === slip.copiedFromId) : undefined
 
   function handleAddTag(event: FormEvent) {
     event.preventDefault()
@@ -107,6 +108,19 @@ export function MetadataPanel({
           </button>
         </div>
       </div>
+
+      {copiedFrom && (
+        <button
+          type="button"
+          className="btn btn-ghost metadata-provenance"
+          onClick={() => onOpenReference(copiedFrom.id)}
+        >
+          <GitBranch size={13} />
+          <span className="metadata-provenance-text">
+            Copied from: <span className="metadata-provenance-title">{copiedFrom.title}</span>
+          </span>
+        </button>
+      )}
 
       <div className="field">
         <label htmlFor="slip-tempo">Tempo (BPM)</label>

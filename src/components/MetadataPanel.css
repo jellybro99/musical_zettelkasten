@@ -47,6 +47,31 @@
   flex: 1;
 }
 
+.metadata-provenance {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  font-size: 12px;
+}
+
+.metadata-provenance svg {
+  flex: none;
+}
+
+.metadata-provenance-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metadata-provenance-title {
+  font-weight: 600;
+}
+
 .metadata-instrument-row {
   display: flex;
   align-items: center;

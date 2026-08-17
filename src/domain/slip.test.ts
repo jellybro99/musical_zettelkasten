@@ -317,6 +317,7 @@ describe('createSlip', () => {
       kind: 'Phrase',
       tags: [],
       referencedSlipIds: [],
+      copiedFromId: null,
     })
   })
 
@@ -421,6 +422,22 @@ describe('copySlip', () => {
 
     expect(original.title).toBe('Original')
     expect(original.referencedSlipIds).toEqual(['other'])
+  })
+
+  it('sets copiedFromId to the original slip\'s id', () => {
+    const original = createSlip({ id: 'original' })
+
+    const copy = copySlip(original)
+
+    expect(copy.copiedFromId).toBe('original')
+  })
+
+  it('does not add a reciprocal pointer to the original', () => {
+    const original = createSlip({ id: 'original' })
+
+    copySlip(original)
+
+    expect(original.copiedFromId).toBeNull()
   })
 })
 

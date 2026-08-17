@@ -111,6 +111,7 @@ export interface Slip {
   kind: SlipKind
   tags: string[]
   referencedSlipIds: string[]
+  copiedFromId: string | null
 }
 
 const MIN_TEMPO = 1
@@ -127,6 +128,7 @@ export function createSlip(overrides?: Partial<Slip>): Slip {
     kind: 'Phrase',
     tags: [],
     referencedSlipIds: [],
+    copiedFromId: null,
     ...overrides,
   }
 }
@@ -138,6 +140,7 @@ export function copySlip(slip: Slip): Slip {
     createdAt: Date.now(),
     title: `Copy of ${slip.title}`,
     referencedSlipIds: [],
+    copiedFromId: slip.id,
   }
 }
 
