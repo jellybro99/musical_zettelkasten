@@ -12,6 +12,7 @@ import {
   resizeClipLoop,
   setClipSlip,
   setClipTranspose,
+  setTrackVolume,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
@@ -109,7 +110,7 @@ describe('addTrack', () => {
 
     const result = addTrack(arrangement)
 
-    expect(result.tracks).toMatchObject([{ name: 'Track 1', muted: false, solo: false, clips: [] }])
+    expect(result.tracks).toMatchObject([{ name: 'Track 1', muted: false, solo: false, volume: 1, clips: [] }])
   })
 
   it('assigns the new track a unique id', () => {
@@ -550,6 +551,43 @@ describe('toggleTrackSolo', () => {
 
     expect(soloed.tracks[0].solo).toBe(true)
     expect(unsoloed.tracks[0].solo).toBe(false)
+  })
+})
+
+describe('setTrackVolume', () => {
+  it('sets the target track volume', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const result = setTrackVolume(arrangement, trackId, 0.5)
+
+    expect(result.tracks[0].volume).toBe(0.5)
+  })
+
+  it('clamps volume above 1 down to 1', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const result = setTrackVolume(arrangement, trackId, 1.5)
+
+    expect(result.tracks[0].volume).toBe(1)
+  })
+
+  it('clamps volume below 0 up to 0', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const result = setTrackVolume(arrangement, trackId, -0.5)
+
+    expect(result.tracks[0].volume).toBe(0)
+  })
+
+  it('leaves other tracks untouched', () => {
+    const arrangement = addTrack(addTrack(createArrangement(), { volume: 0.8 }), { volume: 0.8 })
+
+    const result = setTrackVolume(arrangement, arrangement.tracks[0].id, 0.2)
+
+    expect(result.tracks[1].volume).toBe(0.8)
   })
 })
 

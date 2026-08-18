@@ -47,6 +47,7 @@ export interface ArrangementTimelineProps {
   onRenameTrack: (trackId: string, name: string) => void
   onToggleMute: (trackId: string) => void
   onToggleSolo: (trackId: string) => void
+  onSetTrackVolume: (trackId: string, volume: number) => void
   onOpenVariation: (clip: Clip) => void
   onOpenSlip: (clip: Clip) => void
 }
@@ -65,6 +66,7 @@ export function ArrangementTimeline({
   onRenameTrack,
   onToggleMute,
   onToggleSolo,
+  onSetTrackVolume,
   onOpenVariation,
   onOpenSlip,
 }: ArrangementTimelineProps) {
@@ -269,39 +271,54 @@ export function ArrangementTimeline({
             onClick={() => handleTrackLabelClick(track.id)}
             onBlur={() => setSelectedTrackId((current) => (current === track.id ? null : current))}
           >
-            <input
-              type="text"
-              className="arrangement-track-name-input"
-              value={track.name}
-              onChange={(event) => onRenameTrack(track.id, event.target.value)}
-              onClick={(event) => event.stopPropagation()}
-              aria-label={`Track name for ${track.name}`}
-            />
-            <div className="arrangement-track-controls">
-              <button
-                type="button"
-                className={`arrangement-track-toggle${track.muted ? ' is-active' : ''}`}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onToggleMute(track.id)
-                }}
-                aria-pressed={track.muted}
-                aria-label={track.muted ? `Unmute ${track.name}` : `Mute ${track.name}`}
-              >
-                M
-              </button>
-              <button
-                type="button"
-                className={`arrangement-track-toggle${track.solo ? ' is-active' : ''}`}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onToggleSolo(track.id)
-                }}
-                aria-pressed={track.solo}
-                aria-label={track.solo ? `Unsolo ${track.name}` : `Solo ${track.name}`}
-              >
-                S
-              </button>
+            <div className="arrangement-track-label-row">
+              <input
+                type="text"
+                className="arrangement-track-name-input"
+                value={track.name}
+                onChange={(event) => onRenameTrack(track.id, event.target.value)}
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Track name for ${track.name}`}
+              />
+              <div className="arrangement-track-controls">
+                <button
+                  type="button"
+                  className={`arrangement-track-toggle${track.muted ? ' is-active' : ''}`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleMute(track.id)
+                  }}
+                  aria-pressed={track.muted}
+                  aria-label={track.muted ? `Unmute ${track.name}` : `Mute ${track.name}`}
+                >
+                  M
+                </button>
+                <button
+                  type="button"
+                  className={`arrangement-track-toggle${track.solo ? ' is-active' : ''}`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleSolo(track.id)
+                  }}
+                  aria-pressed={track.solo}
+                  aria-label={track.solo ? `Unsolo ${track.name}` : `Solo ${track.name}`}
+                >
+                  S
+                </button>
+              </div>
+            </div>
+            <div className="arrangement-track-volume-row">
+              <input
+                type="range"
+                className="arrangement-track-volume"
+                min={0}
+                max={1}
+                step={0.05}
+                value={track.volume ?? 1}
+                onChange={(event) => onSetTrackVolume(track.id, Number(event.target.value))}
+                onClick={(event) => event.stopPropagation()}
+                aria-label={`Volume for ${track.name}`}
+              />
             </div>
           </div>
           <div className="arrangement-track-lane" style={{ width: barCount * BAR_WIDTH }}>

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { addTrack, createArrangement, placeClip, setClipTranspose, toggleTrackMute, toggleTrackSolo } from './arrangement'
+import {
+  addTrack,
+  createArrangement,
+  placeClip,
+  setClipTranspose,
+  setTrackVolume,
+  toggleTrackMute,
+  toggleTrackSolo,
+} from './arrangement'
 import {
   computeArrangementPlayback,
   computePlaybackDurationMs,
@@ -179,6 +187,41 @@ describe('computeArrangementPlayback', () => {
     const { triggers } = computeArrangementPlayback(arrangement, slipsById)
 
     expect(triggers).toEqual([])
+  })
+
+  it('scales trigger velocity by the track\'s volume', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0, velocity: 0.8 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = addTrack(createArrangement({ tempo: 120 }))
+    const trackId = arrangement.tracks[0].id
+    arrangement = placeClip(arrangement, { trackId, slipId: slipA.id, startBar: 0, slipBars: 2 })
+    arrangement = setTrackVolume(arrangement, trackId, 0.5)
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].velocity).toBeCloseTo(0.4)
+  })
+
+  it('defaults a track with no volume field to full volume', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0, velocity: 0.8 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = addTrack(createArrangement({ tempo: 120 }))
+    const trackId = arrangement.tracks[0].id
+    arrangement = placeClip(arrangement, { trackId, slipId: slipA.id, startBar: 0, slipBars: 2 })
+    // Simulates a persisted arrangement predating the volume field.
+    arrangement = {
+      ...arrangement,
+      tracks: arrangement.tracks.map((track) => {
+        const { volume: _volume, ...rest } = track
+        return rest as typeof track
+      }),
+    }
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].velocity).toBeCloseTo(0.8)
   })
 
   it('reinterprets note timing at the arrangement tempo, not the slip\'s own', () => {

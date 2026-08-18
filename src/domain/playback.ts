@@ -101,8 +101,14 @@ export function computeArrangementPlayback(arrangement: Arrangement, slipsById: 
         }
       }
 
+      const trackVolume = track.volume ?? 1
       for (const trigger of computeTriggerTimes(repeatedNotes, arrangement.tempo)) {
-        triggers.push({ ...trigger, time: trigger.time + clipStartSeconds, trackId: track.id })
+        triggers.push({
+          ...trigger,
+          velocity: trigger.velocity * trackVolume,
+          time: trigger.time + clipStartSeconds,
+          trackId: track.id,
+        })
       }
 
       furthestStep = Math.max(furthestStep, (clip.startBar + clip.lengthBars) * stepsPerBar)

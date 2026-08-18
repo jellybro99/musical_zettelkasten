@@ -12,6 +12,7 @@ import {
   resizeClipLoop,
   setClipSlip,
   setClipTranspose,
+  setTrackVolume,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
@@ -160,6 +161,10 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     setArrangement((current) => toggleTrackSolo(current, trackId))
   }, [])
 
+  const handleSetTrackVolume = useCallback((trackId: string, volume: number) => {
+    setArrangement((current) => setTrackVolume(current, trackId, volume))
+  }, [])
+
   const handleOpenVariation = useCallback(
     (clip: Clip) => {
       const sourceSlip = slipsById.get(clip.slipId)
@@ -289,6 +294,7 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
           onRenameTrack={handleRenameTrack}
           onToggleMute={handleToggleMute}
           onToggleSolo={handleToggleSolo}
+          onSetTrackVolume={handleSetTrackVolume}
           onOpenVariation={handleOpenVariation}
           onOpenSlip={(clip) => handleOpenSlip(clip.slipId)}
         />

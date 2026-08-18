@@ -1,4 +1,4 @@
-import { MIN_TEMPO } from './slip'
+import { clamp, MIN_TEMPO } from './slip'
 
 export interface Clip {
   id: string
@@ -13,6 +13,7 @@ export interface Track {
   name: string
   muted: boolean
   solo: boolean
+  volume: number
   clips: Clip[]
 }
 
@@ -70,6 +71,7 @@ export function addTrack(arrangement: Arrangement, overrides?: Partial<Track>): 
     name: nextDefaultTrackName(arrangement.tracks),
     muted: false,
     solo: false,
+    volume: 1,
     clips: [],
     ...overrides,
   }
@@ -228,6 +230,14 @@ export function toggleTrackSolo(arrangement: Arrangement, trackId: string): Arra
   return {
     ...arrangement,
     tracks: arrangement.tracks.map((track) => (track.id === trackId ? { ...track, solo: !track.solo } : track)),
+  }
+}
+
+export function setTrackVolume(arrangement: Arrangement, trackId: string, volume: number): Arrangement {
+  const clamped = clamp(volume, 0, 1)
+  return {
+    ...arrangement,
+    tracks: arrangement.tracks.map((track) => (track.id === trackId ? { ...track, volume: clamped } : track)),
   }
 }
 
