@@ -147,6 +147,32 @@
   text-overflow: ellipsis;
 }
 
+.arrangement-clip-variation-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.arrangement-clip:hover .arrangement-clip-variation-btn,
+.arrangement-clip.is-selected .arrangement-clip-variation-btn {
+  opacity: 0.75;
+}
+
+.arrangement-clip-variation-btn:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+}
+
 .arrangement-clip-fit-badge {
   flex: none;
   font-family: ui-monospace, Menlo, monospace;

@@ -1,4 +1,4 @@
-import { GripVertical } from 'lucide-react'
+import { GripVertical, Wand2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import {
   clipFitLabel,
@@ -46,6 +46,7 @@ export interface ArrangementTimelineProps {
   onRenameTrack: (trackId: string, name: string) => void
   onToggleMute: (trackId: string) => void
   onToggleSolo: (trackId: string) => void
+  onOpenVariation: (clip: Clip) => void
 }
 
 export function ArrangementTimeline({
@@ -60,6 +61,7 @@ export function ArrangementTimeline({
   onRenameTrack,
   onToggleMute,
   onToggleSolo,
+  onOpenVariation,
 }: ArrangementTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const previewRef = useRef<DropPreview | null>(null)
@@ -279,6 +281,18 @@ export function ArrangementTimeline({
                   <GripVertical size={12} className="arrangement-clip-grip" />
                   <span className="arrangement-clip-title">{slip?.title ?? 'Missing slip'}</span>
                   {fitLabel && <span className="arrangement-clip-fit-badge">{fitLabel}</span>}
+                  {slip && (
+                    <button
+                      type="button"
+                      className="arrangement-clip-variation-btn"
+                      onMouseDown={(event) => event.stopPropagation()}
+                      onClick={() => onOpenVariation(clip)}
+                      aria-label={`Make a variation from ${slip.title}`}
+                      title="Make a variation"
+                    >
+                      <Wand2 size={11} />
+                    </button>
+                  )}
                   {loopMarks.map((bar) => (
                     <div key={bar} className="arrangement-clip-loop-mark" style={{ left: bar * BAR_WIDTH }} />
                   ))}

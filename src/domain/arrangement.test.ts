@@ -9,6 +9,7 @@ import {
   removeClip,
   renameTrack,
   resizeClipLoop,
+  setClipSlip,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
@@ -309,6 +310,34 @@ describe('resizeClipLoop', () => {
     const result = resizeClipLoop(placed, { clipId, lengthBars: 8 })
 
     expect(result.tracks[0].clips[0]).toMatchObject({ slipId: 'slip-a', startBar: 2 })
+  })
+})
+
+describe('setClipSlip', () => {
+  it('switches the clip to a different slip', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = setClipSlip(placed, { clipId, slipId: 'slip-b' })
+
+    expect(result.tracks[0].clips[0].slipId).toBe('slip-b')
+  })
+
+  it('leaves position and length untouched', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 2, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = setClipSlip(placed, { clipId, slipId: 'slip-b' })
+
+    expect(result.tracks[0].clips[0]).toMatchObject({ startBar: 2, lengthBars: 4 })
+  })
+
+  it('is a safe no-op when the clip does not exist', () => {
+    const arrangement = addTrack(createArrangement())
+
+    const result = setClipSlip(arrangement, { clipId: 'missing', slipId: 'slip-b' })
+
+    expect(result).toEqual(arrangement)
   })
 })
 

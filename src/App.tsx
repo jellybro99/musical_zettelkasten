@@ -25,6 +25,7 @@ function App() {
     slipsById: Map<string, Slip>
   } | null>(null)
   const [backStack, setBackStack] = useState<string[]>([])
+  const [returnArrangementId, setReturnArrangementId] = useState<string | null>(null)
   const [loop, setLoop] = useState(false)
   const engineRef = useRef<PlaybackEngine | null>(null)
   const loopRef = useRef(false)
@@ -117,6 +118,19 @@ function App() {
     setCurrentEditorSlip(null)
     setCurrentArrangement(null)
     setBackStack([])
+    setReturnArrangementId(null)
+    setScreen({ screen: 'editor', slipId })
+  }
+
+  // Opened from a clip's "make a variation" popover: leaving the editor
+  // (Back, or popping the whole backStack) returns to this arrangement
+  // instead of the dashboard, extending the existing slip-to-slip back-stack.
+  function openVariationEditor(fromArrangementId: string, slipId: string) {
+    stopPlayback()
+    setCurrentEditorSlip(null)
+    setCurrentArrangement(null)
+    setBackStack([])
+    setReturnArrangementId(fromArrangementId)
     setScreen({ screen: 'editor', slipId })
   }
 
@@ -125,6 +139,7 @@ function App() {
     setCurrentEditorSlip(null)
     setCurrentArrangement(null)
     setBackStack([])
+    setReturnArrangementId(null)
     setScreen({ screen: 'dashboard' })
   }
 
@@ -133,6 +148,7 @@ function App() {
     setCurrentEditorSlip(null)
     setCurrentArrangement(null)
     setBackStack([])
+    setReturnArrangementId(null)
     setScreen({ screen: 'arrangement-list' })
   }
 
@@ -141,6 +157,7 @@ function App() {
     setCurrentEditorSlip(null)
     setCurrentArrangement(null)
     setBackStack([])
+    setReturnArrangementId(null)
     setScreen({ screen: 'arrangement', arrangementId })
   }
 
@@ -157,6 +174,10 @@ function App() {
 
   function handleEditorBack() {
     if (backStack.length === 0) {
+      if (returnArrangementId) {
+        openArrangement(returnArrangementId)
+        return
+      }
       goToDashboard()
       return
     }
@@ -209,6 +230,7 @@ function App() {
             arrangementId={screen.arrangementId}
             onBack={goToArrangements}
             onArrangementChange={setCurrentArrangement}
+            onOpenVariationEditor={(slipId) => openVariationEditor(screen.arrangementId, slipId)}
           />
         )}
       </main>

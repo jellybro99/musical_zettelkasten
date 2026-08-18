@@ -7,21 +7,24 @@ import {
   removeClip,
   renameTrack,
   resizeClipLoop,
+  setClipSlip,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
   type Arrangement,
+  type Clip,
   type MoveClipInput,
   type PlaceClipInput,
   type ResizeClipLoopInput,
 } from '../domain/arrangement'
 import { generateSlipTitle } from '../domain/titleGenerator'
-import type { Slip, SlipFilters } from '../domain/slip'
+import { createVariation, type Slip, type SlipFilters } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
 import { getArrangement, saveArrangement } from '../persistence/arrangementStorage'
-import { listSlips } from '../persistence/slipStorage'
+import { listSlips, saveSlip } from '../persistence/slipStorage'
 import { ArrangeSearchRail } from './ArrangeSearchRail'
 import { ArrangementTimeline } from './ArrangementTimeline'
+import { VariationPopover, type VariationConfirmInput } from './VariationPopover'
 import './ArrangementView.css'
 
 const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
@@ -30,15 +33,17 @@ export interface ArrangementViewProps {
   arrangementId: string
   onBack: () => void
   onArrangementChange: (state: { arrangement: Arrangement; slipsById: Map<string, Slip> }) => void
+  onOpenVariationEditor: (slipId: string) => void
 }
 
-export function ArrangementView({ arrangementId, onBack, onArrangementChange }: ArrangementViewProps) {
+export function ArrangementView({ arrangementId, onBack, onArrangementChange, onOpenVariationEditor }: ArrangementViewProps) {
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
   const [draggingSlip, setDraggingSlip] = useState<Slip | null>(null)
+  const [variationTarget, setVariationTarget] = useState<{ clip: Clip; sourceSlip: Slip } | null>(null)
 
-  useAutosave(arrangement, arrangementId, {
+  const { cancelPending } = useAutosave(arrangement, arrangementId, {
     load: getArrangement,
     save: saveArrangement,
     onLoaded: setArrangement,
@@ -109,6 +114,54 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange }: 
     setArrangement((current) => toggleTrackSolo(current, trackId))
   }, [])
 
+  const handleOpenVariation = useCallback(
+    (clip: Clip) => {
+      const sourceSlip = slipsById.get(clip.slipId)
+      if (!sourceSlip) return
+      setVariationTarget({ clip, sourceSlip })
+    },
+    [slipsById],
+  )
+
+  async function createAndApplyVariation(
+    input: VariationConfirmInput,
+  ): Promise<{ variation: Slip; updatedArrangement: Arrangement } | null> {
+    if (!variationTarget) return null
+    const variation = createVariation(variationTarget.sourceSlip, input, allSlips)
+    try {
+      await saveSlip(variation)
+    } catch (error) {
+      console.error('Failed to create variation', error)
+      return null
+    }
+    const updatedArrangement = setClipSlip(arrangement, { clipId: variationTarget.clip.id, slipId: variation.id })
+    setAllSlips((current) => [...current, variation])
+    setArrangement(updatedArrangement)
+    return { variation, updatedArrangement }
+  }
+
+  async function handleConfirmVariation(input: VariationConfirmInput) {
+    await createAndApplyVariation(input)
+    setVariationTarget(null)
+  }
+
+  async function handleOpenVariationInEditor(input: VariationConfirmInput) {
+    const result = await createAndApplyVariation(input)
+    setVariationTarget(null)
+    if (!result) return
+
+    // Navigating to the editor unmounts this component, which would cancel
+    // the debounced autosave before it fires — flush the clip's slip-switch
+    // immediately first, mirroring SlipEditor's own pre-navigate flush.
+    cancelPending()
+    try {
+      await saveArrangement(result.updatedArrangement)
+    } catch (error) {
+      console.error('Failed to save arrangement', error)
+    }
+    onOpenVariationEditor(result.variation.id)
+  }
+
   return (
     <div className="arrangement-view">
       <div className="arrangement-view-header">
@@ -163,8 +216,17 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange }: 
           onRenameTrack={handleRenameTrack}
           onToggleMute={handleToggleMute}
           onToggleSolo={handleToggleSolo}
+          onOpenVariation={handleOpenVariation}
         />
       </div>
+      {variationTarget && (
+        <VariationPopover
+          slip={variationTarget.sourceSlip}
+          onConfirm={handleConfirmVariation}
+          onOpenInEditor={handleOpenVariationInEditor}
+          onClose={() => setVariationTarget(null)}
+        />
+      )}
     </div>
   )
 }

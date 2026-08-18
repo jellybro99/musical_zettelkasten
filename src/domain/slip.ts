@@ -152,6 +152,49 @@ export function copySlip(slip: Slip): Slip {
   }
 }
 
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+const FLAT_TO_SHARP: Record<string, string> = { Db: 'C#', Eb: 'D#', Gb: 'F#', Ab: 'G#', Bb: 'A#' }
+
+// Transposes only the root letter of a freeform key string ("E min" -> "G min"
+// for +3 semitones); anything after the root (mode, extra text) passes through
+// unchanged. An unparseable key (empty, or no recognized root) is a no-op.
+export function transposeKey(key: string, semitones: number): string {
+  const match = key.trim().match(/^([A-Ga-g])([#b]?)(.*)$/)
+  if (!match) return key
+  const [, letter, accidental, rest] = match
+  const rawRoot = `${letter.toUpperCase()}${accidental}`
+  const root = FLAT_TO_SHARP[rawRoot] ?? rawRoot
+  const index = NOTE_NAMES.indexOf(root)
+  if (index === -1) return key
+  const transposedIndex = (((index + semitones) % 12) + 12) % 12
+  return `${NOTE_NAMES[transposedIndex]}${rest}`
+}
+
+export interface CreateVariationInput {
+  transposeSemitones: number
+  keepLinked: boolean
+}
+
+// Reuses copySlip's shape (fresh id/createdAt, optional copiedFromId
+// provenance) rather than adding a new "is this a variation" field to Slip.
+export function createVariation(slip: Slip, input: CreateVariationInput, existingSlips: Slip[]): Slip {
+  const notes = slip.notes.map((note) => ({
+    ...note,
+    pitch: clamp(snapToGrid(note.pitch + input.transposeSemitones), slip.grid.lowPitch, slip.grid.highPitch),
+  }))
+  const variationCount = existingSlips.filter((candidate) => candidate.copiedFromId === slip.id).length
+
+  return {
+    ...slip,
+    id: crypto.randomUUID(),
+    createdAt: Date.now(),
+    notes,
+    key: transposeKey(slip.key, input.transposeSemitones),
+    title: `${slip.title} var. ${variationCount + 1}`,
+    copiedFromId: input.keepLinked ? slip.id : null,
+  }
+}
+
 export interface UpdateSlipMetadataInput {
   title?: string
   tempo?: number

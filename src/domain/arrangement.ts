@@ -134,6 +134,23 @@ export function resizeClipLoop(arrangement: Arrangement, input: ResizeClipLoopIn
   }
 }
 
+export interface SetClipSlipInput {
+  clipId: string
+  slipId: string
+}
+
+// Switches a placed clip over to a different slip (e.g. after making a
+// variation) without touching its position or length.
+export function setClipSlip(arrangement: Arrangement, input: SetClipSlipInput): Arrangement {
+  return {
+    ...arrangement,
+    tracks: arrangement.tracks.map((track) => ({
+      ...track,
+      clips: track.clips.map((clip) => (clip.id === input.clipId ? { ...clip, slipId: input.slipId } : clip)),
+    })),
+  }
+}
+
 export function removeClip(arrangement: Arrangement, clipId: string): Arrangement {
   return {
     ...arrangement,

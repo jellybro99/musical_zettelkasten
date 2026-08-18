@@ -3,6 +3,7 @@ import {
   addTag,
   copySlip,
   createSlip,
+  createVariation,
   DEFAULT_GRID,
   deleteNote,
   filterSlips,
@@ -16,6 +17,7 @@ import {
   resizeSlipGrid,
   snapToGrid,
   totalSteps,
+  transposeKey,
   updateSlipMetadata,
 } from './slip'
 
@@ -775,6 +777,114 @@ describe('filterSlips', () => {
     const result = filterSlips(slips, { search: '', tags: [], kind: 'all' })
 
     expect(result).toEqual(slips)
+  })
+})
+
+describe('transposeKey', () => {
+  it('transposes a sharp-free major key up', () => {
+    expect(transposeKey('E min', 3)).toBe('G min')
+  })
+
+  it('transposes down, wrapping around the octave', () => {
+    expect(transposeKey('C maj', -1)).toBe('B maj')
+  })
+
+  it('wraps forward past B back to C', () => {
+    expect(transposeKey('B min', 1)).toBe('C min')
+  })
+
+  it('normalizes a flat root to its sharp equivalent', () => {
+    expect(transposeKey('Bb maj', 0)).toBe('A# maj')
+  })
+
+  it('leaves a zero-semitone transpose\'s root unchanged in pitch class', () => {
+    expect(transposeKey('E min', 0)).toBe('E min')
+  })
+
+  it('leaves an unparseable key untouched', () => {
+    expect(transposeKey('', 3)).toBe('')
+    expect(transposeKey('unknown', 3)).toBe('unknown')
+  })
+})
+
+describe('createVariation', () => {
+  it('transposes every note by the given semitone count', () => {
+    const slip = createSlip({ notes: [{ id: 'a', pitch: 64, start: 0, length: 1, velocity: 0.8 }] })
+
+    const variation = createVariation(slip, { transposeSemitones: 3, keepLinked: false }, [])
+
+    expect(variation.notes[0].pitch).toBe(67)
+  })
+
+  it('clamps transposed pitch to the slip\'s own grid bounds', () => {
+    const slip = createSlip({
+      grid: DEFAULT_GRID,
+      notes: [{ id: 'a', pitch: DEFAULT_GRID.highPitch, start: 0, length: 1, velocity: 0.8 }],
+    })
+
+    const variation = createVariation(slip, { transposeSemitones: 5, keepLinked: false }, [])
+
+    expect(variation.notes[0].pitch).toBe(DEFAULT_GRID.highPitch)
+  })
+
+  it('transposes the key metadata alongside the notes', () => {
+    const slip = createSlip({ key: 'E min' })
+
+    const variation = createVariation(slip, { transposeSemitones: 3, keepLinked: false }, [])
+
+    expect(variation.key).toBe('G min')
+  })
+
+  it('sets copiedFromId to the source id when keepLinked is true', () => {
+    const slip = createSlip({ id: 'source' })
+
+    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [])
+
+    expect(variation.copiedFromId).toBe('source')
+  })
+
+  it('leaves copiedFromId null when keepLinked is false', () => {
+    const slip = createSlip({ id: 'source' })
+
+    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: false }, [])
+
+    expect(variation.copiedFromId).toBeNull()
+  })
+
+  it('numbers the title "var. 1" for the first variation of a source', () => {
+    const slip = createSlip({ id: 'source', title: 'Rhodes Chord Stab' })
+
+    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [])
+
+    expect(variation.title).toBe('Rhodes Chord Stab var. 1')
+  })
+
+  it('increments the variation number across repeated variations of the same source', () => {
+    const slip = createSlip({ id: 'source', title: 'Rhodes Chord Stab' })
+    const existingVariation = createSlip({ title: 'Rhodes Chord Stab var. 1', copiedFromId: 'source' })
+
+    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [slip, existingVariation])
+
+    expect(variation.title).toBe('Rhodes Chord Stab var. 2')
+  })
+
+  it('assigns a fresh id and createdAt, distinct from the source', () => {
+    const slip = createSlip({ id: 'source', createdAt: 1000 })
+
+    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: false }, [])
+
+    expect(variation.id).not.toBe('source')
+    expect(variation.createdAt).toEqual(expect.any(Number))
+  })
+
+  it('does not mutate the source slip', () => {
+    const slip = createSlip({ notes: [{ id: 'a', pitch: 64, start: 0, length: 1, velocity: 0.8 }], key: 'E min' })
+
+    createVariation(slip, { transposeSemitones: 3, keepLinked: true }, [])
+
+    expect(slip.notes[0].pitch).toBe(64)
+    expect(slip.key).toBe('E min')
+    expect(slip.copiedFromId).toBeNull()
   })
 })
 
