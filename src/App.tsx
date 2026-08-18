@@ -113,12 +113,20 @@ function App() {
     startArrangementTriggers(triggers, durationMs)
   }
 
-  function openSlip(slipId: string) {
-    stopPlayback()
+  // The pieces of "what screen am I leaving" state that always get cleared
+  // together on every navigation, so a screen never inherits stale state
+  // (a stray backStack entry, a leftover returnArrangementId) from wherever
+  // the user was before.
+  function resetNavigationState() {
     setCurrentEditorSlip(null)
     setCurrentArrangement(null)
     setBackStack([])
     setReturnArrangementId(null)
+  }
+
+  function openSlip(slipId: string) {
+    stopPlayback()
+    resetNavigationState()
     setScreen({ screen: 'editor', slipId })
   }
 
@@ -127,37 +135,26 @@ function App() {
   // instead of the dashboard, extending the existing slip-to-slip back-stack.
   function openVariationEditor(fromArrangementId: string, slipId: string) {
     stopPlayback()
-    setCurrentEditorSlip(null)
-    setCurrentArrangement(null)
-    setBackStack([])
+    resetNavigationState()
     setReturnArrangementId(fromArrangementId)
     setScreen({ screen: 'editor', slipId })
   }
 
   function goToDashboard() {
     if (screen.screen !== 'dashboard') stopPlayback()
-    setCurrentEditorSlip(null)
-    setCurrentArrangement(null)
-    setBackStack([])
-    setReturnArrangementId(null)
+    resetNavigationState()
     setScreen({ screen: 'dashboard' })
   }
 
   function goToArrangements() {
     if (screen.screen !== 'arrangement-list') stopPlayback()
-    setCurrentEditorSlip(null)
-    setCurrentArrangement(null)
-    setBackStack([])
-    setReturnArrangementId(null)
+    resetNavigationState()
     setScreen({ screen: 'arrangement-list' })
   }
 
   function openArrangement(arrangementId: string) {
     stopPlayback()
-    setCurrentEditorSlip(null)
-    setCurrentArrangement(null)
-    setBackStack([])
-    setReturnArrangementId(null)
+    resetNavigationState()
     setScreen({ screen: 'arrangement', arrangementId })
   }
 

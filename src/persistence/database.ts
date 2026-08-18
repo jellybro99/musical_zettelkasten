@@ -9,16 +9,19 @@ export const ARRANGEMENTS_STORE = 'arrangements'
 // lived in its own file-local upgrade handler, whichever store's file happened
 // to open the connection first would upgrade the database without the other
 // file's store ever being created.
+//
+// Only creates stores that don't exist yet — never deletes one that does, so
+// bumping DB_VERSION to add a new store (e.g. arrangements) can't wipe an
+// existing store's data (e.g. every user's already-saved slips) as a side effect.
 export function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
     request.onupgradeneeded = () => {
       const db = request.result
       for (const store of [SLIPS_STORE, ARRANGEMENTS_STORE]) {
-        if (db.objectStoreNames.contains(store)) {
-          db.deleteObjectStore(store)
+        if (!db.objectStoreNames.contains(store)) {
+          db.createObjectStore(store, { keyPath: 'id' })
         }
-        db.createObjectStore(store, { keyPath: 'id' })
       }
     }
     request.onsuccess = () => resolve(request.result)
