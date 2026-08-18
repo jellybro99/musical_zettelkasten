@@ -32,7 +32,7 @@ export function snapToGrid(value: number): number {
   return Math.round(value)
 }
 
-function clamp(value: number, min: number, max: number): number {
+export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 

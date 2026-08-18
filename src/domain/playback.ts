@@ -1,5 +1,11 @@
 import type { Arrangement } from './arrangement'
-import type { Note, Slip } from './slip'
+import { clamp, snapToGrid, type GridConfig, type Note, type Slip } from './slip'
+
+// Mirrors createVariation's pitch-clamping so a transposed clip's notes stay
+// within the slip's own grid bounds rather than drifting off-screen.
+function transposePitch(pitch: number, semitones: number, grid: GridConfig): number {
+  return clamp(snapToGrid(pitch + semitones), grid.lowPitch, grid.highPitch)
+}
 
 // Matches the 4-steps-per-beat grid convention used by PianoRoll's beat lines.
 const STEPS_PER_BEAT = 4
@@ -87,7 +93,10 @@ export function computeArrangementPlayback(arrangement: Arrangement, slipsById: 
           for (const note of slip.notes) {
             const start = note.start + offsetSteps
             if (start >= clipSteps) continue
-            repeatedNotes.push({ ...note, start })
+            const pitch = clip.transposeSemitones
+              ? transposePitch(note.pitch, clip.transposeSemitones, slip.grid)
+              : note.pitch
+            repeatedNotes.push({ ...note, start, pitch })
           }
         }
       }

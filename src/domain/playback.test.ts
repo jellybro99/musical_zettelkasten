@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addTrack, createArrangement, placeClip, toggleTrackMute, toggleTrackSolo } from './arrangement'
+import { addTrack, createArrangement, placeClip, setClipTranspose, toggleTrackMute, toggleTrackSolo } from './arrangement'
 import {
   computeArrangementPlayback,
   computePlaybackDurationMs,
@@ -261,6 +261,80 @@ describe('computeArrangementPlayback', () => {
     const { durationMs } = computeArrangementPlayback(arrangement, slipsById)
 
     expect(durationMs).toBeCloseTo(computePlaybackDurationMs(120, 6 * DEFAULT_GRID.stepsPerBar))
+  })
+
+  it('shifts trigger pitches by a clip\'s transpose offset', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0, pitch: 60 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = placeClip(createArrangement({ tempo: 120 }), {
+      trackId: 'new-track',
+      slipId: slipA.id,
+      startBar: 0,
+      slipBars: 2,
+    })
+    const clipId = arrangement.tracks[0].clips[0].id
+    arrangement = setClipTranspose(arrangement, { clipId, semitones: 3 })
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].pitch).toBe(63)
+  })
+
+  it('leaves trigger pitches unchanged for a zero/absent transpose offset', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0, pitch: 60 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    const arrangement = placeClip(createArrangement({ tempo: 120 }), {
+      trackId: 'new-track',
+      slipId: slipA.id,
+      startBar: 0,
+      slipBars: 2,
+    })
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].pitch).toBe(60)
+  })
+
+  it('clamps a transposed pitch to the slip grid bounds, same as createVariation', () => {
+    const slipA = slip({
+      id: 'slip-a',
+      grid: { ...DEFAULT_GRID, lowPitch: 60, highPitch: 71 },
+      notes: [note({ id: 'a1', start: 0, pitch: 70 })],
+    })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = placeClip(createArrangement({ tempo: 120 }), {
+      trackId: 'new-track',
+      slipId: slipA.id,
+      startBar: 0,
+      slipBars: 2,
+    })
+    const clipId = arrangement.tracks[0].clips[0].id
+    arrangement = setClipTranspose(arrangement, { clipId, semitones: 5 })
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].pitch).toBe(71)
+  })
+
+  it('never mutates the underlying slip\'s notes when a clip has a transpose offset', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0, pitch: 60 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = placeClip(createArrangement({ tempo: 120 }), {
+      trackId: 'new-track',
+      slipId: slipA.id,
+      startBar: 0,
+      slipBars: 2,
+    })
+    const clipId = arrangement.tracks[0].clips[0].id
+    arrangement = setClipTranspose(arrangement, { clipId, semitones: 3 })
+
+    computeArrangementPlayback(arrangement, slipsById)
+
+    expect(slipA.notes[0].pitch).toBe(60)
   })
 
   it('silently omits a clip whose slip is missing, matching provenance semantics elsewhere', () => {

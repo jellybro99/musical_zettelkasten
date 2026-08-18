@@ -5,6 +5,7 @@ export interface Clip {
   slipId: string
   startBar: number
   lengthBars: number
+  transposeSemitones?: number
 }
 
 export interface Track {
@@ -160,13 +161,34 @@ export interface SetClipSlipInput {
 }
 
 // Switches a placed clip over to a different slip (e.g. after making a
-// variation) without touching its position or length.
+// variation) without touching its position or length. Resets any clip-level
+// transpose offset, since it was tuned for the old slip's notes and would
+// double-transpose a variation slip that's already been shifted.
 export function setClipSlip(arrangement: Arrangement, input: SetClipSlipInput): Arrangement {
   return {
     ...arrangement,
     tracks: arrangement.tracks.map((track) => ({
       ...track,
-      clips: track.clips.map((clip) => (clip.id === input.clipId ? { ...clip, slipId: input.slipId } : clip)),
+      clips: track.clips.map((clip) =>
+        clip.id === input.clipId ? { ...clip, slipId: input.slipId, transposeSemitones: 0 } : clip,
+      ),
+    })),
+  }
+}
+
+export interface SetClipTransposeInput {
+  clipId: string
+  semitones: number
+}
+
+export function setClipTranspose(arrangement: Arrangement, input: SetClipTransposeInput): Arrangement {
+  return {
+    ...arrangement,
+    tracks: arrangement.tracks.map((track) => ({
+      ...track,
+      clips: track.clips.map((clip) =>
+        clip.id === input.clipId ? { ...clip, transposeSemitones: Math.round(input.semitones) } : clip,
+      ),
     })),
   }
 }

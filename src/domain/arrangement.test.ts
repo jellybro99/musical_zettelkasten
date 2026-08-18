@@ -10,6 +10,7 @@ import {
   renameTrack,
   resizeClipLoop,
   setClipSlip,
+  setClipTranspose,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
@@ -355,6 +356,66 @@ describe('setClipSlip', () => {
     const result = setClipSlip(arrangement, { clipId: 'missing', slipId: 'slip-b' })
 
     expect(result).toEqual(arrangement)
+  })
+
+  it('resets a previously-set transpose offset back to zero', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+    const transposed = setClipTranspose(placed, { clipId, semitones: 5 })
+
+    const result = setClipSlip(transposed, { clipId, slipId: 'slip-b' })
+
+    expect(result.tracks[0].clips[0].transposeSemitones).toBe(0)
+  })
+})
+
+describe('setClipTranspose', () => {
+  it('sets an offset on a clip with no prior offset', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    const result = setClipTranspose(placed, { clipId, semitones: 3 })
+
+    expect(result.tracks[0].clips[0].transposeSemitones).toBe(3)
+  })
+
+  it('overwrites a previously-set offset', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+    const first = setClipTranspose(placed, { clipId, semitones: 3 })
+
+    const result = setClipTranspose(first, { clipId, semitones: -2 })
+
+    expect(result.tracks[0].clips[0].transposeSemitones).toBe(-2)
+  })
+
+  it('is a safe no-op when the clip does not exist', () => {
+    const arrangement = addTrack(createArrangement())
+
+    const result = setClipTranspose(arrangement, { clipId: 'missing', semitones: 3 })
+
+    expect(result).toEqual(arrangement)
+  })
+
+  it('leaves other clips and tracks untouched', () => {
+    const withFirst = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const trackId = withFirst.tracks[0].id
+    const withSecond = placeClip(withFirst, { trackId, slipId: 'slip-b', startBar: 4, slipBars: 4 })
+    const untouchedClipId = withSecond.tracks[0].clips[0].id
+    const targetClipId = withSecond.tracks[0].clips[1].id
+
+    const result = setClipTranspose(withSecond, { clipId: targetClipId, semitones: 3 })
+
+    expect(result.tracks[0].clips.find((clip) => clip.id === untouchedClipId)?.transposeSemitones).toBeUndefined()
+  })
+
+  it('does not mutate the input arrangement', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const clipId = placed.tracks[0].clips[0].id
+
+    setClipTranspose(placed, { clipId, semitones: 3 })
+
+    expect(placed.tracks[0].clips[0].transposeSemitones).toBeUndefined()
   })
 })
 
