@@ -65,7 +65,7 @@ export function SlipFilterSidebar({ slips, filters, onFiltersChange }: SlipFilte
               <button
                 type="button"
                 className={`slip-filter-option${filters.kind === kind ? ' active' : ''}`}
-                onClick={() => handleKindChange(kind)}
+                onClick={() => handleKindChange(filters.kind === kind ? 'all' : kind)}
               >
                 <span>{kind}</span>
                 <span className="slip-filter-count">{countFor({ kind })}</span>
