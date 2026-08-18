@@ -1,7 +1,8 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { createArrangement, type Arrangement } from '../domain/arrangement'
-import { deleteArrangement, listArrangements, saveArrangement } from '../persistence/arrangementStorage'
+import { deleteArrangement, listArrangements } from '../persistence/arrangementStorage'
+import { ConfirmDialog } from './ConfirmDialog'
 import './ArrangementDashboard.css'
 
 export interface ArrangementDashboardProps {
@@ -10,6 +11,7 @@ export interface ArrangementDashboardProps {
 
 export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboardProps) {
   const [arrangements, setArrangements] = useState<Arrangement[] | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Arrangement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -25,20 +27,20 @@ export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboard
     }
   }, [])
 
-  async function handleCreate() {
+  function handleCreate() {
     const arrangement = createArrangement()
-    try {
-      await saveArrangement(arrangement)
-    } catch (error) {
-      console.error('Failed to create arrangement', error)
-      return
-    }
     onOpenArrangement(arrangement.id)
   }
 
-  async function handleDelete(event: MouseEvent, arrangementId: string) {
+  function handleDeleteClick(event: MouseEvent, arrangement: Arrangement) {
     event.stopPropagation()
-    if (!window.confirm('Delete this arrangement? This cannot be undone.')) return
+    setPendingDelete(arrangement)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    const arrangementId = pendingDelete.id
+    setPendingDelete(null)
     try {
       await deleteArrangement(arrangementId)
     } catch (error) {
@@ -79,7 +81,7 @@ export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboard
                   type="button"
                   className="arrangement-card-delete"
                   aria-label={`Delete ${arrangement.name}`}
-                  onClick={(event) => handleDelete(event, arrangement.id)}
+                  onClick={(event) => handleDeleteClick(event, arrangement)}
                 >
                   <Trash2 size={14} />
                 </button>
@@ -87,6 +89,18 @@ export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboard
             ))}
           </div>
         )
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title={`Delete "${pendingDelete.name}"?`}
+          onClose={() => setPendingDelete(null)}
+          actions={[
+            { label: 'Cancel', variant: 'secondary', onClick: () => setPendingDelete(null) },
+            { label: 'Delete', variant: 'danger', onClick: confirmDelete },
+          ]}
+        >
+          This cannot be undone.
+        </ConfirmDialog>
       )}
     </div>
   )

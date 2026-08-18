@@ -2,6 +2,7 @@ import { Copy, Play, Square, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { copySlip, filterSlips, formatSlipMeta, type Slip, type SlipFilters } from '../domain/slip'
 import { deleteSlip, listSlips, saveSlip } from '../persistence/slipStorage'
+import { ConfirmDialog } from './ConfirmDialog'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
 
@@ -16,6 +17,7 @@ export interface SlipDashboardProps {
 export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashboardProps) {
   const [slips, setSlips] = useState<Slip[] | null>(null)
   const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
+  const [pendingDelete, setPendingDelete] = useState<Slip | null>(null)
 
   const visibleSlips = useMemo(() => {
     if (slips === null) return null
@@ -53,9 +55,15 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
     onOpenSlip(copy.id)
   }
 
-  async function handleDelete(event: MouseEvent, slipId: string) {
+  function handleDeleteClick(event: MouseEvent, slip: Slip) {
     event.stopPropagation()
-    if (!window.confirm('Delete this slip? This cannot be undone.')) return
+    setPendingDelete(slip)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return
+    const slipId = pendingDelete.id
+    setPendingDelete(null)
     try {
       await deleteSlip(slipId)
     } catch (error) {
@@ -115,7 +123,7 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
                       type="button"
                       className="slip-card-delete"
                       aria-label={`Delete ${slip.title}`}
-                      onClick={(event) => handleDelete(event, slip.id)}
+                      onClick={(event) => handleDeleteClick(event, slip)}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -125,6 +133,18 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
             )}
           </div>
         )
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title={`Delete "${pendingDelete.title}"?`}
+          onClose={() => setPendingDelete(null)}
+          actions={[
+            { label: 'Cancel', variant: 'secondary', onClick: () => setPendingDelete(null) },
+            { label: 'Delete', variant: 'danger', onClick: confirmDelete },
+          ]}
+        >
+          This cannot be undone.
+        </ConfirmDialog>
       )}
     </div>
   )

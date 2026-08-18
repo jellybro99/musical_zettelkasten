@@ -24,6 +24,7 @@ import { getArrangement, saveArrangement } from '../persistence/arrangementStora
 import { listSlips, saveSlip } from '../persistence/slipStorage'
 import { ArrangeSearchRail } from './ArrangeSearchRail'
 import { ArrangementTimeline } from './ArrangementTimeline'
+import { ConfirmDialog } from './ConfirmDialog'
 import { VariationPopover, type VariationConfirmInput } from './VariationPopover'
 import './ArrangementView.css'
 
@@ -42,8 +43,9 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
   const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
   const [draggingSlip, setDraggingSlip] = useState<Slip | null>(null)
   const [variationTarget, setVariationTarget] = useState<{ clip: Clip; sourceSlip: Slip } | null>(null)
+  const [showBackConfirm, setShowBackConfirm] = useState(false)
 
-  const { cancelPending } = useAutosave(arrangement, arrangementId, {
+  const { isPersisted, markSaved, cancelPending } = useAutosave(arrangement, arrangementId, {
     load: getArrangement,
     save: saveArrangement,
     onLoaded: setArrangement,
@@ -75,6 +77,30 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
 
   function handleRandomizeName() {
     handleMetadataChange({ name: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
+  }
+
+  async function handleCreateArrangement() {
+    try {
+      await saveArrangement(arrangement)
+    } catch (error) {
+      console.error('Failed to create arrangement', error)
+      return
+    }
+    markSaved()
+  }
+
+  function handleBackClick() {
+    if (!isPersisted) {
+      setShowBackConfirm(true)
+      return
+    }
+    onBack()
+  }
+
+  function handleDiscardAndBack() {
+    setShowBackConfirm(false)
+    cancelPending()
+    onBack()
   }
 
   function handleSlipDragStart(event: MouseEvent, slip: Slip) {
@@ -164,55 +190,63 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
 
   return (
     <div className="arrangement-view">
-      <div className="arrangement-view-header">
-        <button type="button" className="btn btn-ghost arrangement-view-back" onClick={onBack}>
-          ← Back
-        </button>
-        <div className="arrangement-view-title-row">
-          <input
-            type="text"
-            className="input arrangement-view-title"
-            value={arrangement.name}
-            onChange={(event) => handleMetadataChange({ name: event.target.value })}
-            aria-label="Arrangement name"
-          />
-          <button
-            type="button"
-            className="btn btn-ghost btn-icon"
-            onClick={handleRandomizeName}
-            aria-label="Randomize name"
-          >
-            <Shuffle size={14} />
+      <ArrangeSearchRail
+        slips={allSlips}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onSlipDragStart={handleSlipDragStart}
+      />
+      <div className="arrangement-view-main">
+        <div className="arrangement-view-header">
+          <button type="button" className="btn btn-ghost arrangement-view-back" onClick={handleBackClick}>
+            ← Back
           </button>
+          <div className="arrangement-view-title-row">
+            <input
+              type="text"
+              className="input arrangement-view-title"
+              value={arrangement.name}
+              onChange={(event) => handleMetadataChange({ name: event.target.value })}
+              aria-label="Arrangement name"
+            />
+            <button
+              type="button"
+              className="btn btn-ghost btn-icon"
+              onClick={handleRandomizeName}
+              aria-label="Randomize name"
+            >
+              <Shuffle size={14} />
+            </button>
+          </div>
+          <div className="arrangement-view-tempo">
+            <input
+              id="arrangement-tempo"
+              type="number"
+              min={1}
+              className="input arrangement-view-tempo-input"
+              value={arrangement.tempo}
+              onChange={(event) => handleMetadataChange({ tempo: Number(event.target.value) })}
+              aria-label="Tempo (BPM)"
+            />
+            <span className="arrangement-view-tempo-suffix">BPM</span>
+          </div>
+          <div className="arrangement-view-header-actions">
+            {!isPersisted && (
+              <button type="button" className="btn btn-primary" onClick={handleCreateArrangement}>
+                Create
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-secondary arrangement-view-export"
+              disabled
+              title="Export mix is not available yet"
+            >
+              <Download size={14} />
+              Export mix
+            </button>
+          </div>
         </div>
-        <div className="field arrangement-view-tempo">
-          <label htmlFor="arrangement-tempo">Tempo (BPM)</label>
-          <input
-            id="arrangement-tempo"
-            type="number"
-            min={1}
-            className="input"
-            value={arrangement.tempo}
-            onChange={(event) => handleMetadataChange({ tempo: Number(event.target.value) })}
-          />
-        </div>
-        <button
-          type="button"
-          className="btn btn-secondary arrangement-view-export"
-          disabled
-          title="Export mix is not available yet"
-        >
-          <Download size={14} />
-          Export mix
-        </button>
-      </div>
-      <div className="arrangement-view-body">
-        <ArrangeSearchRail
-          slips={allSlips}
-          filters={filters}
-          onFiltersChange={setFilters}
-          onSlipDragStart={handleSlipDragStart}
-        />
         <ArrangementTimeline
           arrangement={arrangement}
           slipsById={slipsById}
@@ -235,6 +269,18 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
           onOpenInEditor={handleOpenVariationInEditor}
           onClose={() => setVariationTarget(null)}
         />
+      )}
+      {showBackConfirm && (
+        <ConfirmDialog
+          title="Discard this arrangement?"
+          onClose={() => setShowBackConfirm(false)}
+          actions={[
+            { label: 'Keep editing', variant: 'secondary', onClick: () => setShowBackConfirm(false) },
+            { label: 'Discard', variant: 'danger', onClick: handleDiscardAndBack },
+          ]}
+        >
+          This arrangement hasn't been created yet — going back will discard it.
+        </ConfirmDialog>
       )}
     </div>
   )

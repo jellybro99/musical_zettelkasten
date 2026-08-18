@@ -13,6 +13,7 @@ import {
 } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
 import { deleteSlip, getSlip, listSlips, saveSlip } from '../persistence/slipStorage'
+import { ConfirmDialog } from './ConfirmDialog'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
 import './SlipEditor.css'
@@ -39,6 +40,8 @@ export function SlipEditor({
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const [previewEnabled, setPreviewEnabled] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showBackConfirm, setShowBackConfirm] = useState(false)
   const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
     load: getSlip,
     save: saveSlip,
@@ -132,8 +135,12 @@ export function SlipEditor({
     onCopySlip(copy.id)
   }
 
-  async function handleDelete() {
-    if (!window.confirm(`Delete "${slip.title}"? This cannot be undone.`)) return
+  function handleDelete() {
+    setShowDeleteConfirm(true)
+  }
+
+  async function confirmDelete() {
+    setShowDeleteConfirm(false)
     cancelPending()
     try {
       await deleteSlip(slipId)
@@ -144,6 +151,20 @@ export function SlipEditor({
     onBack()
   }
 
+  function handleBackClick() {
+    if (!isPersisted) {
+      setShowBackConfirm(true)
+      return
+    }
+    onBack()
+  }
+
+  function handleDiscardAndBack() {
+    setShowBackConfirm(false)
+    cancelPending()
+    onBack()
+  }
+
   return (
     <div className="slip-editor-page">
       <div className="slip-editor">
@@ -151,7 +172,7 @@ export function SlipEditor({
           slip={slip}
           allSlips={allSlips}
           isPersisted={isPersisted}
-          onBack={onBack}
+          onBack={handleBackClick}
           onSave={handleSave}
           onCopy={handleCopy}
           onDelete={handleDelete}
@@ -177,6 +198,30 @@ export function SlipEditor({
           </div>
         </div>
       </div>
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title={`Delete "${slip.title}"?`}
+          onClose={() => setShowDeleteConfirm(false)}
+          actions={[
+            { label: 'Cancel', variant: 'secondary', onClick: () => setShowDeleteConfirm(false) },
+            { label: 'Delete', variant: 'danger', onClick: confirmDelete },
+          ]}
+        >
+          This cannot be undone.
+        </ConfirmDialog>
+      )}
+      {showBackConfirm && (
+        <ConfirmDialog
+          title="Discard this slip?"
+          onClose={() => setShowBackConfirm(false)}
+          actions={[
+            { label: 'Keep editing', variant: 'secondary', onClick: () => setShowBackConfirm(false) },
+            { label: 'Discard', variant: 'danger', onClick: handleDiscardAndBack },
+          ]}
+        >
+          This slip hasn't been created yet — going back will discard it.
+        </ConfirmDialog>
+      )}
     </div>
   )
 }

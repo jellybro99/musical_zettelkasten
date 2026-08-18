@@ -11,6 +11,7 @@ import {
   type UpdateSlipMetadataInput,
 } from '../domain/slip'
 import { generateSlipTitle } from '../domain/titleGenerator'
+import { ConfirmDialog } from './ConfirmDialog'
 import './MetadataPanel.css'
 
 const BAR_OPTIONS = [1, 2, 4, 8]
@@ -46,6 +47,10 @@ export function MetadataPanel({
   onNavigateToSlip,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
+  const [pendingGridChange, setPendingGridChange] = useState<{
+    gridPatch: Partial<GridConfig>
+    affectedCount: number
+  } | null>(null)
   const copiedFrom = slip.copiedFromId ? allSlips.find((candidate) => candidate.id === slip.copiedFromId) : undefined
 
   const currentOctaveCount = Math.round((slip.grid.highPitch - slip.grid.lowPitch + 1) / 12) || 1
@@ -65,12 +70,16 @@ export function MetadataPanel({
     const candidateGrid = { ...slip.grid, ...gridPatch }
     const affectedNotes = notesOutOfGridBounds(slip.notes, candidateGrid)
     if (affectedNotes.length > 0) {
-      const noteWord = affectedNotes.length === 1 ? 'note' : 'notes'
-      if (!window.confirm(`This will remove ${affectedNotes.length} ${noteWord} outside the new size. Continue?`)) {
-        return
-      }
+      setPendingGridChange({ gridPatch, affectedCount: affectedNotes.length })
+      return
     }
     onGridChange(gridPatch)
+  }
+
+  function confirmGridChange() {
+    if (!pendingGridChange) return
+    onGridChange(pendingGridChange.gridPatch)
+    setPendingGridChange(null)
   }
 
   function handleBarsChange(bars: number) {
@@ -91,7 +100,7 @@ export function MetadataPanel({
           {!isPersisted && (
             <button type="button" className="btn btn-ghost metadata-panel-save" onClick={onSave}>
               <Save size={14} />
-              Save
+              Create
             </button>
           )}
           <button type="button" className="btn btn-ghost metadata-panel-copy" onClick={onCopy}>
@@ -262,6 +271,20 @@ export function MetadataPanel({
           </button>
         </form>
       </div>
+
+      {pendingGridChange && (
+        <ConfirmDialog
+          title="Resize grid?"
+          onClose={() => setPendingGridChange(null)}
+          actions={[
+            { label: 'Cancel', variant: 'secondary', onClick: () => setPendingGridChange(null) },
+            { label: 'Continue', variant: 'primary', onClick: confirmGridChange },
+          ]}
+        >
+          This will remove {pendingGridChange.affectedCount}{' '}
+          {pendingGridChange.affectedCount === 1 ? 'note' : 'notes'} outside the new size.
+        </ConfirmDialog>
+      )}
     </div>
   )
 }

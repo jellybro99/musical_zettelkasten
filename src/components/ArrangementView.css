@@ -1,7 +1,16 @@
 .arrangement-view {
   height: 100%;
   display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.arrangement-view-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .arrangement-view-header {
@@ -26,22 +35,26 @@
 }
 
 .arrangement-view-tempo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 120px;
   flex: none;
 }
 
-.arrangement-view-tempo label {
-  margin-bottom: 0;
+.arrangement-view-tempo-input {
+  width: 64px;
+  flex: none;
 }
 
-.arrangement-view-export {
-  margin-left: auto;
+.arrangement-view-tempo-suffix {
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
 }
 
-.arrangement-view-body {
-  flex: 1;
-  min-height: 0;
+.arrangement-view-header-actions {
   display: flex;
-  align-items: stretch;
-  overflow: hidden;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
 }

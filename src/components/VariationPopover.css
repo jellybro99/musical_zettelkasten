@@ -1,38 +1,3 @@
-.variation-popover-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--color-text) 30%, transparent);
-}
-
-.variation-popover {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: 300px;
-  box-sizing: border-box;
-  padding: var(--space-4);
-  background: var(--color-bg);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-}
-
-.variation-popover-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.variation-popover-title {
-  font-family: var(--font-heading);
-  font-weight: var(--font-heading-weight);
-  font-size: 15px;
-}
-
 .variation-popover-source {
   margin: 0;
   font-size: 12px;
@@ -47,6 +12,14 @@
 
 .variation-popover-transpose-input {
   text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.variation-popover-transpose-input::-webkit-outer-spin-button,
+.variation-popover-transpose-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .variation-popover-key {
@@ -61,14 +34,4 @@
   gap: 6px;
   font-size: 13px;
   cursor: pointer;
-}
-
-.variation-popover-actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
-}
-
-.variation-popover-actions .btn {
-  flex: 1;
 }
