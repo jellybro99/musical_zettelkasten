@@ -40,7 +40,7 @@ export interface ArrangementViewProps {
 export function ArrangementView({ arrangementId }: ArrangementViewProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { onArrangementChange } = useOutletContext<AppOutletContext>()
+  const { onArrangementChange, playingSlipId, onTogglePlaySlip } = useOutletContext<AppOutletContext>()
   const isNewCapture = Boolean((location.state as { isNewCapture?: boolean } | null)?.isNewCapture)
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
@@ -198,6 +198,8 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
         filters={filters}
         onFiltersChange={handleFiltersChange}
         onSlipDragStart={handleSlipDragStart}
+        playingSlipId={playingSlipId}
+        onTogglePlaySlip={onTogglePlaySlip}
       />
       <div className="arrangement-view-main">
         <div className="arrangement-view-header">
