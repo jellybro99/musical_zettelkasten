@@ -1,15 +1,13 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
+import { useNavigate } from 'react-router'
 import { createArrangement, type Arrangement } from '../domain/arrangement'
 import { deleteArrangement, listArrangements } from '../persistence/arrangementStorage'
 import { ConfirmDialog } from './ConfirmDialog'
 import './ArrangementDashboard.css'
 
-export interface ArrangementDashboardProps {
-  onOpenArrangement: (arrangementId: string) => void
-}
-
-export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboardProps) {
+export function ArrangementDashboard() {
+  const navigate = useNavigate()
   const [arrangements, setArrangements] = useState<Arrangement[] | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Arrangement | null>(null)
 
@@ -29,7 +27,7 @@ export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboard
 
   function handleCreate() {
     const arrangement = createArrangement()
-    onOpenArrangement(arrangement.id)
+    navigate(`/arrange/${arrangement.id}`, { state: { isNewCapture: true } })
   }
 
   function handleDeleteClick(event: MouseEvent, arrangement: Arrangement) {
@@ -72,7 +70,7 @@ export function ArrangementDashboard({ onOpenArrangement }: ArrangementDashboard
                 <button
                   type="button"
                   className="arrangement-card"
-                  onClick={() => onOpenArrangement(arrangement.id)}
+                  onClick={() => navigate(`/arrange/${arrangement.id}`)}
                 >
                   <h3 className="arrangement-card-title">{arrangement.name}</h3>
                   <p className="arrangement-card-meta">{arrangement.tempo} BPM · {arrangement.tracks.length} tracks</p>

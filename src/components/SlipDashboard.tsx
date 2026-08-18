@@ -1,23 +1,25 @@
 import { Copy, Play, Square, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { copySlip, filterSlips, formatSlipMeta, type Slip, type SlipFilters } from '../domain/slip'
 import { deleteSlip, listSlips, saveSlip } from '../persistence/slipStorage'
+import { filtersToSearchParams, searchParamsToFilters } from '../routing/slipFilterParams'
+import type { AppOutletContext } from './AppLayout'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
 
-const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
-
-export interface SlipDashboardProps {
-  onOpenSlip: (slipId: string) => void
-  playingId: string | null
-  onTogglePlay: (slip: Slip) => void
-}
-
-export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashboardProps) {
+export function SlipDashboard() {
+  const navigate = useNavigate()
+  const { playingSlipId, onTogglePlaySlip } = useOutletContext<AppOutletContext>()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filters = useMemo(() => searchParamsToFilters(searchParams), [searchParams])
   const [slips, setSlips] = useState<Slip[] | null>(null)
-  const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
   const [pendingDelete, setPendingDelete] = useState<Slip | null>(null)
+
+  function handleFiltersChange(next: SlipFilters) {
+    setSearchParams(filtersToSearchParams(next), { replace: true })
+  }
 
   const visibleSlips = useMemo(() => {
     if (slips === null) return null
@@ -40,7 +42,7 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
 
   function handleTogglePlay(event: MouseEvent, slip: Slip) {
     event.stopPropagation()
-    onTogglePlay(slip)
+    onTogglePlaySlip(slip)
   }
 
   async function handleCopy(event: MouseEvent, slip: Slip) {
@@ -52,7 +54,7 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
       console.error('Failed to copy slip', error)
       return
     }
-    onOpenSlip(copy.id)
+    navigate(`/slips/${copy.id}`)
   }
 
   function handleDeleteClick(event: MouseEvent, slip: Slip) {
@@ -82,7 +84,7 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
           </div>
         ) : (
           <div className="slip-dashboard-body">
-            <SlipFilterSidebar slips={slips} filters={filters} onFiltersChange={setFilters} />
+            <SlipFilterSidebar slips={slips} filters={filters} onFiltersChange={handleFiltersChange} />
             {visibleSlips.length === 0 ? (
               <div className="slip-dashboard-empty">
                 <p>No slips match your filters</p>
@@ -91,7 +93,7 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
               <div className="slip-dashboard-grid">
                 {visibleSlips.map((slip) => (
                   <div key={slip.id} className="slip-card-wrapper">
-                    <button type="button" className="slip-card" onClick={() => onOpenSlip(slip.id)}>
+                    <button type="button" className="slip-card" onClick={() => navigate(`/slips/${slip.id}`)}>
                       <h3 className="slip-card-title">{slip.title}</h3>
                       <span className="slip-card-kind">{slip.kind}</span>
                       <div className="slip-card-tags">
@@ -106,10 +108,10 @@ export function SlipDashboard({ onOpenSlip, playingId, onTogglePlay }: SlipDashb
                     <button
                       type="button"
                       className="slip-card-play"
-                      aria-label={playingId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`}
+                      aria-label={playingSlipId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`}
                       onClick={(event) => handleTogglePlay(event, slip)}
                     >
-                      {playingId === slip.id ? <Square size={14} /> : <Play size={14} />}
+                      {playingSlipId === slip.id ? <Square size={14} /> : <Play size={14} />}
                     </button>
                     <button
                       type="button"

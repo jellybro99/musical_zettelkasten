@@ -1,5 +1,6 @@
 import { Download, Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import {
   createArrangement,
   moveClip,
@@ -20,35 +21,48 @@ import {
 import { generateSlipTitle } from '../domain/titleGenerator'
 import { createVariation, type Slip, type SlipFilters } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
+import { useAutosaveFlushGuard } from '../hooks/useAutosaveFlushGuard'
 import { getArrangement, saveArrangement } from '../persistence/arrangementStorage'
 import { listSlips, saveSlip } from '../persistence/slipStorage'
+import { returnToArrangementParam } from '../routing/returnTo'
+import { filtersToSearchParams, searchParamsToFilters } from '../routing/slipFilterParams'
+import type { AppOutletContext } from './AppLayout'
 import { ArrangeSearchRail } from './ArrangeSearchRail'
 import { ArrangementTimeline } from './ArrangementTimeline'
 import { ConfirmDialog } from './ConfirmDialog'
 import { VariationPopover, type VariationConfirmInput } from './VariationPopover'
 import './ArrangementView.css'
 
-const DEFAULT_FILTERS: SlipFilters = { search: '', tags: [], kind: 'all' }
-
 export interface ArrangementViewProps {
   arrangementId: string
-  onBack: () => void
-  onArrangementChange: (state: { arrangement: Arrangement; slipsById: Map<string, Slip> }) => void
-  onOpenVariationEditor: (slipId: string) => void
 }
 
-export function ArrangementView({ arrangementId, onBack, onArrangementChange, onOpenVariationEditor }: ArrangementViewProps) {
+export function ArrangementView({ arrangementId }: ArrangementViewProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { onArrangementChange } = useOutletContext<AppOutletContext>()
+  const isNewCapture = Boolean((location.state as { isNewCapture?: boolean } | null)?.isNewCapture)
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
-  const [filters, setFilters] = useState<SlipFilters>(DEFAULT_FILTERS)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filters = useMemo(() => searchParamsToFilters(searchParams), [searchParams])
   const [draggingSlip, setDraggingSlip] = useState<Slip | null>(null)
   const [variationTarget, setVariationTarget] = useState<{ clip: Clip; sourceSlip: Slip } | null>(null)
-  const [showBackConfirm, setShowBackConfirm] = useState(false)
 
-  const { isPersisted, markSaved, cancelPending } = useAutosave(arrangement, arrangementId, {
+  const { isLoaded, isPersisted, markSaved, cancelPending } = useAutosave(arrangement, arrangementId, {
     load: getArrangement,
     save: saveArrangement,
     onLoaded: setArrangement,
+  })
+
+  const { showDiscardConfirm, confirmDiscard, keepEditing } = useAutosaveFlushGuard({
+    navigate,
+    fallbackPath: '/arrange',
+    isLoaded,
+    isPersisted,
+    isNewCapture,
+    cancelPending,
+    persist: () => persistArrangement(),
   })
 
   useEffect(() => {
@@ -75,32 +89,27 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
     setArrangement((current) => updateArrangementMetadata(current, input))
   }
 
+  function handleFiltersChange(next: SlipFilters) {
+    setSearchParams(filtersToSearchParams(next), { replace: true })
+  }
+
   function handleRandomizeName() {
     handleMetadataChange({ name: generateSlipTitle(Math.random() * Number.MAX_SAFE_INTEGER) })
   }
 
-  async function handleCreateArrangement() {
+  async function persistArrangement(): Promise<boolean> {
     try {
       await saveArrangement(arrangement)
     } catch (error) {
-      console.error('Failed to create arrangement', error)
-      return
+      console.error('Failed to save arrangement', error)
+      return false
     }
     markSaved()
+    return true
   }
 
-  function handleBackClick() {
-    if (!isPersisted) {
-      setShowBackConfirm(true)
-      return
-    }
-    onBack()
-  }
-
-  function handleDiscardAndBack() {
-    setShowBackConfirm(false)
-    cancelPending()
-    onBack()
+  async function handleCreateArrangement() {
+    await persistArrangement()
   }
 
   function handleSlipDragStart(event: MouseEvent, slip: Slip) {
@@ -176,16 +185,10 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
     setVariationTarget(null)
     if (!result) return
 
-    // Navigating to the editor unmounts this component, which would cancel
-    // the debounced autosave before it fires — flush the clip's slip-switch
-    // immediately first, mirroring SlipEditor's own pre-navigate flush.
-    cancelPending()
-    try {
-      await saveArrangement(result.updatedArrangement)
-    } catch (error) {
-      console.error('Failed to save arrangement', error)
-    }
-    onOpenVariationEditor(result.variation.id)
+    // The navigation guard flushes this screen's pending edit (the clip's
+    // slip-switch, already reflected in `arrangement` state above) before
+    // the navigation proceeds — same seam as every other exit path.
+    navigate(`/slips/${result.variation.id}?from=${returnToArrangementParam(arrangementId)}`)
   }
 
   return (
@@ -193,12 +196,12 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
       <ArrangeSearchRail
         slips={allSlips}
         filters={filters}
-        onFiltersChange={setFilters}
+        onFiltersChange={handleFiltersChange}
         onSlipDragStart={handleSlipDragStart}
       />
       <div className="arrangement-view-main">
         <div className="arrangement-view-header">
-          <button type="button" className="btn btn-ghost arrangement-view-back" onClick={handleBackClick}>
+          <button type="button" className="btn btn-ghost arrangement-view-back" onClick={() => navigate('/arrange')}>
             ← Back
           </button>
           <div className="arrangement-view-title-row">
@@ -270,13 +273,13 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
           onClose={() => setVariationTarget(null)}
         />
       )}
-      {showBackConfirm && (
+      {showDiscardConfirm && (
         <ConfirmDialog
           title="Discard this arrangement?"
-          onClose={() => setShowBackConfirm(false)}
+          onClose={keepEditing}
           actions={[
-            { label: 'Keep editing', variant: 'secondary', onClick: () => setShowBackConfirm(false) },
-            { label: 'Discard', variant: 'danger', onClick: handleDiscardAndBack },
+            { label: 'Keep editing', variant: 'secondary', onClick: keepEditing },
+            { label: 'Discard', variant: 'danger', onClick: confirmDiscard },
           ]}
         >
           This arrangement hasn't been created yet — going back will discard it.

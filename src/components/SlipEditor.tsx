@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import {
   addTag,
   copySlip,
@@ -12,7 +13,10 @@ import {
   type UpdateSlipMetadataInput,
 } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
+import { useAutosaveFlushGuard } from '../hooks/useAutosaveFlushGuard'
 import { deleteSlip, getSlip, listSlips, saveSlip } from '../persistence/slipStorage'
+import { parseReturnToArrangementId } from '../routing/returnTo'
+import type { AppOutletContext } from './AppLayout'
 import { ConfirmDialog } from './ConfirmDialog'
 import { MetadataPanel } from './MetadataPanel'
 import { PianoRoll } from './PianoRoll'
@@ -20,32 +24,42 @@ import './SlipEditor.css'
 
 export interface SlipEditorProps {
   slipId: string
-  onBack: () => void
-  onSlipChange: (slip: Slip) => void
-  onStopPlayback: () => void
-  onPreviewNote: (pitch: number, durationMs: number) => void
-  onNavigateToSlip: (currentSlipId: string, targetSlipId: string) => void
-  onCopySlip: (newSlipId: string) => void
 }
 
-export function SlipEditor({
-  slipId,
-  onBack,
-  onSlipChange,
-  onStopPlayback,
-  onPreviewNote,
-  onNavigateToSlip,
-  onCopySlip,
-}: SlipEditorProps) {
+export function SlipEditor({ slipId }: SlipEditorProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const { onSlipChange, onStopPlayback, onPreviewNote } = useOutletContext<AppOutletContext>()
+  const isNewCapture = Boolean((location.state as { isNewCapture?: boolean } | null)?.isNewCapture)
+  const returnArrangementId = parseReturnToArrangementId(searchParams)
+
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
   const [previewEnabled, setPreviewEnabled] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [showBackConfirm, setShowBackConfirm] = useState(false)
-  const { isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
+  const { isLoaded, isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
     load: getSlip,
     save: saveSlip,
     onLoaded: setSlip,
+  })
+
+  function goBack() {
+    if (returnArrangementId) {
+      navigate(`/arrange/${returnArrangementId}`)
+      return
+    }
+    navigate('/slips')
+  }
+
+  const { showDiscardConfirm, confirmDiscard, keepEditing, skipGuardRef } = useAutosaveFlushGuard({
+    navigate,
+    fallbackPath: '/slips',
+    isLoaded,
+    isPersisted,
+    isNewCapture,
+    cancelPending,
+    persist: () => persistSlip(),
   })
 
   useEffect(() => {
@@ -104,14 +118,9 @@ export function SlipEditor({
     return true
   }
 
-  async function handleNavigateToSlip(targetSlipId: string) {
+  function handleNavigateToSlip(targetSlipId: string) {
     onStopPlayback()
-    if (isPersisted) {
-      cancelPending()
-      const saved = await persistSlip()
-      if (!saved) return
-    }
-    onNavigateToSlip(slipId, targetSlipId)
+    navigate(`/slips/${targetSlipId}`)
   }
 
   async function handleSave() {
@@ -120,11 +129,6 @@ export function SlipEditor({
 
   async function handleCopy() {
     onStopPlayback()
-    if (isPersisted) {
-      cancelPending()
-      const saved = await persistSlip()
-      if (!saved) return
-    }
     const copy = copySlip(slip)
     try {
       await saveSlip(copy)
@@ -132,7 +136,7 @@ export function SlipEditor({
       console.error('Failed to copy slip', error)
       return
     }
-    onCopySlip(copy.id)
+    navigate(`/slips/${copy.id}`)
   }
 
   function handleDelete() {
@@ -142,27 +146,15 @@ export function SlipEditor({
   async function confirmDelete() {
     setShowDeleteConfirm(false)
     cancelPending()
+    skipGuardRef.current = true
     try {
       await deleteSlip(slipId)
     } catch (error) {
       console.error('Failed to delete slip', error)
+      skipGuardRef.current = false
       return
     }
-    onBack()
-  }
-
-  function handleBackClick() {
-    if (!isPersisted) {
-      setShowBackConfirm(true)
-      return
-    }
-    onBack()
-  }
-
-  function handleDiscardAndBack() {
-    setShowBackConfirm(false)
-    cancelPending()
-    onBack()
+    goBack()
   }
 
   return (
@@ -172,7 +164,7 @@ export function SlipEditor({
           slip={slip}
           allSlips={allSlips}
           isPersisted={isPersisted}
-          onBack={handleBackClick}
+          onBack={goBack}
           onSave={handleSave}
           onCopy={handleCopy}
           onDelete={handleDelete}
@@ -210,13 +202,13 @@ export function SlipEditor({
           This cannot be undone.
         </ConfirmDialog>
       )}
-      {showBackConfirm && (
+      {showDiscardConfirm && (
         <ConfirmDialog
           title="Discard this slip?"
-          onClose={() => setShowBackConfirm(false)}
+          onClose={keepEditing}
           actions={[
-            { label: 'Keep editing', variant: 'secondary', onClick: () => setShowBackConfirm(false) },
-            { label: 'Discard', variant: 'danger', onClick: handleDiscardAndBack },
+            { label: 'Keep editing', variant: 'secondary', onClick: keepEditing },
+            { label: 'Discard', variant: 'danger', onClick: confirmDiscard },
           ]}
         >
           This slip hasn't been created yet — going back will discard it.

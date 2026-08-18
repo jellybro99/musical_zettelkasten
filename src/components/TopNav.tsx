@@ -5,7 +5,7 @@ export interface TopNavProps {
   onSlipBoxClick: () => void
   onArrangeClick: () => void
   onCapture: () => void
-  activeScreen: 'dashboard' | 'arrange'
+  activeScreen: 'dashboard' | 'arrange' | 'desk'
 }
 
 export function TopNav({ onSlipBoxClick, onArrangeClick, onCapture, activeScreen }: TopNavProps) {
@@ -15,7 +15,12 @@ export function TopNav({ onSlipBoxClick, onArrangeClick, onCapture, activeScreen
         Zettel<span className="top-nav-dot">·</span>kasten
       </span>
       <div className="top-nav-items">
-        <button type="button" className="top-nav-item" disabled>
+        <button
+          type="button"
+          className={`top-nav-item${activeScreen === 'desk' ? ' top-nav-item-active' : ''}`}
+          aria-current={activeScreen === 'desk' ? 'page' : undefined}
+          disabled
+        >
           Desk
         </button>
         <button
