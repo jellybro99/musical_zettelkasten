@@ -20,6 +20,7 @@
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   color: var(--color-text);
+  border-left: 1px solid var(--color-divider);
 }
 
 .arrangement-track-row {
@@ -129,6 +130,7 @@
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
   cursor: grab;
+  user-select: none;
 }
 
 .arrangement-clip.is-selected {
