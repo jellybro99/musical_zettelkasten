@@ -1,15 +1,23 @@
-import { Plus, Trash2 } from 'lucide-react'
-import { useEffect, useState, type MouseEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Play, Plus, Square, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useNavigate, useOutletContext } from 'react-router'
 import { createArrangement, type Arrangement } from '../domain/arrangement'
+import type { Slip } from '../domain/slip'
 import { deleteArrangement, listArrangements } from '../persistence/arrangementStorage'
+import { listSlips } from '../persistence/slipStorage'
+import type { AppOutletContext } from './AppLayout'
+import { Card } from './Card'
 import { ConfirmDialog } from './ConfirmDialog'
 import './ArrangementDashboard.css'
 
 export function ArrangementDashboard() {
   const navigate = useNavigate()
+  const { playingArrangementId, onTogglePlayArrangement } = useOutletContext<AppOutletContext>()
   const [arrangements, setArrangements] = useState<Arrangement[] | null>(null)
+  const [slips, setSlips] = useState<Slip[]>([])
   const [pendingDelete, setPendingDelete] = useState<Arrangement | null>(null)
+
+  const slipsById = useMemo(() => new Map(slips.map((slip) => [slip.id, slip])), [slips])
 
   useEffect(() => {
     let cancelled = false
@@ -25,9 +33,28 @@ export function ArrangementDashboard() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    listSlips()
+      .then((loaded) => {
+        if (!cancelled) setSlips(loaded)
+      })
+      .catch((error) => {
+        console.error('Failed to load slips', error)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   function handleCreate() {
     const arrangement = createArrangement()
     navigate(`/arrange/${arrangement.id}`, { state: { isNewCapture: true } })
+  }
+
+  function handleTogglePlay(event: MouseEvent, arrangement: Arrangement) {
+    event.stopPropagation()
+    onTogglePlayArrangement(arrangement, slipsById)
   }
 
   function handleDeleteClick(event: MouseEvent, arrangement: Arrangement) {
@@ -64,26 +91,30 @@ export function ArrangementDashboard() {
             <p>Start a new arrangement</p>
           </div>
         ) : (
-          <div className="arrangement-dashboard-grid">
+          <div className="card-grid">
             {arrangements.map((arrangement) => (
-              <div key={arrangement.id} className="arrangement-card-wrapper">
-                <button
-                  type="button"
-                  className="arrangement-card"
-                  onClick={() => navigate(`/arrange/${arrangement.id}`)}
-                >
-                  <h3 className="arrangement-card-title">{arrangement.name}</h3>
-                  <p className="arrangement-card-meta">{arrangement.tempo} BPM · {arrangement.tracks.length} tracks</p>
-                </button>
-                <button
-                  type="button"
-                  className="arrangement-card-delete"
-                  aria-label={`Delete ${arrangement.name}`}
-                  onClick={(event) => handleDeleteClick(event, arrangement)}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              <Card
+                key={arrangement.id}
+                title={arrangement.name}
+                meta={`${arrangement.tempo} BPM · ${arrangement.tracks.length} tracks`}
+                onNavigate={() => navigate(`/arrange/${arrangement.id}`)}
+                actions={[
+                  {
+                    icon: playingArrangementId === arrangement.id ? <Square size={14} /> : <Play size={14} />,
+                    ariaLabel:
+                      playingArrangementId === arrangement.id
+                        ? `Stop ${arrangement.name}`
+                        : `Play ${arrangement.name}`,
+                    onClick: (event) => handleTogglePlay(event, arrangement),
+                  },
+                  {
+                    icon: <Trash2 size={14} />,
+                    ariaLabel: `Delete ${arrangement.name}`,
+                    onClick: (event) => handleDeleteClick(event, arrangement),
+                    danger: true,
+                  },
+                ]}
+              />
             ))}
           </div>
         )

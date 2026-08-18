@@ -14,6 +14,8 @@ export interface AppOutletContext {
   onArrangementChange: (state: { arrangement: Arrangement; slipsById: Map<string, Slip> }) => void
   playingSlipId: string | null
   onTogglePlaySlip: (slip: Slip) => void
+  playingArrangementId: string | null
+  onTogglePlayArrangement: (arrangement: Arrangement, slipsById: Map<string, Slip>) => void
 }
 
 export function AppLayout() {
@@ -126,6 +128,17 @@ export function AppLayout() {
     startArrangementTriggers(triggers, durationMs)
   }
 
+  const togglePlayArrangement = useCallback(
+    (arrangement: Arrangement, slipsById: Map<string, Slip>) => {
+      if (nowPlaying?.kind === 'arrangement' && nowPlaying.arrangementId === arrangement.id) {
+        stopPlayback()
+      } else {
+        playArrangement(arrangement, slipsById)
+      }
+    },
+    [nowPlaying, stopPlayback],
+  )
+
   function handleCapture() {
     const slip = createSlip()
     navigate(`/slips/${slip.id}`, { state: { isNewCapture: true } })
@@ -149,8 +162,10 @@ export function AppLayout() {
       onArrangementChange: setCurrentArrangement,
       playingSlipId: nowPlaying?.kind === 'slip' ? nowPlaying.slipId : null,
       onTogglePlaySlip: togglePlaySlip,
+      playingArrangementId: nowPlaying?.kind === 'arrangement' ? nowPlaying.arrangementId : null,
+      onTogglePlayArrangement: togglePlayArrangement,
     }),
-    [stopPlayback, previewNote, nowPlaying, togglePlaySlip],
+    [stopPlayback, previewNote, nowPlaying, togglePlaySlip, togglePlayArrangement],
   )
 
   return (

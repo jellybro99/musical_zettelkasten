@@ -119,7 +119,7 @@ describe('router-driven navigation', () => {
 
     renderApp({ initialEntries: ['/slips'] })
 
-    const card = (await screen.findByText('Drum Fill')).closest('.slip-card-wrapper') as HTMLElement
+    const card = (await screen.findByText('Drum Fill')).closest('.card-wrapper') as HTMLElement
     await user.click(within(card).getByRole('button', { name: /^play/i }))
 
     expect(await screen.findByText('Drum Fill', { selector: '.playback-bar-title' })).toBeInTheDocument()

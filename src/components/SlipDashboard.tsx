@@ -5,6 +5,7 @@ import { copySlip, filterSlips, formatSlipMeta, type Slip, type SlipFilters } fr
 import { deleteSlip, listSlips, saveSlip } from '../persistence/slipStorage'
 import { filtersToSearchParams, searchParamsToFilters } from '../routing/slipFilterParams'
 import type { AppOutletContext } from './AppLayout'
+import { Card } from './Card'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
 import './SlipDashboard.css'
@@ -90,46 +91,34 @@ export function SlipDashboard() {
                 <p>No slips match your filters</p>
               </div>
             ) : (
-              <div className="slip-dashboard-grid">
+              <div className="slip-dashboard-grid card-grid">
                 {visibleSlips.map((slip) => (
-                  <div key={slip.id} className="slip-card-wrapper">
-                    <button type="button" className="slip-card" onClick={() => navigate(`/slips/${slip.id}`)}>
-                      <h3 className="slip-card-title">{slip.title}</h3>
-                      <span className="slip-card-kind">{slip.kind}</span>
-                      <div className="slip-card-tags">
-                        {slip.tags.map((tag) => (
-                          <span key={tag} className="tag tag-neutral">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <p className="slip-card-meta">{formatSlipMeta(slip)}</p>
-                    </button>
-                    <button
-                      type="button"
-                      className="slip-card-play"
-                      aria-label={playingSlipId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`}
-                      onClick={(event) => handleTogglePlay(event, slip)}
-                    >
-                      {playingSlipId === slip.id ? <Square size={14} /> : <Play size={14} />}
-                    </button>
-                    <button
-                      type="button"
-                      className="slip-card-copy"
-                      aria-label={`Copy ${slip.title}`}
-                      onClick={(event) => handleCopy(event, slip)}
-                    >
-                      <Copy size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      className="slip-card-delete"
-                      aria-label={`Delete ${slip.title}`}
-                      onClick={(event) => handleDeleteClick(event, slip)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  <Card
+                    key={slip.id}
+                    title={slip.title}
+                    badge={slip.kind}
+                    tags={slip.tags}
+                    meta={formatSlipMeta(slip)}
+                    onNavigate={() => navigate(`/slips/${slip.id}`)}
+                    actions={[
+                      {
+                        icon: playingSlipId === slip.id ? <Square size={14} /> : <Play size={14} />,
+                        ariaLabel: playingSlipId === slip.id ? `Stop ${slip.title}` : `Play ${slip.title}`,
+                        onClick: (event) => handleTogglePlay(event, slip),
+                      },
+                      {
+                        icon: <Copy size={14} />,
+                        ariaLabel: `Copy ${slip.title}`,
+                        onClick: (event) => handleCopy(event, slip),
+                      },
+                      {
+                        icon: <Trash2 size={14} />,
+                        ariaLabel: `Delete ${slip.title}`,
+                        onClick: (event) => handleDeleteClick(event, slip),
+                        danger: true,
+                      },
+                    ]}
+                  />
                 ))}
               </div>
             )}
