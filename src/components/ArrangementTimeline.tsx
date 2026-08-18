@@ -217,6 +217,11 @@ export function ArrangementTimeline({
     arrangement,
     activePreview && draggingSlip ? activePreview.startBar + draggingSlip.grid.bars : 0,
   )
+  // Rows/ruler are plain block boxes, not flex/grid items, so width:auto
+  // sizes them to the scroll container's viewport, not their real content —
+  // an explicit width (like the lane already gets) is required for their
+  // background/border to reach all the way across when bars overflow.
+  const rowWidth = TRACK_LABEL_WIDTH + barCount * BAR_WIDTH
 
   function renderDropOverlay(trackId: string) {
     if (!activePreview || !draggingSlip || activePreview.trackId !== trackId) return null
@@ -235,7 +240,7 @@ export function ArrangementTimeline({
 
   return (
     <div className="arrangement-timeline" ref={containerRef}>
-      <div className="arrangement-timeline-ruler" style={{ height: RULER_HEIGHT }}>
+      <div className="arrangement-timeline-ruler" style={{ height: RULER_HEIGHT, width: rowWidth }}>
         {Array.from({ length: barCount }, (_, bar) => (
           <span
             key={bar}
@@ -253,7 +258,7 @@ export function ArrangementTimeline({
           className="arrangement-track-row"
           data-track-row
           data-track-id={track.id}
-          style={{ height: TRACK_HEIGHT }}
+          style={{ height: TRACK_HEIGHT, width: rowWidth }}
         >
           <div
             className={`arrangement-track-label${track.id === selectedTrackId ? ' is-selected' : ''}`}
@@ -341,7 +346,7 @@ export function ArrangementTimeline({
         className="arrangement-track-row arrangement-new-track-row"
         data-track-row
         data-track-id={NEW_TRACK}
-        style={{ height: TRACK_HEIGHT }}
+        style={{ height: TRACK_HEIGHT, width: rowWidth }}
       >
         <div className="arrangement-track-label" style={{ width: TRACK_LABEL_WIDTH }}>
           <button
