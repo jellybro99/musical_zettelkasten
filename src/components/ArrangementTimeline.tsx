@@ -176,6 +176,7 @@ export function ArrangementTimeline({
   }, [selectedClipId, onRemoveClip])
 
   function handleClipMouseDown(event: ReactMouseEvent, clip: Clip, trackId: string) {
+    event.preventDefault()
     event.stopPropagation()
     setSelectedClipId(clip.id)
     clipDragRef.current = {
@@ -189,6 +190,7 @@ export function ArrangementTimeline({
   }
 
   function handleResizeMouseDown(event: ReactMouseEvent, clip: Clip) {
+    event.preventDefault()
     event.stopPropagation()
     setSelectedClipId(clip.id)
     clipDragRef.current = { type: 'resize', clipId: clip.id, startX: event.clientX, origLengthBars: clip.lengthBars }

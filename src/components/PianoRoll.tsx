@@ -78,6 +78,7 @@ export function PianoRoll({
   }
 
   function handleNoteMouseDown(event: React.MouseEvent, note: Note) {
+    event.preventDefault()
     event.stopPropagation()
     setSelectedId(note.id)
     dragState.current = {
@@ -97,6 +98,7 @@ export function PianoRoll({
   }
 
   function handleResizeHandleMouseDown(event: React.MouseEvent, note: Note) {
+    event.preventDefault()
     event.stopPropagation()
     setSelectedId(note.id)
     dragState.current = { type: 'resize', id: note.id, startX: event.clientX, origLength: note.length }
