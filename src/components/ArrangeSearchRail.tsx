@@ -1,4 +1,4 @@
-import { Play, Square } from 'lucide-react'
+import { ExternalLink, Play, Square } from 'lucide-react'
 import { useMemo, type MouseEvent } from 'react'
 import { filterSlips, type Slip, type SlipFilters } from '../domain/slip'
 import { SlipFilterSidebar } from './SlipFilterSidebar'
@@ -11,6 +11,7 @@ export interface ArrangeSearchRailProps {
   onSlipDragStart: (event: MouseEvent, slip: Slip) => void
   playingSlipId: string | null
   onTogglePlaySlip: (slip: Slip) => void
+  onOpenSlip: (slipId: string) => void
 }
 
 export function ArrangeSearchRail({
@@ -20,6 +21,7 @@ export function ArrangeSearchRail({
   onSlipDragStart,
   playingSlipId,
   onTogglePlaySlip,
+  onOpenSlip,
 }: ArrangeSearchRailProps) {
   const results = useMemo(
     () => filterSlips(slips, filters).sort((a, b) => b.createdAt - a.createdAt),
@@ -50,6 +52,19 @@ export function ArrangeSearchRail({
                     {slip.kind} · {slip.tempo} BPM{slip.key ? ` · ${slip.key}` : ''}
                   </span>
                 </div>
+                <button
+                  type="button"
+                  className="arrange-search-rail-item-play"
+                  aria-label={`Open ${slip.title}`}
+                  title={`Open ${slip.title}`}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onOpenSlip(slip.id)
+                  }}
+                >
+                  <ExternalLink size={12} />
+                </button>
                 <button
                   type="button"
                   className="arrange-search-rail-item-play"

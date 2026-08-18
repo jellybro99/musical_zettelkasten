@@ -1,4 +1,4 @@
-import { GripVertical, Plus, Wand2 } from 'lucide-react'
+import { ExternalLink, GripVertical, Plus, Wand2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import {
   computeLoopMarks,
@@ -14,7 +14,7 @@ import './ArrangementTimeline.css'
 
 export const BAR_WIDTH = 48
 export const TRACK_LABEL_WIDTH = 120
-const TRACK_HEIGHT = 56
+const TRACK_HEIGHT = 60
 const RULER_HEIGHT = 24
 const MIN_BARS = 16
 const BAR_BUFFER = 4
@@ -48,6 +48,7 @@ export interface ArrangementTimelineProps {
   onToggleMute: (trackId: string) => void
   onToggleSolo: (trackId: string) => void
   onOpenVariation: (clip: Clip) => void
+  onOpenSlip: (clip: Clip) => void
 }
 
 export function ArrangementTimeline({
@@ -65,6 +66,7 @@ export function ArrangementTimeline({
   onToggleMute,
   onToggleSolo,
   onOpenVariation,
+  onOpenSlip,
 }: ArrangementTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const previewRef = useRef<DropPreview | null>(null)
@@ -321,16 +323,28 @@ export function ArrangementTimeline({
                     </span>
                   )}
                   {slip && (
-                    <button
-                      type="button"
-                      className="arrangement-clip-variation-btn"
-                      onMouseDown={(event) => event.stopPropagation()}
-                      onClick={() => onOpenVariation(clip)}
-                      aria-label={`Make a variation from ${slip.title}`}
-                      title="Make a variation"
-                    >
-                      <Wand2 size={11} />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className="arrangement-clip-variation-btn"
+                        onMouseDown={(event) => event.stopPropagation()}
+                        onClick={() => onOpenSlip(clip)}
+                        aria-label={`Open ${slip.title}`}
+                        title={`Open ${slip.title}`}
+                      >
+                        <ExternalLink size={11} />
+                      </button>
+                      <button
+                        type="button"
+                        className="arrangement-clip-variation-btn"
+                        onMouseDown={(event) => event.stopPropagation()}
+                        onClick={() => onOpenVariation(clip)}
+                        aria-label={`Make a variation from ${slip.title}`}
+                        title="Make a variation"
+                      >
+                        <Wand2 size={11} />
+                      </button>
+                    </>
                   )}
                   {loopMarks.map((bar) => (
                     <div key={bar} className="arrangement-clip-loop-mark" style={{ left: bar * BAR_WIDTH }} />

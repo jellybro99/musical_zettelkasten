@@ -43,7 +43,7 @@ export interface ArrangementViewProps {
 export function ArrangementView({ arrangementId }: ArrangementViewProps) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { onArrangementChange, playingSlipId, onTogglePlaySlip } = useOutletContext<AppOutletContext>()
+  const { onArrangementChange, onStopPlayback, playingSlipId, onTogglePlaySlip } = useOutletContext<AppOutletContext>()
   const isNewCapture = Boolean((location.state as { isNewCapture?: boolean } | null)?.isNewCapture)
   const [arrangement, setArrangement] = useState(() => createArrangement({ id: arrangementId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
@@ -169,6 +169,14 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     [slipsById],
   )
 
+  const handleOpenSlip = useCallback(
+    (slipId: string) => {
+      onStopPlayback()
+      navigate(`/slips/${slipId}?from=${returnToArrangementParam(arrangementId)}`)
+    },
+    [onStopPlayback, navigate, arrangementId],
+  )
+
   async function createAndApplyVariation(
     transposeSemitones: number,
   ): Promise<{ variation: Slip; updatedArrangement: Arrangement } | null> {
@@ -214,6 +222,7 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
         onSlipDragStart={handleSlipDragStart}
         playingSlipId={playingSlipId}
         onTogglePlaySlip={onTogglePlaySlip}
+        onOpenSlip={handleOpenSlip}
       />
       <div className="arrangement-view-main">
         <div className="arrangement-view-header">
@@ -281,6 +290,7 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
           onToggleMute={handleToggleMute}
           onToggleSolo={handleToggleSolo}
           onOpenVariation={handleOpenVariation}
+          onOpenSlip={(clip) => handleOpenSlip(clip.slipId)}
         />
       </div>
       {variationTarget && (
