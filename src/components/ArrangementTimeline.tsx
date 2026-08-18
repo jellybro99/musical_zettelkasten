@@ -1,7 +1,6 @@
 import { GripVertical, Wand2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import {
-  clipFitLabel,
   computeLoopMarks,
   NEW_TRACK,
   type Arrangement,
@@ -272,7 +271,6 @@ export function ArrangementTimeline({
             {track.clips.map((clip) => {
               const slip = slipsById.get(clip.slipId)
               const loopMarks = slip ? computeLoopMarks(clip, slip.grid.bars) : []
-              const fitLabel = slip ? clipFitLabel(slip.tempo, arrangement.tempo) : null
               return (
                 <div
                   key={clip.id}
@@ -282,7 +280,6 @@ export function ArrangementTimeline({
                 >
                   <GripVertical size={12} className="arrangement-clip-grip" />
                   <span className="arrangement-clip-title">{slip?.title ?? 'Missing slip'}</span>
-                  {fitLabel && <span className="arrangement-clip-fit-badge">{fitLabel}</span>}
                   {slip && (
                     <button
                       type="button"

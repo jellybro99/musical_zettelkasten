@@ -176,16 +176,6 @@
   background: color-mix(in srgb, var(--color-bg) 60%, transparent);
 }
 
-.arrangement-clip-fit-badge {
-  flex: none;
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  padding: 1px 4px;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
-  color: var(--color-accent-800);
-}
 
 .arrangement-clip-loop-mark {
   position: absolute;

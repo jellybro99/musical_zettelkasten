@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   addTrack,
-  clipFitLabel,
   computeLoopMarks,
   createArrangement,
   moveClip,
@@ -423,16 +422,6 @@ describe('toggleTrackSolo', () => {
 
     expect(soloed.tracks[0].solo).toBe(true)
     expect(unsoloed.tracks[0].solo).toBe(false)
-  })
-})
-
-describe('clipFitLabel', () => {
-  it('returns null when the source and arrangement tempo match', () => {
-    expect(clipFitLabel(120, 120)).toBeNull()
-  })
-
-  it('returns "source→arrangement" when they differ', () => {
-    expect(clipFitLabel(96, 121)).toBe('96→121')
   })
 })
 
