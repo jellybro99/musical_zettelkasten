@@ -42,6 +42,9 @@ export function VariationPopover({
     }
   }
 
+  // Explicit "Cancel" discards the live-applied change. Dismissing the
+  // dialog any other way (X button, backdrop click) just closes it — the
+  // transpose already applied live stays, matching the hint copy above.
   function handleCancel() {
     if (transposeSemitones !== initialTransposeSemitones) {
       onLiveTranspose(initialTransposeSemitones)
@@ -52,7 +55,7 @@ export function VariationPopover({
   return (
     <ConfirmDialog
       title="Make a variation"
-      onClose={handleCancel}
+      onClose={onClose}
       actions={[
         { label: 'Cancel', variant: 'secondary', onClick: handleCancel },
         { label: 'Create variation', variant: 'primary', onClick: () => onConfirm(input) },
