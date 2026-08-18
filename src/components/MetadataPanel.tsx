@@ -1,5 +1,6 @@
 import { ChevronDown, Copy, GitBranch, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import type { Arrangement } from '../domain/arrangement'
 import {
   DEFAULT_GRID,
   notesOutOfGridBounds,
@@ -20,6 +21,7 @@ const OCTAVE_OPTIONS = [1, 2, 3]
 export interface MetadataPanelProps {
   slip: Slip
   allSlips: Slip[]
+  arrangementsUsingSlip: Arrangement[]
   isPersisted: boolean
   onBack: () => void
   onSave: () => void
@@ -30,11 +32,13 @@ export interface MetadataPanelProps {
   onAddTag: (tag: string) => void
   onRemoveTag: (tag: string) => void
   onNavigateToSlip: (targetSlipId: string) => void
+  onNavigateToArrangement: (arrangementId: string) => void
 }
 
 export function MetadataPanel({
   slip,
   allSlips,
+  arrangementsUsingSlip,
   isPersisted,
   onBack,
   onSave,
@@ -45,6 +49,7 @@ export function MetadataPanel({
   onAddTag,
   onRemoveTag,
   onNavigateToSlip,
+  onNavigateToArrangement,
 }: MetadataPanelProps) {
   const [tagDraft, setTagDraft] = useState('')
   const [pendingGridChange, setPendingGridChange] = useState<{
@@ -270,6 +275,29 @@ export function MetadataPanel({
             + tag
           </button>
         </form>
+      </div>
+
+      <div className="hr" />
+
+      <div className="field">
+        <span className="metadata-label">Used in</span>
+        {arrangementsUsingSlip.length === 0 ? (
+          <p className="metadata-used-in-empty">Not used in any arrangement</p>
+        ) : (
+          <ul className="metadata-used-in-list">
+            {arrangementsUsingSlip.map((arrangement) => (
+              <li key={arrangement.id}>
+                <button
+                  type="button"
+                  className="btn btn-ghost metadata-used-in-item"
+                  onClick={() => onNavigateToArrangement(arrangement.id)}
+                >
+                  {arrangement.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {pendingGridChange && (

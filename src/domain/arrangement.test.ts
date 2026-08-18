@@ -3,6 +3,7 @@ import {
   addTrack,
   computeLoopMarks,
   createArrangement,
+  findArrangementsUsingSlip,
   moveClip,
   placeClip,
   removeClip,
@@ -575,5 +576,71 @@ describe('computeLoopMarks', () => {
 
   it('returns no marks for a zero or negative slip length', () => {
     expect(computeLoopMarks(clip({ lengthBars: 10 }), 0)).toEqual([])
+  })
+})
+
+describe('findArrangementsUsingSlip', () => {
+  it('returns an arrangement that places the slip on a track', () => {
+    const arrangement = placeClip(createArrangement({ name: 'A' }), {
+      trackId: 'new-track',
+      slipId: 'slip-a',
+      startBar: 0,
+      slipBars: 4,
+    })
+
+    const result = findArrangementsUsingSlip([arrangement], 'slip-a')
+
+    expect(result).toMatchObject([{ name: 'A' }])
+  })
+
+  it('returns every arrangement that places the slip', () => {
+    const first = placeClip(createArrangement({ name: 'A' }), {
+      trackId: 'new-track',
+      slipId: 'slip-a',
+      startBar: 0,
+      slipBars: 4,
+    })
+    const second = placeClip(createArrangement({ name: 'B' }), {
+      trackId: 'new-track',
+      slipId: 'slip-a',
+      startBar: 0,
+      slipBars: 4,
+    })
+
+    const result = findArrangementsUsingSlip([first, second], 'slip-a')
+
+    expect(result).toMatchObject([{ name: 'A' }, { name: 'B' }])
+  })
+
+  it('dedupes an arrangement that places the slip on multiple clips', () => {
+    const withFirst = placeClip(createArrangement({ name: 'A' }), {
+      trackId: 'new-track',
+      slipId: 'slip-a',
+      startBar: 0,
+      slipBars: 4,
+    })
+    const trackId = withFirst.tracks[0].id
+    const withSecond = placeClip(withFirst, { trackId, slipId: 'slip-a', startBar: 4, slipBars: 4 })
+
+    const result = findArrangementsUsingSlip([withSecond], 'slip-a')
+
+    expect(result).toMatchObject([{ name: 'A' }])
+  })
+
+  it('excludes an arrangement that does not use the slip', () => {
+    const arrangement = placeClip(createArrangement({ name: 'A' }), {
+      trackId: 'new-track',
+      slipId: 'slip-b',
+      startBar: 0,
+      slipBars: 4,
+    })
+
+    const result = findArrangementsUsingSlip([arrangement], 'slip-a')
+
+    expect(result).toEqual([])
+  })
+
+  it('returns an empty result for an empty arrangement list', () => {
+    expect(findArrangementsUsingSlip([], 'slip-a')).toEqual([])
   })
 })

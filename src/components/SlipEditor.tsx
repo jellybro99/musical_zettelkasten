@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
+import { findArrangementsUsingSlip, type Arrangement } from '../domain/arrangement'
 import {
   addTag,
   copySlip,
@@ -14,6 +15,7 @@ import {
 } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
 import { useAutosaveFlushGuard } from '../hooks/useAutosaveFlushGuard'
+import { listArrangements } from '../persistence/arrangementStorage'
 import { deleteSlip, getSlip, listSlips, saveSlip } from '../persistence/slipStorage'
 import { parseReturnToArrangementId } from '../routing/returnTo'
 import type { AppOutletContext } from './AppLayout'
@@ -36,6 +38,7 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
 
   const [slip, setSlip] = useState(() => createSlip({ id: slipId }))
   const [allSlips, setAllSlips] = useState<Slip[]>([])
+  const [arrangements, setArrangements] = useState<Arrangement[]>([])
   const [previewEnabled, setPreviewEnabled] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { isLoaded, isPersisted, markSaved, cancelPending } = useAutosave(slip, slipId, {
@@ -80,6 +83,25 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
     }
   }, [slipId])
 
+  useEffect(() => {
+    let cancelled = false
+    listArrangements()
+      .then((loaded) => {
+        if (!cancelled) setArrangements(loaded)
+      })
+      .catch((error) => {
+        console.error('Failed to load arrangements', error)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [slipId])
+
+  const arrangementsUsingSlip = useMemo(
+    () => findArrangementsUsingSlip(arrangements, slipId),
+    [arrangements, slipId],
+  )
+
   const handleNotesChange = useCallback((updater: (notes: Note[]) => Note[]) => {
     setSlip((current) => ({ ...current, notes: updater(current.notes) }))
   }, [])
@@ -123,6 +145,11 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
     navigate(`/slips/${targetSlipId}`)
   }
 
+  function handleNavigateToArrangement(arrangementId: string) {
+    onStopPlayback()
+    navigate(`/arrange/${arrangementId}`)
+  }
+
   async function handleSave() {
     await persistSlip()
   }
@@ -163,6 +190,7 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
         <MetadataPanel
           slip={slip}
           allSlips={allSlips}
+          arrangementsUsingSlip={arrangementsUsingSlip}
           isPersisted={isPersisted}
           onBack={goBack}
           onSave={handleSave}
@@ -173,6 +201,7 @@ export function SlipEditor({ slipId }: SlipEditorProps) {
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
           onNavigateToSlip={handleNavigateToSlip}
+          onNavigateToArrangement={handleNavigateToArrangement}
         />
         <div className="slip-editor-roll-area">
           <div className="slip-editor-roll-card">

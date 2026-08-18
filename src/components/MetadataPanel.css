@@ -177,3 +177,25 @@
   outline: 2px solid var(--color-accent);
   outline-offset: -1px;
 }
+
+.metadata-used-in-empty {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.metadata-used-in-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.metadata-used-in-item {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 12px;
+}

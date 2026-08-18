@@ -231,6 +231,12 @@ export function toggleTrackSolo(arrangement: Arrangement, trackId: string): Arra
   }
 }
 
+export function findArrangementsUsingSlip(arrangements: Arrangement[], slipId: string): Arrangement[] {
+  return arrangements.filter((arrangement) =>
+    arrangement.tracks.some((track) => track.clips.some((clip) => clip.slipId === slipId)),
+  )
+}
+
 export function computeLoopMarks(clip: Clip, slipBars: number): number[] {
   if (slipBars <= 0) return []
   const marks: number[] = []
