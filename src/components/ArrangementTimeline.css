@@ -45,8 +45,10 @@
 }
 
 .arrangement-track-label.is-selected {
+  position: relative;
+  z-index: 1;
   outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
 
 .arrangement-track-name-input {

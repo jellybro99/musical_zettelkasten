@@ -256,7 +256,9 @@ export function ArrangementTimeline({
           <div
             className={`arrangement-track-label${track.id === selectedTrackId ? ' is-selected' : ''}`}
             style={{ width: TRACK_LABEL_WIDTH }}
+            tabIndex={-1}
             onClick={() => handleTrackLabelClick(track.id)}
+            onBlur={() => setSelectedTrackId((current) => (current === track.id ? null : current))}
           >
             <input
               type="text"
