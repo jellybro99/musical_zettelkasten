@@ -161,6 +161,13 @@ export function removeClip(arrangement: Arrangement, clipId: string): Arrangemen
   }
 }
 
+export function removeTrack(arrangement: Arrangement, trackId: string): Arrangement {
+  return {
+    ...arrangement,
+    tracks: arrangement.tracks.filter((track) => track.id !== trackId),
+  }
+}
+
 export function renameTrack(arrangement: Arrangement, trackId: string, name: string): Arrangement {
   return {
     ...arrangement,

@@ -34,7 +34,7 @@ A top-nav destination reserved for a future screen (currently a disabled nav but
 A top-nav destination where an Arrangement is built: slips are placed on a multi-track timeline as Clips and played back together at the arrangement's own tempo. One of the app's three intended top-level screens, alongside Slip-box and Desk. An arrangement is a new persisted entity of its own — not itself a Slip — with its own list, name, and tempo. Any slip kind can be placed, not just Loop.
 
 **Track**:
-A lane within an Arrangement holding an ordered sequence of Clips. Has its own name, mute, and solo state. Created by dropping a slip onto empty timeline space; not itself reorderable or removable in this pass.
+A lane within an Arrangement holding an ordered sequence of Clips. Has its own name, mute, and solo state. Created by dropping a slip onto empty timeline space. Selectable and removable (with its clips, no confirmation); not itself reorderable in this pass.
 
 **Clip**:
 A placement of one Slip on a Track at a given bar, with its own `lengthBars` independent of the slip's own grid length — shorter truncates playback, longer loops (repeats) the slip's pattern. A Clip always plays at the arrangement's tempo, not the slip's own; a "fit" badge (e.g. "96→121") shows when they differ.

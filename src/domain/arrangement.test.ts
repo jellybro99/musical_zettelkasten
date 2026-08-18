@@ -6,6 +6,7 @@ import {
   moveClip,
   placeClip,
   removeClip,
+  removeTrack,
   renameTrack,
   resizeClipLoop,
   setClipSlip,
@@ -368,6 +369,54 @@ describe('removeClip', () => {
     const result = removeClip(arrangement, 'missing')
 
     expect(result).toEqual(arrangement)
+  })
+})
+
+describe('removeTrack', () => {
+  it('removes the track with the given id', () => {
+    const arrangement = addTrack(createArrangement())
+    const trackId = arrangement.tracks[0].id
+
+    const result = removeTrack(arrangement, trackId)
+
+    expect(result.tracks).toEqual([])
+  })
+
+  it('removes the track along with its clips', () => {
+    const placed = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const trackId = placed.tracks[0].id
+
+    const result = removeTrack(placed, trackId)
+
+    expect(result.tracks).toEqual([])
+  })
+
+  it('leaves other tracks and their clips untouched', () => {
+    const withFirst = placeClip(createArrangement(), { trackId: 'new-track', slipId: 'slip-a', startBar: 0, slipBars: 4 })
+    const withSecond = placeClip(withFirst, { trackId: 'new-track', slipId: 'slip-b', startBar: 0, slipBars: 4 })
+    const removedId = withSecond.tracks[0].id
+    const keptId = withSecond.tracks[1].id
+    const keptClipId = withSecond.tracks[1].clips[0].id
+
+    const result = removeTrack(withSecond, removedId)
+
+    expect(result.tracks).toMatchObject([{ id: keptId, clips: [{ id: keptClipId, slipId: 'slip-b' }] }])
+  })
+
+  it('is a safe no-op when removing a track that does not exist', () => {
+    const arrangement = addTrack(createArrangement())
+
+    const result = removeTrack(arrangement, 'missing')
+
+    expect(result).toEqual(arrangement)
+  })
+
+  it('does not mutate the input arrangement', () => {
+    const arrangement = addTrack(createArrangement())
+
+    removeTrack(arrangement, arrangement.tracks[0].id)
+
+    expect(arrangement.tracks).toHaveLength(1)
   })
 })
 

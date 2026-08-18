@@ -42,6 +42,7 @@ export interface ArrangementTimelineProps {
   onMoveClip: (input: MoveClipInput) => void
   onResizeClipLoop: (input: ResizeClipLoopInput) => void
   onRemoveClip: (clipId: string) => void
+  onRemoveTrack: (trackId: string) => void
   onRenameTrack: (trackId: string, name: string) => void
   onToggleMute: (trackId: string) => void
   onToggleSolo: (trackId: string) => void
@@ -57,6 +58,7 @@ export function ArrangementTimeline({
   onMoveClip,
   onResizeClipLoop,
   onRemoveClip,
+  onRemoveTrack,
   onRenameTrack,
   onToggleMute,
   onToggleSolo,
@@ -66,6 +68,7 @@ export function ArrangementTimeline({
   const previewRef = useRef<DropPreview | null>(null)
   const [preview, setPreview] = useState<DropPreview | null>(null)
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
+  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
   const clipDragRef = useRef<ClipDragState | null>(null)
 
   // Rail → timeline placement drag: only active while a slip is being
@@ -163,21 +166,27 @@ export function ArrangementTimeline({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (!selectedClipId) return
       if (event.key !== 'Delete' && event.key !== 'Backspace') return
-      event.preventDefault()
-      onRemoveClip(selectedClipId)
-      setSelectedClipId(null)
+      if (selectedClipId) {
+        event.preventDefault()
+        onRemoveClip(selectedClipId)
+        setSelectedClipId(null)
+      } else if (selectedTrackId) {
+        event.preventDefault()
+        onRemoveTrack(selectedTrackId)
+        setSelectedTrackId(null)
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedClipId, onRemoveClip])
+  }, [selectedClipId, selectedTrackId, onRemoveClip, onRemoveTrack])
 
   function handleClipMouseDown(event: ReactMouseEvent, clip: Clip, trackId: string) {
     event.preventDefault()
     event.stopPropagation()
     setSelectedClipId(clip.id)
+    setSelectedTrackId(null)
     clipDragRef.current = {
       type: 'move',
       clipId: clip.id,
@@ -192,7 +201,13 @@ export function ArrangementTimeline({
     event.preventDefault()
     event.stopPropagation()
     setSelectedClipId(clip.id)
+    setSelectedTrackId(null)
     clipDragRef.current = { type: 'resize', clipId: clip.id, startX: event.clientX, origLengthBars: clip.lengthBars }
+  }
+
+  function handleTrackLabelClick(trackId: string) {
+    setSelectedTrackId(trackId)
+    setSelectedClipId(null)
   }
 
   const activePreview = draggingSlip ? preview : null
@@ -238,19 +253,27 @@ export function ArrangementTimeline({
           data-track-id={track.id}
           style={{ height: TRACK_HEIGHT }}
         >
-          <div className="arrangement-track-label" style={{ width: TRACK_LABEL_WIDTH }}>
+          <div
+            className={`arrangement-track-label${track.id === selectedTrackId ? ' is-selected' : ''}`}
+            style={{ width: TRACK_LABEL_WIDTH }}
+            onClick={() => handleTrackLabelClick(track.id)}
+          >
             <input
               type="text"
               className="arrangement-track-name-input"
               value={track.name}
               onChange={(event) => onRenameTrack(track.id, event.target.value)}
+              onClick={(event) => event.stopPropagation()}
               aria-label={`Track name for ${track.name}`}
             />
             <div className="arrangement-track-controls">
               <button
                 type="button"
                 className={`arrangement-track-toggle${track.muted ? ' is-active' : ''}`}
-                onClick={() => onToggleMute(track.id)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleMute(track.id)
+                }}
                 aria-pressed={track.muted}
                 aria-label={track.muted ? `Unmute ${track.name}` : `Mute ${track.name}`}
               >
@@ -259,7 +282,10 @@ export function ArrangementTimeline({
               <button
                 type="button"
                 className={`arrangement-track-toggle${track.solo ? ' is-active' : ''}`}
-                onClick={() => onToggleSolo(track.id)}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleSolo(track.id)
+                }}
                 aria-pressed={track.solo}
                 aria-label={track.solo ? `Unsolo ${track.name}` : `Solo ${track.name}`}
               >

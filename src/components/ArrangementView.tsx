@@ -6,6 +6,7 @@ import {
   moveClip,
   placeClip,
   removeClip,
+  removeTrack,
   renameTrack,
   resizeClipLoop,
   setClipSlip,
@@ -137,6 +138,10 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     setArrangement((current) => removeClip(current, clipId))
   }, [])
 
+  const handleRemoveTrack = useCallback((trackId: string) => {
+    setArrangement((current) => removeTrack(current, trackId))
+  }, [])
+
   const handleRenameTrack = useCallback((trackId: string, name: string) => {
     setArrangement((current) => renameTrack(current, trackId, name))
   }, [])
@@ -261,6 +266,7 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
           onMoveClip={handleMoveClip}
           onResizeClipLoop={handleResizeClipLoop}
           onRemoveClip={handleRemoveClip}
+          onRemoveTrack={handleRemoveTrack}
           onRenameTrack={handleRenameTrack}
           onToggleMute={handleToggleMute}
           onToggleSolo={handleToggleSolo}
