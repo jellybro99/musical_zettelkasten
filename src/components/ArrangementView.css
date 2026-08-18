@@ -36,6 +36,10 @@
   margin-bottom: 0;
 }
 
+.arrangement-view-export {
+  margin-left: auto;
+}
+
 .arrangement-view-body {
   flex: 1;
   min-height: 0;

@@ -31,7 +31,17 @@ Copying a slip produces a new, fully independent slip pre-populated with the ori
 A top-nav destination reserved for a future screen (currently a disabled nav button). One of the app's three intended top-level screens, alongside Slip-box and Arrange.
 
 **Arrange**:
-A top-nav destination reserved for a future screen (currently a disabled nav button) where multiple Loop-kind slips get placed on a timeline to build a song. One of the app's three intended top-level screens, alongside Slip-box and Desk. An arrangement is not itself a Slip.
+A top-nav destination where an Arrangement is built: slips are placed on a multi-track timeline as Clips and played back together at the arrangement's own tempo. One of the app's three intended top-level screens, alongside Slip-box and Desk. An arrangement is a new persisted entity of its own — not itself a Slip — with its own list, name, and tempo. Any slip kind can be placed, not just Loop.
+
+**Track**:
+A lane within an Arrangement holding an ordered sequence of Clips. Has its own name, mute, and solo state. Created by dropping a slip onto empty timeline space; not itself reorderable or removable in this pass.
+
+**Clip**:
+A placement of one Slip on a Track at a given bar, with its own `lengthBars` independent of the slip's own grid length — shorter truncates playback, longer loops (repeats) the slip's pattern. A Clip always plays at the arrangement's tempo, not the slip's own; a "fit" badge (e.g. "96→121") shows when they differ.
+_Avoid_: Slip (a Clip references a Slip, it isn't one)
+
+**Variation**:
+An independent, transposed copy of a slip's material, created from a placed Clip via a "make a variation" popover. Reuses the Copy/Provenance mechanism rather than a new linking concept: a Variation records `copiedFromId` back to its source only when "keep linked" is enabled, otherwise it carries no link at all. Once created, a Variation is a first-class Slip like any other — playable, editable, deletable — and the Clip it was made from switches to using it.
 
 ## Decisions
 
@@ -45,4 +55,4 @@ The app is otherwise a strict mono-accent scheme — every non-destructive contr
 Exactly one playback engine and "currently playing slip" state exist at a time, shared across the dashboard and the editor via a global playback bar — not scoped per-screen. Playback intentionally stops on navigation (entering/leaving the editor, or leaving the dashboard) rather than persisting across screens; the app does not support background/cross-screen playback.
 
 **Slips are atomic — no slip-to-slip references.**
-A slip cannot hold or resolve another slip's material; playing or browsing a slip always shows only its own notes. Composing multiple slips together is deferred to the future Arrange screen, which combines Loop-kind slips into a song. See ADR-0002 (supersedes ADR-0001).
+A slip cannot hold or resolve another slip's material; playing or browsing a slip always shows only its own notes. Composing multiple slips together is the Arrange screen's job, via Tracks and Clips, not a slip-level capability. See ADR-0002 (supersedes ADR-0001).

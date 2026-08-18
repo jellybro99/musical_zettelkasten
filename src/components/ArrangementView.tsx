@@ -1,4 +1,4 @@
-import { Shuffle } from 'lucide-react'
+import { Download, Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 import {
   createArrangement,
@@ -196,6 +196,15 @@ export function ArrangementView({ arrangementId, onBack, onArrangementChange, on
             onChange={(event) => handleMetadataChange({ tempo: Number(event.target.value) })}
           />
         </div>
+        <button
+          type="button"
+          className="btn btn-secondary arrangement-view-export"
+          disabled
+          title="Export mix is not available yet"
+        >
+          <Download size={14} />
+          Export mix
+        </button>
       </div>
       <div className="arrangement-view-body">
         <ArrangeSearchRail

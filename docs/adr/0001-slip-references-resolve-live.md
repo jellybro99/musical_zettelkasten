@@ -14,4 +14,4 @@ Musical Zettelkasten needed a way to combine multiple slips into one and to reus
 ## Consequences
 
 - Combining slips whose content is longer than the referencing slip's grid silently truncates rather than erroring or resizing the grid.
-- Timeline-style composition (multiple slips placed in sequence with independent offsets) is deferred to the planned Arrange screen, which composes Loop-kind slips and is not itself a Slip.
+- Timeline-style composition (multiple slips placed in sequence with independent offsets) is deferred to the planned Arrange screen, which is not itself a Slip.
