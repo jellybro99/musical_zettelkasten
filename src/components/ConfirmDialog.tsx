@@ -13,20 +13,24 @@ export interface ConfirmDialogAction {
 
 export interface ConfirmDialogProps {
   title: string
+  subtitle?: ReactNode
   children?: ReactNode
   actions: ConfirmDialogAction[]
   onClose: () => void
 }
 
-export function ConfirmDialog({ title, children, actions, onClose }: ConfirmDialogProps) {
+export function ConfirmDialog({ title, subtitle, children, actions, onClose }: ConfirmDialogProps) {
   return (
     <div className="confirm-dialog-backdrop" onClick={onClose}>
       <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
         <div className="confirm-dialog-header">
-          <span className="confirm-dialog-title">{title}</span>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close">
-            <X size={14} />
-          </button>
+          <div className="confirm-dialog-header-row">
+            <span className="confirm-dialog-title">{title}</span>
+            <button type="button" className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close">
+              <X size={14} />
+            </button>
+          </div>
+          {subtitle && <span className="confirm-dialog-subtitle">{subtitle}</span>}
         </div>
         {children && <div className="confirm-dialog-body">{children}</div>}
         <div className="confirm-dialog-actions">

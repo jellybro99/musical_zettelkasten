@@ -33,7 +33,7 @@ import type { AppOutletContext } from './AppLayout'
 import { ArrangeSearchRail } from './ArrangeSearchRail'
 import { ArrangementTimeline } from './ArrangementTimeline'
 import { ConfirmDialog } from './ConfirmDialog'
-import { VariationPopover, type VariationConfirmInput } from './VariationPopover'
+import { VariationPopover } from './VariationPopover'
 import './ArrangementView.css'
 
 export interface ArrangementViewProps {
@@ -170,10 +170,10 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
   )
 
   async function createAndApplyVariation(
-    input: VariationConfirmInput,
+    transposeSemitones: number,
   ): Promise<{ variation: Slip; updatedArrangement: Arrangement } | null> {
     if (!variationTarget) return null
-    const variation = createVariation(variationTarget.sourceSlip, input, allSlips)
+    const variation = createVariation(variationTarget.sourceSlip, { transposeSemitones }, allSlips)
     try {
       await saveSlip(variation)
     } catch (error) {
@@ -186,8 +186,8 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     return { variation, updatedArrangement }
   }
 
-  async function handleConfirmVariation(input: VariationConfirmInput) {
-    const result = await createAndApplyVariation(input)
+  async function handleConfirmVariation(transposeSemitones: number) {
+    const result = await createAndApplyVariation(transposeSemitones)
     setVariationTarget(null)
     if (!result) return
 

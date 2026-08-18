@@ -811,7 +811,7 @@ describe('createVariation', () => {
   it('transposes every note by the given semitone count', () => {
     const slip = createSlip({ notes: [{ id: 'a', pitch: 64, start: 0, length: 1, velocity: 0.8 }] })
 
-    const variation = createVariation(slip, { transposeSemitones: 3, keepLinked: false }, [])
+    const variation = createVariation(slip, { transposeSemitones: 3 }, [])
 
     expect(variation.notes[0].pitch).toBe(67)
   })
@@ -822,7 +822,7 @@ describe('createVariation', () => {
       notes: [{ id: 'a', pitch: DEFAULT_GRID.highPitch, start: 0, length: 1, velocity: 0.8 }],
     })
 
-    const variation = createVariation(slip, { transposeSemitones: 5, keepLinked: false }, [])
+    const variation = createVariation(slip, { transposeSemitones: 5 }, [])
 
     expect(variation.notes[0].pitch).toBe(DEFAULT_GRID.highPitch)
   })
@@ -830,31 +830,23 @@ describe('createVariation', () => {
   it('transposes the key metadata alongside the notes', () => {
     const slip = createSlip({ key: 'E min' })
 
-    const variation = createVariation(slip, { transposeSemitones: 3, keepLinked: false }, [])
+    const variation = createVariation(slip, { transposeSemitones: 3 }, [])
 
     expect(variation.key).toBe('G min')
   })
 
-  it('sets copiedFromId to the source id when keepLinked is true', () => {
+  it('sets copiedFromId to the source id', () => {
     const slip = createSlip({ id: 'source' })
 
-    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [])
+    const variation = createVariation(slip, { transposeSemitones: 0 }, [])
 
     expect(variation.copiedFromId).toBe('source')
-  })
-
-  it('leaves copiedFromId null when keepLinked is false', () => {
-    const slip = createSlip({ id: 'source' })
-
-    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: false }, [])
-
-    expect(variation.copiedFromId).toBeNull()
   })
 
   it('numbers the title "var. 1" for the first variation of a source', () => {
     const slip = createSlip({ id: 'source', title: 'Rhodes Chord Stab' })
 
-    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [])
+    const variation = createVariation(slip, { transposeSemitones: 0 }, [])
 
     expect(variation.title).toBe('Rhodes Chord Stab var. 1')
   })
@@ -863,7 +855,7 @@ describe('createVariation', () => {
     const slip = createSlip({ id: 'source', title: 'Rhodes Chord Stab' })
     const existingVariation = createSlip({ title: 'Rhodes Chord Stab var. 1', copiedFromId: 'source' })
 
-    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: true }, [slip, existingVariation])
+    const variation = createVariation(slip, { transposeSemitones: 0 }, [slip, existingVariation])
 
     expect(variation.title).toBe('Rhodes Chord Stab var. 2')
   })
@@ -871,7 +863,7 @@ describe('createVariation', () => {
   it('assigns a fresh id and createdAt, distinct from the source', () => {
     const slip = createSlip({ id: 'source', createdAt: 1000 })
 
-    const variation = createVariation(slip, { transposeSemitones: 0, keepLinked: false }, [])
+    const variation = createVariation(slip, { transposeSemitones: 0 }, [])
 
     expect(variation.id).not.toBe('source')
     expect(variation.createdAt).toEqual(expect.any(Number))
@@ -880,7 +872,7 @@ describe('createVariation', () => {
   it('does not mutate the source slip', () => {
     const slip = createSlip({ notes: [{ id: 'a', pitch: 64, start: 0, length: 1, velocity: 0.8 }], key: 'E min' })
 
-    createVariation(slip, { transposeSemitones: 3, keepLinked: true }, [])
+    createVariation(slip, { transposeSemitones: 3 }, [])
 
     expect(slip.notes[0].pitch).toBe(64)
     expect(slip.key).toBe('E min')

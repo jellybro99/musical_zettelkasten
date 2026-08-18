@@ -1,18 +1,13 @@
-import { Minus, Plus } from 'lucide-react'
+import { GitBranch, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { transposeKey, type Slip } from '../domain/slip'
 import { ConfirmDialog } from './ConfirmDialog'
 import './VariationPopover.css'
 
-export interface VariationConfirmInput {
-  transposeSemitones: number
-  keepLinked: boolean
-}
-
 export interface VariationPopoverProps {
   slip: Slip
   initialTransposeSemitones?: number
-  onConfirm: (input: VariationConfirmInput) => void
+  onConfirm: (transposeSemitones: number) => void
   onLiveTranspose: (transposeSemitones: number) => void
   onClose: () => void
 }
@@ -25,10 +20,8 @@ export function VariationPopover({
   onClose,
 }: VariationPopoverProps) {
   const [transposeSemitones, setTransposeSemitones] = useState(initialTransposeSemitones)
-  const [keepLinked, setKeepLinked] = useState(true)
 
   const resultingKey = slip.key ? transposeKey(slip.key, transposeSemitones) : ''
-  const input: VariationConfirmInput = { transposeSemitones, keepLinked }
 
   // The clip's offset is applied live as the stepper changes (so the timeline
   // badge previews the result), so backing out has to actively revert it —
@@ -55,57 +48,57 @@ export function VariationPopover({
   return (
     <ConfirmDialog
       title="Make a variation"
+      subtitle={`of ${slip.title}`}
       onClose={onClose}
       actions={[
         { label: 'Cancel', variant: 'secondary', onClick: handleCancel },
-        { label: 'Create variation', variant: 'primary', onClick: () => onConfirm(input) },
+        {
+          label: 'Create variation',
+          variant: 'primary',
+          icon: <GitBranch size={14} />,
+          onClick: () => onConfirm(transposeSemitones),
+        },
       ]}
     >
-      <p className="variation-popover-source">of {slip.title}</p>
-      <p className="variation-popover-hint">
-        Transpose applies to this clip immediately. "Create variation" saves it as a new, independently editable
-        Slip.
-      </p>
-
-      <div className="field">
-        <label htmlFor="variation-transpose">Transpose (semitones)</label>
-        <div className="variation-popover-transpose-row">
-          <button
-            type="button"
-            className="btn btn-secondary btn-icon"
-            onClick={() => updateTranspose(transposeSemitones - 1)}
-            aria-label="Transpose down one semitone"
-          >
-            <Minus size={14} />
-          </button>
-          <input
-            id="variation-transpose"
-            type="number"
-            className="input variation-popover-transpose-input"
-            value={transposeSemitones}
-            onChange={(event) => updateTranspose(Number(event.target.value))}
-          />
-          <button
-            type="button"
-            className="btn btn-secondary btn-icon"
-            onClick={() => updateTranspose(transposeSemitones + 1)}
-            aria-label="Transpose up one semitone"
-          >
-            <Plus size={14} />
-          </button>
+      <div className="variation-popover-live-panel">
+        <div className="field">
+          <label htmlFor="variation-transpose">
+            <span className="variation-popover-live-dot" aria-hidden="true" />
+            Transpose (semitones)
+          </label>
+          <div className="variation-popover-transpose-row">
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon"
+              onClick={() => updateTranspose(transposeSemitones - 1)}
+              aria-label="Transpose down one semitone"
+            >
+              <Minus size={14} />
+            </button>
+            <input
+              id="variation-transpose"
+              type="number"
+              className="input variation-popover-transpose-input"
+              value={transposeSemitones}
+              onChange={(event) => updateTranspose(Number(event.target.value))}
+            />
+            <button
+              type="button"
+              className="btn btn-secondary btn-icon"
+              onClick={() => updateTranspose(transposeSemitones + 1)}
+              aria-label="Transpose up one semitone"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
         </div>
+
+        {slip.key && (
+          <p className="variation-popover-key">
+            {slip.key} → <strong>{resultingKey}</strong>
+          </p>
+        )}
       </div>
-
-      {slip.key && (
-        <p className="variation-popover-key">
-          {slip.key} → <strong>{resultingKey}</strong>
-        </p>
-      )}
-
-      <label className="variation-popover-linked">
-        <input type="checkbox" checked={keepLinked} onChange={(event) => setKeepLinked(event.target.checked)} />
-        Keep linked to the original slip
-      </label>
     </ConfirmDialog>
   )
 }

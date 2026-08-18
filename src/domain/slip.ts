@@ -172,7 +172,6 @@ export function transposeKey(key: string, semitones: number): string {
 
 export interface CreateVariationInput {
   transposeSemitones: number
-  keepLinked: boolean
 }
 
 // Reuses copySlip's shape (fresh id/createdAt, optional copiedFromId
@@ -191,7 +190,7 @@ export function createVariation(slip: Slip, input: CreateVariationInput, existin
     notes,
     key: transposeKey(slip.key, input.transposeSemitones),
     title: `${slip.title} var. ${variationCount + 1}`,
-    copiedFromId: input.keepLinked ? slip.id : null,
+    copiedFromId: slip.id,
   }
 }
 
