@@ -33,6 +33,7 @@ export function AppLayout() {
 
   const editorMatch = matchPath('/slips/:slipId', location.pathname)
   const arrangementMatch = matchPath('/arrange/:arrangementId', location.pathname)
+  const canPlay = Boolean(editorMatch || arrangementMatch)
 
   function toggleLoop() {
     loopRef.current = !loopRef.current
@@ -153,6 +154,18 @@ export function AppLayout() {
       playArrangement(currentArrangement.arrangement, currentArrangement.slipsById)
     }
   }
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.code !== 'Space' || !(nowPlaying || canPlay)) return
+      const target = event.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      event.preventDefault()
+      handleBarToggle()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  })
 
   const outletContext = useMemo<AppOutletContext>(
     () => ({
