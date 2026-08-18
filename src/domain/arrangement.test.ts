@@ -109,7 +109,7 @@ describe('addTrack', () => {
 
     const result = addTrack(arrangement)
 
-    expect(result.tracks).toMatchObject([{ name: 'New track 1', muted: false, solo: false, clips: [] }])
+    expect(result.tracks).toMatchObject([{ name: 'Track 1', muted: false, solo: false, clips: [] }])
   })
 
   it('assigns the new track a unique id', () => {
@@ -125,7 +125,7 @@ describe('addTrack', () => {
 
     const result = addTrack(withOne)
 
-    expect(result.tracks.map((track) => track.name)).toEqual(['New track 1', 'New track 2'])
+    expect(result.tracks.map((track) => track.name)).toEqual(['Track 1', 'Track 2'])
   })
 
   it('does not reuse a default name still in use after an earlier track is removed', () => {
@@ -134,7 +134,7 @@ describe('addTrack', () => {
 
     const result = addTrack(withFirstRemoved)
 
-    expect(result.tracks.map((track) => track.name)).toEqual(['New track 2', 'New track 3'])
+    expect(result.tracks.map((track) => track.name)).toEqual(['Track 2', 'Track 3'])
   })
 
   it('applies overrides on top of the defaults', () => {

@@ -51,7 +51,7 @@ export function updateArrangementMetadata(
   }
 }
 
-const DEFAULT_TRACK_NAME_PATTERN = /^New track (\d+)$/
+const DEFAULT_TRACK_NAME_PATTERN = /^Track (\d+)$/
 
 // Scans existing default names rather than using tracks.length, so a
 // removed-then-re-added track doesn't collide with a name still in use.
@@ -61,7 +61,7 @@ function nextDefaultTrackName(tracks: Track[]): string {
     .filter((match): match is string => match !== undefined)
     .map(Number)
   const nextNumber = usedNumbers.length > 0 ? Math.max(...usedNumbers) + 1 : 1
-  return `New track ${nextNumber}`
+  return `Track ${nextNumber}`
 }
 
 export function addTrack(arrangement: Arrangement, overrides?: Partial<Track>): Arrangement {
