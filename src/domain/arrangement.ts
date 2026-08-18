@@ -50,8 +50,28 @@ export function updateArrangementMetadata(
   }
 }
 
+const DEFAULT_TRACK_NAME_PATTERN = /^New track (\d+)$/
+
+// Scans existing default names rather than using tracks.length, so a
+// removed-then-re-added track doesn't collide with a name still in use.
+function nextDefaultTrackName(tracks: Track[]): string {
+  const usedNumbers = tracks
+    .map((track) => DEFAULT_TRACK_NAME_PATTERN.exec(track.name)?.[1])
+    .filter((match): match is string => match !== undefined)
+    .map(Number)
+  const nextNumber = usedNumbers.length > 0 ? Math.max(...usedNumbers) + 1 : 1
+  return `New track ${nextNumber}`
+}
+
 export function addTrack(arrangement: Arrangement, overrides?: Partial<Track>): Arrangement {
-  const track: Track = { id: crypto.randomUUID(), name: 'New track', muted: false, solo: false, clips: [], ...overrides }
+  const track: Track = {
+    id: crypto.randomUUID(),
+    name: nextDefaultTrackName(arrangement.tracks),
+    muted: false,
+    solo: false,
+    clips: [],
+    ...overrides,
+  }
   return { ...arrangement, tracks: [...arrangement.tracks, track] }
 }
 

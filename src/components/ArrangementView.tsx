@@ -2,6 +2,7 @@ import { Download, Shuffle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import {
+  addTrack,
   createArrangement,
   moveClip,
   placeClip,
@@ -142,6 +143,10 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     setArrangement((current) => removeTrack(current, trackId))
   }, [])
 
+  const handleAddTrack = useCallback(() => {
+    setArrangement((current) => addTrack(current))
+  }, [])
+
   const handleRenameTrack = useCallback((trackId: string, name: string) => {
     setArrangement((current) => renameTrack(current, trackId, name))
   }, [])
@@ -267,6 +272,7 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
           onResizeClipLoop={handleResizeClipLoop}
           onRemoveClip={handleRemoveClip}
           onRemoveTrack={handleRemoveTrack}
+          onAddTrack={handleAddTrack}
           onRenameTrack={handleRenameTrack}
           onToggleMute={handleToggleMute}
           onToggleSolo={handleToggleSolo}

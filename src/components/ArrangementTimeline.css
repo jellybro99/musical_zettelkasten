@@ -111,14 +111,39 @@
   background: var(--color-neutral-100);
 }
 
-.arrangement-new-track-row .arrangement-track-label {
-  color: var(--color-accent);
-}
-
 .arrangement-new-track-row .arrangement-track-lane {
   background: transparent;
   border: 1px dashed var(--color-divider);
   box-sizing: border-box;
+}
+
+.arrangement-add-track-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.arrangement-new-track-row:hover .arrangement-add-track-btn,
+.arrangement-add-track-btn:focus-visible {
+  opacity: 1;
+}
+
+.arrangement-add-track-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+.arrangement-add-track-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
 }
 
 .arrangement-clip {

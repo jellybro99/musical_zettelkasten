@@ -1,4 +1,4 @@
-import { GripVertical, Wand2 } from 'lucide-react'
+import { GripVertical, Plus, Wand2 } from 'lucide-react'
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import {
   computeLoopMarks,
@@ -43,6 +43,7 @@ export interface ArrangementTimelineProps {
   onResizeClipLoop: (input: ResizeClipLoopInput) => void
   onRemoveClip: (clipId: string) => void
   onRemoveTrack: (trackId: string) => void
+  onAddTrack: () => void
   onRenameTrack: (trackId: string, name: string) => void
   onToggleMute: (trackId: string) => void
   onToggleSolo: (trackId: string) => void
@@ -59,6 +60,7 @@ export function ArrangementTimeline({
   onResizeClipLoop,
   onRemoveClip,
   onRemoveTrack,
+  onAddTrack,
   onRenameTrack,
   onToggleMute,
   onToggleSolo,
@@ -342,7 +344,15 @@ export function ArrangementTimeline({
         style={{ height: TRACK_HEIGHT }}
       >
         <div className="arrangement-track-label" style={{ width: TRACK_LABEL_WIDTH }}>
-          + New track
+          <button
+            type="button"
+            className="arrangement-add-track-btn"
+            onClick={onAddTrack}
+            aria-label="Add new track"
+            title="Add new track"
+          >
+            <Plus size={14} />
+          </button>
         </div>
         <div className="arrangement-track-lane" style={{ width: barCount * BAR_WIDTH }}>
           {renderDropOverlay(NEW_TRACK)}
