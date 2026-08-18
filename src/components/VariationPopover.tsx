@@ -1,4 +1,4 @@
-import { Minus, Piano, Plus } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { transposeKey, type Slip } from '../domain/slip'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -11,33 +11,58 @@ export interface VariationConfirmInput {
 
 export interface VariationPopoverProps {
   slip: Slip
+  initialTransposeSemitones?: number
   onConfirm: (input: VariationConfirmInput) => void
-  onOpenInEditor: (input: VariationConfirmInput) => void
+  onLiveTranspose: (transposeSemitones: number) => void
   onClose: () => void
 }
 
-export function VariationPopover({ slip, onConfirm, onOpenInEditor, onClose }: VariationPopoverProps) {
-  const [transposeSemitones, setTransposeSemitones] = useState(0)
+export function VariationPopover({
+  slip,
+  initialTransposeSemitones = 0,
+  onConfirm,
+  onLiveTranspose,
+  onClose,
+}: VariationPopoverProps) {
+  const [transposeSemitones, setTransposeSemitones] = useState(initialTransposeSemitones)
   const [keepLinked, setKeepLinked] = useState(true)
 
   const resultingKey = slip.key ? transposeKey(slip.key, transposeSemitones) : ''
   const input: VariationConfirmInput = { transposeSemitones, keepLinked }
 
+  // The clip's offset is applied live as the stepper changes (so the timeline
+  // badge previews the result), so backing out has to actively revert it —
+  // closing the dialog doesn't undo an already-applied change on its own.
+  function updateTranspose(next: number) {
+    setTransposeSemitones(next)
+    // Typing e.g. "-3" passes through an intermediate "-" keystroke, which
+    // parses to NaN — don't let that transient state reach the live clip.
+    if (Number.isFinite(next)) {
+      onLiveTranspose(next)
+    }
+  }
+
+  function handleCancel() {
+    if (transposeSemitones !== initialTransposeSemitones) {
+      onLiveTranspose(initialTransposeSemitones)
+    }
+    onClose()
+  }
+
   return (
     <ConfirmDialog
       title="Make a variation"
-      onClose={onClose}
+      onClose={handleCancel}
       actions={[
-        { label: 'Create variation', variant: 'secondary', onClick: () => onConfirm(input) },
-        {
-          label: 'Create & add notes',
-          variant: 'primary',
-          icon: <Piano size={14} />,
-          onClick: () => onOpenInEditor(input),
-        },
+        { label: 'Cancel', variant: 'secondary', onClick: handleCancel },
+        { label: 'Create variation', variant: 'primary', onClick: () => onConfirm(input) },
       ]}
     >
       <p className="variation-popover-source">of {slip.title}</p>
+      <p className="variation-popover-hint">
+        Transpose applies to this clip immediately. "Create variation" saves it as a new, independently editable
+        Slip.
+      </p>
 
       <div className="field">
         <label htmlFor="variation-transpose">Transpose (semitones)</label>
@@ -45,7 +70,7 @@ export function VariationPopover({ slip, onConfirm, onOpenInEditor, onClose }: V
           <button
             type="button"
             className="btn btn-secondary btn-icon"
-            onClick={() => setTransposeSemitones((current) => current - 1)}
+            onClick={() => updateTranspose(transposeSemitones - 1)}
             aria-label="Transpose down one semitone"
           >
             <Minus size={14} />
@@ -55,12 +80,12 @@ export function VariationPopover({ slip, onConfirm, onOpenInEditor, onClose }: V
             type="number"
             className="input variation-popover-transpose-input"
             value={transposeSemitones}
-            onChange={(event) => setTransposeSemitones(Number(event.target.value))}
+            onChange={(event) => updateTranspose(Number(event.target.value))}
           />
           <button
             type="button"
             className="btn btn-secondary btn-icon"
-            onClick={() => setTransposeSemitones((current) => current + 1)}
+            onClick={() => updateTranspose(transposeSemitones + 1)}
             aria-label="Transpose up one semitone"
           >
             <Plus size={14} />

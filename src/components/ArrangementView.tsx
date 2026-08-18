@@ -11,6 +11,7 @@ import {
   renameTrack,
   resizeClipLoop,
   setClipSlip,
+  setClipTranspose,
   toggleTrackMute,
   toggleTrackSolo,
   updateArrangementMetadata,
@@ -186,11 +187,6 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
   }
 
   async function handleConfirmVariation(input: VariationConfirmInput) {
-    await createAndApplyVariation(input)
-    setVariationTarget(null)
-  }
-
-  async function handleOpenVariationInEditor(input: VariationConfirmInput) {
     const result = await createAndApplyVariation(input)
     setVariationTarget(null)
     if (!result) return
@@ -200,6 +196,14 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     // the navigation proceeds — same seam as every other exit path.
     navigate(`/slips/${result.variation.id}?from=${returnToArrangementParam(arrangementId)}`)
   }
+
+  const handleLiveTranspose = useCallback(
+    (semitones: number) => {
+      if (!variationTarget) return
+      setArrangement((current) => setClipTranspose(current, { clipId: variationTarget.clip.id, semitones }))
+    },
+    [variationTarget],
+  )
 
   return (
     <div className="arrangement-view">
@@ -282,8 +286,9 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
       {variationTarget && (
         <VariationPopover
           slip={variationTarget.sourceSlip}
+          initialTransposeSemitones={variationTarget.clip.transposeSemitones ?? 0}
           onConfirm={handleConfirmVariation}
-          onOpenInEditor={handleOpenVariationInEditor}
+          onLiveTranspose={handleLiveTranspose}
           onClose={() => setVariationTarget(null)}
         />
       )}

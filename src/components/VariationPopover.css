@@ -4,6 +4,13 @@
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
 
+.variation-popover-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
 .variation-popover-transpose-row {
   display: flex;
   align-items: center;

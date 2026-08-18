@@ -185,6 +185,13 @@
   text-overflow: ellipsis;
 }
 
+.arrangement-clip-transpose-badge {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
 .arrangement-clip-variation-btn {
   flex: none;
   display: flex;

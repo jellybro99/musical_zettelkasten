@@ -42,7 +42,7 @@ describe('variation return-to-arrangement URL', () => {
     const { router } = renderApp({ initialEntries: [`/arrange/${arrangement.id}`] })
 
     await user.click(await screen.findByRole('button', { name: `Make a variation from ${slip.title}` }))
-    await user.click(await screen.findByRole('button', { name: /create & add notes/i }))
+    await user.click(await screen.findByRole('button', { name: /create variation/i }))
     await waitForSlipEditor()
 
     expect(router.state.location.pathname).toMatch(/^\/slips\//)
@@ -58,7 +58,7 @@ describe('variation return-to-arrangement URL', () => {
 
     const { router } = renderApp({ initialEntries: [`/arrange/${arrangement.id}`] })
     await user.click(await screen.findByRole('button', { name: `Make a variation from ${slip.title}` }))
-    await user.click(await screen.findByRole('button', { name: /create & add notes/i }))
+    await user.click(await screen.findByRole('button', { name: /create variation/i }))
     await waitForSlipEditor()
 
     await user.click(screen.getByRole('button', { name: /back/i }))
@@ -72,7 +72,7 @@ describe('variation return-to-arrangement URL', () => {
 
     const { router: firstRouter, unmount } = renderApp({ initialEntries: [`/arrange/${arrangement.id}`] })
     await user.click(await screen.findByRole('button', { name: `Make a variation from ${slip.title}` }))
-    await user.click(await screen.findByRole('button', { name: /create & add notes/i }))
+    await user.click(await screen.findByRole('button', { name: /create variation/i }))
     await waitForSlipEditor()
     const variationUrl = firstRouter.state.location.pathname + firstRouter.state.location.search
     unmount()

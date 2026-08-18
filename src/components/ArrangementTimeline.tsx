@@ -315,6 +315,11 @@ export function ArrangementTimeline({
                 >
                   <GripVertical size={12} className="arrangement-clip-grip" />
                   <span className="arrangement-clip-title">{slip?.title ?? 'Missing slip'}</span>
+                  {!!clip.transposeSemitones && (
+                    <span className="arrangement-clip-transpose-badge">
+                      {clip.transposeSemitones > 0 ? `+${clip.transposeSemitones}` : clip.transposeSemitones}
+                    </span>
+                  )}
                   {slip && (
                     <button
                       type="button"

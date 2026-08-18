@@ -77,7 +77,7 @@ describe('autosave flush guard', () => {
 
     renderApp({ initialEntries: [`/arrange/${arrangement.id}`] })
     await user.click(await screen.findByRole('button', { name: `Make a variation from ${slip.title}` }))
-    await user.click(await screen.findByRole('button', { name: /create & add notes/i }))
+    await user.click(await screen.findByRole('button', { name: /create variation/i }))
     await screen.findByRole('button', { name: /^delete$/i })
 
     const persisted = await getArrangement(arrangement.id)
