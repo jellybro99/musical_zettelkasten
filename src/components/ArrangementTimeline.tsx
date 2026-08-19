@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 
 import {
   computeLoopMarks,
   NEW_TRACK,
+  trackIdAtY,
   type Arrangement,
   type Clip,
   type MoveClipInput,
@@ -10,10 +11,14 @@ import {
   type ResizeClipLoopInput,
 } from '../domain/arrangement'
 import type { Slip } from '../domain/slip'
+import { usePointerDrag } from '../hooks/usePointerDrag'
 import './ArrangementTimeline.css'
 
 export const BAR_WIDTH = 48
 export const TRACK_LABEL_WIDTH = 120
+// trackIdAtY does pixel math against these instead of measuring the DOM, so
+// .arrangement-track-row/.arrangement-timeline-ruler must stay box-sizing:
+// border-box (border included in the height below, not added on top).
 const TRACK_HEIGHT = 60
 const RULER_HEIGHT = 24
 const MIN_BARS = 16
@@ -23,10 +28,6 @@ interface DropPreview {
   trackId: string
   startBar: number
 }
-
-type ClipDragState =
-  | { type: 'move'; clipId: string; startX: number; startY: number; origStartBar: number; origTrackId: string }
-  | { type: 'resize'; clipId: string; startX: number; origLengthBars: number }
 
 function computeBarCount(arrangement: Arrangement, extraBar: number): number {
   const clipEnds = arrangement.tracks.flatMap((track) => track.clips.map((clip) => clip.startBar + clip.lengthBars))
@@ -75,7 +76,7 @@ export function ArrangementTimeline({
   const [preview, setPreview] = useState<DropPreview | null>(null)
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
-  const clipDragRef = useRef<ClipDragState | null>(null)
+  const { startDrag } = usePointerDrag()
 
   // Rail → timeline placement drag: only active while a slip is being
   // dragged in from the search rail, so this effect attaches/detaches with it.
@@ -87,15 +88,13 @@ export function ArrangementTimeline({
       const container = containerRef.current
       if (!container) return
 
-      const rows = container.querySelectorAll<HTMLElement>('[data-track-row]')
-      let targetTrackId: string | null = null
-      for (const row of rows) {
-        const rect = row.getBoundingClientRect()
-        if (event.clientY >= rect.top && event.clientY <= rect.bottom) {
-          targetTrackId = row.dataset.trackId ?? null
-          break
-        }
-      }
+      const containerRect = container.getBoundingClientRect()
+      const targetTrackId = trackIdAtY(
+        arrangement.tracks,
+        event.clientY - containerRect.top,
+        RULER_HEIGHT,
+        TRACK_HEIGHT,
+      )
 
       if (!targetTrackId) {
         previewRef.current = null
@@ -103,7 +102,6 @@ export function ArrangementTimeline({
         return
       }
 
-      const containerRect = container.getBoundingClientRect()
       const rawBar = (event.clientX - containerRect.left - TRACK_LABEL_WIDTH) / BAR_WIDTH
       const next = { trackId: targetTrackId, startBar: Math.max(0, Math.round(rawBar)) }
       previewRef.current = next
@@ -126,49 +124,7 @@ export function ArrangementTimeline({
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [draggingSlip, onPlaceClip, onDragEnd])
-
-  // Already-placed clip move/resize drag: a persistent listener (like
-  // PianoRoll's note drag) that only acts while clipDragRef is set.
-  useEffect(() => {
-    function handleMouseMove(event: MouseEvent) {
-      const drag = clipDragRef.current
-      const container = containerRef.current
-      if (!drag || !container) return
-
-      if (drag.type === 'move') {
-        const deltaBars = Math.round((event.clientX - drag.startX) / BAR_WIDTH)
-        const startBar = Math.max(0, drag.origStartBar + deltaBars)
-
-        let targetTrackId = drag.origTrackId
-        const rows = container.querySelectorAll<HTMLElement>('[data-track-row]')
-        for (const row of rows) {
-          const rect = row.getBoundingClientRect()
-          if (event.clientY >= rect.top && event.clientY <= rect.bottom) {
-            const id = row.dataset.trackId
-            if (id && id !== NEW_TRACK) targetTrackId = id
-            break
-          }
-        }
-
-        onMoveClip({ clipId: drag.clipId, trackId: targetTrackId, startBar })
-      } else {
-        const deltaBars = Math.round((event.clientX - drag.startX) / BAR_WIDTH)
-        onResizeClipLoop({ clipId: drag.clipId, lengthBars: drag.origLengthBars + deltaBars })
-      }
-    }
-
-    function handleMouseUp() {
-      clipDragRef.current = null
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [onMoveClip, onResizeClipLoop])
+  }, [draggingSlip, onPlaceClip, onDragEnd, arrangement.tracks])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -193,14 +149,25 @@ export function ArrangementTimeline({
     event.stopPropagation()
     setSelectedClipId(clip.id)
     setSelectedTrackId(null)
-    clipDragRef.current = {
-      type: 'move',
-      clipId: clip.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      origStartBar: clip.startBar,
-      origTrackId: trackId,
-    }
+    const clipId = clip.id
+    const origStartBar = clip.startBar
+    const origTrackId = trackId
+    const originClientY = event.clientY
+    startDrag(event, (dx, dy) => {
+      const deltaBars = Math.round(dx / BAR_WIDTH)
+      const startBar = Math.max(0, origStartBar + deltaBars)
+
+      let targetTrackId = origTrackId
+      const container = containerRef.current
+      if (container) {
+        const containerRect = container.getBoundingClientRect()
+        const clientY = originClientY + dy
+        const hitTrackId = trackIdAtY(arrangement.tracks, clientY - containerRect.top, RULER_HEIGHT, TRACK_HEIGHT)
+        if (hitTrackId && hitTrackId !== NEW_TRACK) targetTrackId = hitTrackId
+      }
+
+      onMoveClip({ clipId, trackId: targetTrackId, startBar })
+    })
   }
 
   function handleResizeMouseDown(event: ReactMouseEvent, clip: Clip) {
@@ -208,7 +175,12 @@ export function ArrangementTimeline({
     event.stopPropagation()
     setSelectedClipId(clip.id)
     setSelectedTrackId(null)
-    clipDragRef.current = { type: 'resize', clipId: clip.id, startX: event.clientX, origLengthBars: clip.lengthBars }
+    const clipId = clip.id
+    const origLengthBars = clip.lengthBars
+    startDrag(event, (dx) => {
+      const deltaBars = Math.round(dx / BAR_WIDTH)
+      onResizeClipLoop({ clipId, lengthBars: origLengthBars + deltaBars })
+    })
   }
 
   function handleTrackLabelClick(trackId: string) {

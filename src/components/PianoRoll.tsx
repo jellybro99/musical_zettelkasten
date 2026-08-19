@@ -1,7 +1,8 @@
 import { Volume2, VolumeX } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { computePlaybackDurationMs } from '../domain/playback'
 import { deleteNote, moveNote, placeNote, resizeNote, totalSteps, type GridConfig, type Note } from '../domain/slip'
+import { usePointerDrag } from '../hooks/usePointerDrag'
 import './PianoRoll.css'
 
 const ROW_HEIGHT = 26
@@ -28,18 +29,6 @@ function stepLineClass(step: number, grid: GridConfig): string {
   return 'line-minor'
 }
 
-type DragState =
-  | {
-      type: 'move'
-      id: string
-      startX: number
-      startY: number
-      origPitch: number
-      origStart: number
-      lastPreviewedPitch: number
-    }
-  | { type: 'resize'; id: string; startX: number; origLength: number }
-
 export interface PianoRollProps {
   notes: Note[]
   grid: GridConfig
@@ -60,7 +49,7 @@ export function PianoRoll({
   onTogglePreview,
 }: PianoRollProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const dragState = useRef<DragState | null>(null)
+  const { startDrag } = usePointerDrag()
   const steps = totalSteps(grid)
 
   const pitches: number[] = []
@@ -81,15 +70,28 @@ export function PianoRoll({
     event.preventDefault()
     event.stopPropagation()
     setSelectedId(note.id)
-    dragState.current = {
-      type: 'move',
-      id: note.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      origPitch: note.pitch,
-      origStart: note.start,
-      lastPreviewedPitch: note.pitch,
-    }
+    const noteId = note.id
+    const origPitch = note.pitch
+    const origStart = note.start
+    let lastPreviewedPitch = note.pitch
+    startDrag(event, (dx, dy) => {
+      const deltaStart = Math.round(dx / COL_WIDTH)
+      const deltaPitch = -Math.round(dy / ROW_HEIGHT)
+      const targetPitch = origPitch + deltaPitch
+      onNotesChange((current) =>
+        moveNote(current, grid, {
+          id: noteId,
+          pitch: targetPitch,
+          start: origStart + deltaStart,
+        }),
+      )
+
+      const clampedPitch = Math.min(grid.highPitch, Math.max(grid.lowPitch, targetPitch))
+      if (clampedPitch !== lastPreviewedPitch) {
+        lastPreviewedPitch = clampedPitch
+        onPreviewNote(clampedPitch, KEY_RAIL_PREVIEW_DURATION_MS)
+      }
+    })
     onPreviewNote(note.pitch, KEY_RAIL_PREVIEW_DURATION_MS)
   }
 
@@ -101,50 +103,13 @@ export function PianoRoll({
     event.preventDefault()
     event.stopPropagation()
     setSelectedId(note.id)
-    dragState.current = { type: 'resize', id: note.id, startX: event.clientX, origLength: note.length }
+    const noteId = note.id
+    const origLength = note.length
+    startDrag(event, (dx) => {
+      const deltaLength = Math.round(dx / COL_WIDTH)
+      onNotesChange((current) => resizeNote(current, grid, { id: noteId, length: origLength + deltaLength }))
+    })
   }
-
-  useEffect(() => {
-    function handleMouseMove(event: MouseEvent) {
-      const drag = dragState.current
-      if (!drag) return
-
-      if (drag.type === 'move') {
-        const deltaStart = Math.round((event.clientX - drag.startX) / COL_WIDTH)
-        const deltaPitch = -Math.round((event.clientY - drag.startY) / ROW_HEIGHT)
-        const targetPitch = drag.origPitch + deltaPitch
-        onNotesChange((current) =>
-          moveNote(current, grid, {
-            id: drag.id,
-            pitch: targetPitch,
-            start: drag.origStart + deltaStart,
-          }),
-        )
-
-        const clampedPitch = Math.min(grid.highPitch, Math.max(grid.lowPitch, targetPitch))
-        if (clampedPitch !== drag.lastPreviewedPitch) {
-          drag.lastPreviewedPitch = clampedPitch
-          onPreviewNote(clampedPitch, KEY_RAIL_PREVIEW_DURATION_MS)
-        }
-      } else {
-        const deltaLength = Math.round((event.clientX - drag.startX) / COL_WIDTH)
-        onNotesChange((current) =>
-          resizeNote(current, grid, { id: drag.id, length: drag.origLength + deltaLength }),
-        )
-      }
-    }
-
-    function handleMouseUp() {
-      dragState.current = null
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [grid, tempo, onNotesChange, onPreviewNote])
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {

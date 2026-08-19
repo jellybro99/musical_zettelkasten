@@ -15,8 +15,10 @@ import {
   setTrackVolume,
   toggleTrackMute,
   toggleTrackSolo,
+  trackIdAtY,
   updateArrangementMetadata,
   type Clip,
+  type Track,
 } from './arrangement'
 
 describe('createArrangement', () => {
@@ -614,6 +616,40 @@ describe('computeLoopMarks', () => {
 
   it('returns no marks for a zero or negative slip length', () => {
     expect(computeLoopMarks(clip({ lengthBars: 10 }), 0)).toEqual([])
+  })
+})
+
+describe('trackIdAtY', () => {
+  function track(id: string): Track {
+    return { id, name: id, muted: false, solo: false, volume: 1, clips: [] }
+  }
+
+  const tracks = [track('t1'), track('t2')]
+  const rulerHeight = 24
+  const rowHeight = 60
+
+  it('returns null above the ruler', () => {
+    expect(trackIdAtY(tracks, 0, rulerHeight, rowHeight)).toBeNull()
+  })
+
+  it('returns the first track for a y inside its row', () => {
+    expect(trackIdAtY(tracks, 30, rulerHeight, rowHeight)).toBe('t1')
+  })
+
+  it('returns the second track for a y inside its row', () => {
+    expect(trackIdAtY(tracks, 90, rulerHeight, rowHeight)).toBe('t2')
+  })
+
+  it('returns NEW_TRACK for a y inside the synthetic add-track row', () => {
+    expect(trackIdAtY(tracks, 150, rulerHeight, rowHeight)).toBe('new-track')
+  })
+
+  it('returns null below the add-track row', () => {
+    expect(trackIdAtY(tracks, 210, rulerHeight, rowHeight)).toBeNull()
+  })
+
+  it('returns NEW_TRACK for the whole row when there are no real tracks', () => {
+    expect(trackIdAtY([], 30, rulerHeight, rowHeight)).toBe('new-track')
   })
 })
 

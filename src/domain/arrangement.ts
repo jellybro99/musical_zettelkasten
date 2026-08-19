@@ -247,6 +247,21 @@ export function findArrangementsUsingSlip(arrangements: Arrangement[], slipId: s
   )
 }
 
+// Track rows render in order directly below the ruler, each `rowHeight` tall,
+// followed by one more same-height row for the synthetic NEW_TRACK add-row.
+export function trackIdAtY(
+  tracks: Track[],
+  y: number,
+  rulerHeight: number,
+  rowHeight: number,
+): string | typeof NEW_TRACK | null {
+  if (y < rulerHeight) return null
+  const index = Math.floor((y - rulerHeight) / rowHeight)
+  if (index < 0 || index > tracks.length) return null
+  if (index === tracks.length) return NEW_TRACK
+  return tracks[index].id
+}
+
 export function computeLoopMarks(clip: Clip, slipBars: number): number[] {
   if (slipBars <= 0) return []
   const marks: number[] = []
