@@ -1,3 +1,5 @@
+import { DEFAULT_INSTRUMENT_ID, type Waveform } from './instrument'
+
 export interface Note {
   id: string
   pitch: number
@@ -122,6 +124,9 @@ export interface Slip {
   kind: SlipKind
   tags: string[]
   copiedFromId: string | null
+  // Optional so slips saved before instruments existed still load; read
+  // through getInstrument()/`?? DEFAULT_INSTRUMENT_ID` rather than here.
+  instrument?: Waveform
 }
 
 export const MIN_TEMPO = 1
@@ -138,6 +143,7 @@ export function createSlip(overrides?: Partial<Slip>): Slip {
     kind: 'Phrase',
     tags: [],
     copiedFromId: null,
+    instrument: DEFAULT_INSTRUMENT_ID,
     ...overrides,
   }
 }
@@ -199,6 +205,7 @@ export interface UpdateSlipMetadataInput {
   tempo?: number
   key?: string
   kind?: SlipKind
+  instrument?: Waveform
 }
 
 export function updateSlipMetadata(slip: Slip, input: UpdateSlipMetadataInput): Slip {
@@ -208,6 +215,7 @@ export function updateSlipMetadata(slip: Slip, input: UpdateSlipMetadataInput): 
     ...(input.tempo !== undefined ? { tempo: Math.max(MIN_TEMPO, Math.round(input.tempo)) } : {}),
     ...(input.key !== undefined ? { key: input.key } : {}),
     ...(input.kind !== undefined ? { kind: input.kind } : {}),
+    ...(input.instrument !== undefined ? { instrument: input.instrument } : {}),
   }
 }
 

@@ -129,6 +129,24 @@ describe('computeArrangementPlayback', () => {
     expect(triggers.map((t) => t.trackId).sort()).toEqual([trackA.id, trackB.id].sort())
   })
 
+  it('tags each trigger with its slip\'s instrument, defaulting to triangle', () => {
+    const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0 })] })
+    const slipsById = new Map([[slipA.id, slipA]])
+
+    let arrangement = addTrack(createArrangement({ tempo: 120 }))
+    const [trackA] = arrangement.tracks
+    arrangement = placeClip(arrangement, { trackId: trackA.id, slipId: slipA.id, startBar: 0, slipBars: 2 })
+
+    const { triggers } = computeArrangementPlayback(arrangement, slipsById)
+
+    expect(triggers[0].instrument).toBe('triangle')
+
+    const retaggedSlipsById = new Map([[slipA.id, { ...slipA, instrument: 'square' as const }]])
+    const { triggers: retagged } = computeArrangementPlayback(arrangement, retaggedSlipsById)
+
+    expect(retagged[0].instrument).toBe('square')
+  })
+
   it('excludes a muted track\'s triggers', () => {
     const slipA = slip({ id: 'slip-a', notes: [note({ id: 'a1', start: 0 })] })
     const slipB = slip({ id: 'slip-b', notes: [note({ id: 'b1', start: 0 })] })

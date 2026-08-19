@@ -1,6 +1,7 @@
 import { ChevronDown, Copy, GitBranch, Piano, Save, Shuffle, Trash2 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import type { Arrangement } from '../domain/arrangement'
+import { DEFAULT_INSTRUMENT_ID, getInstrument, INSTRUMENTS, type Waveform } from '../domain/instrument'
 import {
   DEFAULT_GRID,
   notesOutOfGridBounds,
@@ -57,6 +58,7 @@ export function MetadataPanel({
     affectedCount: number
   } | null>(null)
   const copiedFrom = slip.copiedFromId ? allSlips.find((candidate) => candidate.id === slip.copiedFromId) : undefined
+  const instrument = getInstrument(slip.instrument)
 
   const currentOctaveCount = Math.round((slip.grid.highPitch - slip.grid.lowPitch + 1) / 12) || 1
 
@@ -231,16 +233,30 @@ export function MetadataPanel({
       <div className="hr" />
 
       <div className="field">
-        <span className="metadata-label">Instrument</span>
+        <label htmlFor="slip-instrument" className="metadata-label">
+          Instrument
+        </label>
         <div className="metadata-instrument-row">
           <div className="metadata-instrument-icon">
             <Piano size={18} />
           </div>
           <div className="metadata-instrument-info">
-            <div className="metadata-instrument-name">Mark I Rhodes</div>
-            <div className="metadata-instrument-subtitle">Electric piano · warm</div>
+            <div className="metadata-instrument-name">{instrument.label}</div>
+            <div className="metadata-instrument-subtitle">Synth · {instrument.waveform}</div>
           </div>
           <ChevronDown size={15} className="metadata-instrument-chevron" />
+          <select
+            id="slip-instrument"
+            className="metadata-instrument-select"
+            value={slip.instrument ?? DEFAULT_INSTRUMENT_ID}
+            onChange={(event) => onMetadataChange({ instrument: event.target.value as Waveform })}
+          >
+            {INSTRUMENTS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

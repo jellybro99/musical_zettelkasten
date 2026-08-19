@@ -452,6 +452,7 @@ describe('createSlip', () => {
       kind: 'Phrase',
       tags: [],
       copiedFromId: null,
+      instrument: 'triangle',
     })
   })
 
@@ -594,6 +595,14 @@ describe('updateSlipMetadata', () => {
     const result = updateSlipMetadata(slip, { kind: 'Texture' })
 
     expect(result.kind).toBe('Texture')
+  })
+
+  it('updates the instrument', () => {
+    const slip = createSlip()
+
+    const result = updateSlipMetadata(slip, { instrument: 'square' })
+
+    expect(result.instrument).toBe('square')
   })
 
   it('leaves fields not present in the input untouched', () => {

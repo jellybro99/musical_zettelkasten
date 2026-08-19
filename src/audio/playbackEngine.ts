@@ -1,3 +1,4 @@
+import { getInstrument, type Waveform } from '../domain/instrument'
 import { computeTriggerTimes, type NoteTrigger } from '../domain/playback'
 import type { Note } from '../domain/slip'
 
@@ -18,9 +19,9 @@ export interface PlaybackCallbacks extends TriggerCallbacks {
 }
 
 export interface PlaybackEngine {
-  play(notes: Note[], tempo: number, callbacks: PlaybackCallbacks): void
+  play(notes: Note[], tempo: number, instrument: Waveform | undefined, callbacks: PlaybackCallbacks): void
   playTriggers(triggers: NoteTrigger[], durationMs: number, callbacks: TriggerCallbacks): void
-  previewPitch(pitch: number, durationMs: number): void
+  previewPitch(pitch: number, durationMs: number, instrument?: Waveform): void
   stop(): void
 }
 
@@ -69,7 +70,7 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     activeGains = triggers.map((trigger) => {
       const osc = context.createOscillator()
       const gain = context.createGain()
-      osc.type = 'triangle'
+      osc.type = getInstrument(trigger.instrument).waveform
       osc.frequency.value = midiToFrequency(trigger.pitch)
       gain.gain.value = trigger.velocity
       osc.connect(gain).connect(context.destination)
@@ -100,21 +101,22 @@ export function createPlaybackEngine(context: AudioContext = new AudioContext())
     }, TICK_MS)
   }
 
-  function play(notes: Note[], tempo: number, { durationMs, onTick, onEnded }: PlaybackCallbacks) {
-    playTriggers(computeTriggerTimes(notes, tempo), durationMs, { onTick, onEnded })
+  function play(notes: Note[], tempo: number, instrument: Waveform | undefined, { durationMs, onTick, onEnded }: PlaybackCallbacks) {
+    const triggers = computeTriggerTimes(notes, tempo).map((trigger) => ({ ...trigger, instrument }))
+    playTriggers(triggers, durationMs, { onTick, onEnded })
   }
 
   // A single-voice audition, independent of the notes/tempo playback schedule —
   // stop() first guarantees monophony (cuts off any prior preview) and that a
   // preview always interrupts full-slip playback.
-  function previewPitch(pitch: number, durationMs: number) {
+  function previewPitch(pitch: number, durationMs: number, instrument?: Waveform) {
     stop()
     void context.resume()
 
     const startTime = context.currentTime
     const osc = context.createOscillator()
     const gain = context.createGain()
-    osc.type = 'triangle'
+    osc.type = getInstrument(instrument).waveform
     osc.frequency.value = midiToFrequency(pitch)
     gain.gain.value = 1
     osc.connect(gain).connect(context.destination)

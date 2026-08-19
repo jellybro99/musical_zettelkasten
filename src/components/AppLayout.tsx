@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { matchPath, Outlet, useLocation, useNavigate } from 'react-router'
 import { createPlaybackEngine, type PlaybackEngine } from '../audio/playbackEngine'
 import type { Arrangement } from '../domain/arrangement'
+import type { Waveform } from '../domain/instrument'
 import { computeArrangementPlayback, computePlaybackDurationMs, type ArrangementNoteTrigger } from '../domain/playback'
 import { createSlip, totalSteps, type Note, type Slip } from '../domain/slip'
 import { PlaybackBar, type NowPlaying } from './PlaybackBar'
@@ -53,11 +54,14 @@ export function AppLayout() {
     stopPlayback()
   }, [location.pathname, stopPlayback])
 
-  const previewNote = useCallback((pitch: number, durationMs: number) => {
-    if (!engineRef.current) engineRef.current = createPlaybackEngine()
-    engineRef.current.previewPitch(pitch, durationMs)
-    setNowPlaying(null)
-  }, [])
+  const previewNote = useCallback(
+    (pitch: number, durationMs: number) => {
+      if (!engineRef.current) engineRef.current = createPlaybackEngine()
+      engineRef.current.previewPitch(pitch, durationMs, currentEditorSlip?.instrument)
+      setNowPlaying(null)
+    },
+    [currentEditorSlip],
+  )
 
   function makeTriggerCallbacks(onEnded: () => void) {
     return {
@@ -66,13 +70,13 @@ export function AppLayout() {
     }
   }
 
-  function startEngine(notes: Note[], tempo: number, durationMs: number) {
-    engineRef.current?.play(notes, tempo, {
+  function startEngine(notes: Note[], tempo: number, durationMs: number, instrument: Waveform | undefined) {
+    engineRef.current?.play(notes, tempo, instrument, {
       durationMs,
       ...makeTriggerCallbacks(() => {
         if (loopRef.current) {
           setNowPlaying((prev) => (prev ? { ...prev, elapsedMs: 0 } : prev))
-          startEngine(notes, tempo, durationMs)
+          startEngine(notes, tempo, durationMs, instrument)
         } else {
           setNowPlaying(null)
         }
@@ -100,7 +104,7 @@ export function AppLayout() {
 
     const durationMs = computePlaybackDurationMs(slip.tempo, totalSteps(slip.grid))
     setNowPlaying({ kind: 'slip', slipId: slip.id, title: slip.title, tempo: slip.tempo, durationMs, elapsedMs: 0 })
-    startEngine(slip.notes, slip.tempo, durationMs)
+    startEngine(slip.notes, slip.tempo, durationMs, slip.instrument)
   }
 
   const togglePlaySlip = useCallback(

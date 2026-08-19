@@ -22,6 +22,7 @@ import {
   type PlaceClipInput,
   type ResizeClipLoopInput,
 } from '../domain/arrangement'
+import { arrangementMidiFilename, arrangementToMidiBytes } from '../domain/midiExport'
 import { generateSlipTitle } from '../domain/titleGenerator'
 import { createVariation, type Slip, type SlipFilters } from '../domain/slip'
 import { useAutosave } from '../hooks/useAutosave'
@@ -165,6 +166,17 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
     setArrangement((current) => setTrackVolume(current, trackId, volume))
   }, [])
 
+  function handleExportMidi() {
+    const bytes = arrangementToMidiBytes(arrangement, slipsById)
+    const blob = new Blob([bytes], { type: 'audio/midi' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = arrangementMidiFilename(arrangement)
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleOpenVariation = useCallback(
     (clip: Clip) => {
       const sourceSlip = slipsById.get(clip.slipId)
@@ -272,11 +284,12 @@ export function ArrangementView({ arrangementId }: ArrangementViewProps) {
             <button
               type="button"
               className="btn btn-secondary arrangement-view-export"
-              disabled
-              title="Export mix is not available yet"
+              onClick={handleExportMidi}
+              disabled={arrangement.tracks.length === 0}
+              title="Export as a .mid file"
             >
               <Download size={14} />
-              Export mix
+              Export MIDI
             </button>
           </div>
         </div>

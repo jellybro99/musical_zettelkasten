@@ -1,4 +1,5 @@
 import type { Arrangement } from './arrangement'
+import { DEFAULT_INSTRUMENT_ID, type Waveform } from './instrument'
 import { clamp, snapToGrid, type GridConfig, type Note, type Slip } from './slip'
 
 // Mirrors createVariation's pitch-clamping so a transposed clip's notes stay
@@ -8,7 +9,8 @@ function transposePitch(pitch: number, semitones: number, grid: GridConfig): num
 }
 
 // Matches the 4-steps-per-beat grid convention used by PianoRoll's beat lines.
-const STEPS_PER_BEAT = 4
+// Exported so midiExport can convert the same steps into MIDI ticks.
+export const STEPS_PER_BEAT = 4
 
 export interface NoteTrigger {
   id: string
@@ -16,6 +18,9 @@ export interface NoteTrigger {
   velocity: number
   time: number
   duration: number
+  // Absent for single-slip playback (no track to read it from) — the
+  // playback engine falls back to the default instrument in that case.
+  instrument?: Waveform
 }
 
 function secondsPerStep(tempo: number): number {
@@ -102,12 +107,14 @@ export function computeArrangementPlayback(arrangement: Arrangement, slipsById: 
       }
 
       const trackVolume = track.volume ?? 1
+      const slipInstrument = slip.instrument ?? DEFAULT_INSTRUMENT_ID
       for (const trigger of computeTriggerTimes(repeatedNotes, arrangement.tempo)) {
         triggers.push({
           ...trigger,
           velocity: trigger.velocity * trackVolume,
           time: trigger.time + clipStartSeconds,
           trackId: track.id,
+          instrument: slipInstrument,
         })
       }
 
